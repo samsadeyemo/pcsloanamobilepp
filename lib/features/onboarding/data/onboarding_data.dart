@@ -15,7 +15,7 @@ const onboardingPages =[
     "subtitle": "Choose repayment plans that suit your budget, from short-term to long-term loans.",
   },
   {
-    "image": "assets/images/",
+    "image": "assets/images/onboarding/onboarding4.png",
     "title": "Secure & Transparent",
     "subtitle": "Your data is protected with the highest level of security, and we are fully transparent about fees and terms.",
   },

@@ -23,11 +23,9 @@ class _SplashScreenState extends State<SplashScreen> {
     final prefs = await SharedPreferences.getInstance();
     final seen = prefs.getBool('onboarding_done') ?? false;
 
-    if (seen) {
-      context.go('/home');
-    } else {
-      context.go('/onboarding');
-    }
+    if (seen) context.go('/home');
+    else context.go('/onboarding');
+    
   }
 
   @override

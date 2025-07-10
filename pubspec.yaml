@@ -65,13 +65,21 @@ dev_dependencies:
 # The following section is specific to Flutter packages.
 flutter:
 
+  uses-material-design: true
+
   assets:
    - .env
    - assets/icons/logo.png
    - assets/images/onboarding/
+   - assets/fonts/
 
- 
-  uses-material-design: true
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/inter_24pt-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/inter_24pt-SemiBold.ttf
+          weight: 600
 
   
   # To add custom fonts to your application, add a fonts section here,

@@ -85,7 +85,7 @@ class OnboardingScreen extends ConsumerWidget {
                   style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xff7C70DF),
                         foregroundColor: const Color(0xffE5E7EB),
-                        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 13),
+                        padding: const EdgeInsets.symmetric(horizontal: 70, vertical: 15),
                   ),
                   child: const Text("Get Started",
                     style: TextStyle(color: Color(0xffE5E7EB), fontFamily: 'Inter',)
@@ -112,7 +112,7 @@ class OnboardingScreen extends ConsumerWidget {
                    style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xff7C70DF),
                         foregroundColor: const Color(0xffE5E7EB),
-                        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 13),
+                        padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 13),
                     ),
                       child: const Text("Next",
                         style: TextStyle(color: Color(0xffE5E7EB), fontFamily: 'Inter',),
@@ -132,7 +132,7 @@ class OnboardingScreen extends ConsumerWidget {
   Future<void> _completeOnboarding(BuildContext context) async {
   final prefs = await SharedPreferences.getInstance();
   await prefs.setBool('onboarding_done', true);
-  context.go('/home');
+  context.go('/getStartedScreen');
 }
 
 }

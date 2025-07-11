@@ -37,15 +37,16 @@ class OnboardingScreen extends ConsumerWidget {
 
                       Text(
                         data['title']!,
-                         style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                         style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600, fontFamily: 'Inter', fontSize: 23),
                          textAlign: TextAlign.center,
                       ),
 
                       const SizedBox(height: 16),
                       Text(
                         data['subtitle']!,
-                        style: Theme.of(context).textTheme.bodyMedium,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontFamily: 'Inter', fontWeight: FontWeight.w400, fontSize: 15),
                         textAlign: TextAlign.center,
+                        
                       ),
                       
                     ],
@@ -87,7 +88,7 @@ class OnboardingScreen extends ConsumerWidget {
                         padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 13),
                   ),
                   child: const Text("Get Started",
-                    style: TextStyle(color: Color(0xffE5E7EB))
+                    style: TextStyle(color: Color(0xffE5E7EB), fontFamily: 'Inter',)
                   ),
                   ),
                 )
@@ -98,7 +99,7 @@ class OnboardingScreen extends ConsumerWidget {
                   onPressed: () async {
                     await _completeOnboarding(context);
                   },
-                    child: const Text("Skip"),
+                    child: const Text("Skip", style: TextStyle(fontFamily: 'Inter',),),
                   ),
                   ElevatedButton(
                     onPressed: () {
@@ -114,7 +115,7 @@ class OnboardingScreen extends ConsumerWidget {
                         padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 13),
                     ),
                       child: const Text("Next",
-                        style: TextStyle(color: Color(0xffE5E7EB)),
+                        style: TextStyle(color: Color(0xffE5E7EB), fontFamily: 'Inter',),
                       ),
 
                   ),
@@ -131,7 +132,7 @@ class OnboardingScreen extends ConsumerWidget {
   Future<void> _completeOnboarding(BuildContext context) async {
   final prefs = await SharedPreferences.getInstance();
   await prefs.setBool('onboarding_done', true);
-  context.go('/home'); // or '/login' depending on your flow
+  context.go('/home');
 }
 
 }

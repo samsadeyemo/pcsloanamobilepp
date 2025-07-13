@@ -87,7 +87,7 @@ class GetStartedScreen extends StatelessWidget {
                       height: 52,
                       child: ElevatedButton(
                         onPressed: () {
-                          context.go('/getStartedScreen');
+                          context.go('/signIn');
                         },
                         style: ElevatedButton.styleFrom(
                           padding: EdgeInsets.zero,
@@ -107,7 +107,7 @@ class GetStartedScreen extends StatelessWidget {
                           child: Container(
                             alignment: Alignment.center,
                             child: Text(
-                              "Sign in",
+                              "Sign In",
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 16,
@@ -155,7 +155,7 @@ class GetStartedScreen extends StatelessWidget {
                           child: Container(
                             alignment: Alignment.center,
                             child: Text(
-                              "Sign in",
+                              "Sign Up",
                               style: const TextStyle(
                                 color: Color(0xffA198FF),
                                 fontSize: 16,
@@ -181,14 +181,16 @@ class GetStartedScreen extends StatelessWidget {
                 Align(
                   alignment: Alignment.bottomCenter,
                   child: Padding(
-                    padding: const EdgeInsets.only(bottom: 70),
+                    padding: const EdgeInsets.only(bottom: 80),
                     child: Text(
                       "By continuing, you agree to our",
-                      style: TextStyle(fontSize: 14),
+                      style: TextStyle(fontSize: 14,
+                      fontFamily: "Inter"
+                      ),
                     ),
                   ),
                 ),
-
+                  
                 Align(
                   alignment: Alignment.bottomCenter,
                   child: Padding(
@@ -202,6 +204,7 @@ class GetStartedScreen extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 14,
                           color: Color(0xffA198FF),
+                          fontFamily: "Inter"
                         ),
                       ),
                     ),
@@ -217,7 +220,9 @@ class GetStartedScreen extends StatelessWidget {
                       children: [
                         Icon(Icons.shield_outlined),
                         SizedBox(width: 8),
-                        Text("Secure & Licensed Platform"),
+                        Text("Secure & Licensed Platform",
+                        style: TextStyle(fontFamily: "Inter", color: Color(0xff4B5563), fontSize: 14),
+                        ),
                       ],
                     ),
                   ),

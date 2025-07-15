@@ -131,7 +131,7 @@ class GetStartedScreen extends StatelessWidget {
                       height: 52,
                       child: ElevatedButton(
                         onPressed: () {
-                          context.go('/getStartedScreen');
+                          context.go('/signUp');
                         },
                         style: ElevatedButton.styleFrom(
                           padding: EdgeInsets.zero,
@@ -184,13 +184,11 @@ class GetStartedScreen extends StatelessWidget {
                     padding: const EdgeInsets.only(bottom: 80),
                     child: Text(
                       "By continuing, you agree to our",
-                      style: TextStyle(fontSize: 14,
-                      fontFamily: "Inter"
-                      ),
+                      style: TextStyle(fontSize: 14, fontFamily: "Inter"),
                     ),
                   ),
                 ),
-                  
+
                 Align(
                   alignment: Alignment.bottomCenter,
                   child: Padding(
@@ -204,7 +202,7 @@ class GetStartedScreen extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 14,
                           color: Color(0xffA198FF),
-                          fontFamily: "Inter"
+                          fontFamily: "Inter",
                         ),
                       ),
                     ),
@@ -220,8 +218,13 @@ class GetStartedScreen extends StatelessWidget {
                       children: [
                         Icon(Icons.shield_outlined),
                         SizedBox(width: 8),
-                        Text("Secure & Licensed Platform",
-                        style: TextStyle(fontFamily: "Inter", color: Color(0xff4B5563), fontSize: 14),
+                        Text(
+                          "Secure & Licensed Platform",
+                          style: TextStyle(
+                            fontFamily: "Inter",
+                            color: Color(0xff4B5563),
+                            fontSize: 14,
+                          ),
                         ),
                       ],
                     ),

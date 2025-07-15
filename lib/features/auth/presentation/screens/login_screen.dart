@@ -17,59 +17,57 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   String phoneNumber = '';
   String password = "";
 
-
-   @override
+  @override
   void initState() {
     super.initState();
     ref.listenManual(authControllerProvider, (previous, next) {
       if (next.status == AuthStatus.loggedIn) {
         context.go('/home');
-      } else if (next.status == AuthStatus.loggedOut && previous?.status == AuthStatus.authenticating) {
+      } else if (next.status == AuthStatus.loggedOut &&
+          previous?.status == AuthStatus.authenticating) {
         showDialog(
           context: context,
-          builder: (context) => AlertDialog(
-            backgroundColor: Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(
-                  Icons.error,
-                  color: Colors.red,
-                  size: 48,
+          builder:
+              (context) => AlertDialog(
+                backgroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                const SizedBox(height: 16),
-                Text(
-                  'Login failed: ${next.errorMessage ?? "Invalid credentials"}',
-                  style: const TextStyle(
-                    color: Color(0xff0F2D62),
-                    fontFamily: 'Inter',
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.error, color: Colors.red, size: 48),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Login failed: ${next.errorMessage ?? "Invalid credentials"}',
+                      style: const TextStyle(
+                        color: Color(0xff0F2D62),
+                        fontFamily: 'Inter',
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text(
+                      'OK',
+                      style: TextStyle(
+                        color: Color(0xffA198FF),
+                        fontFamily: 'Inter',
+                        fontSize: 14,
+                      ),
+                    ),
                   ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text(
-                  'OK',
-                  style: TextStyle(
-                    color: Color(0xffA198FF),
-                    fontFamily: 'Inter',
-                    fontSize: 14,
-                  ),
-                ),
+                ],
               ),
-            ],
-          ),
         );
       }
     });
   }
-  
 
   @override
   Widget build(BuildContext context) {
@@ -295,17 +293,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         child: ElevatedButton(
                           onPressed: () async {
                             if (_formKey.currentState!.validate()) {
-                              try {
-                                  await ref.read(authControllerProvider.notifier).login(
-                                        LoginRequest(
-                                          phoneNumber: '+234$phoneNumber',
-                                          password: password,
-                                        ),
-                                      );
-                                  // Navigation is handled by ref.listen
-                                } catch (e) {
-                                  // Error is handled by ref.listen
-                                }
+                              // try {
+                              //   await ref
+                              //       .read(authControllerProvider.notifier)
+                              //       .login(
+                              //         LoginRequest(
+                              //           phoneNumber: '+234$phoneNumber',
+                              //           password: password,
+                              //         ),
+                              //       );
+                              //   // Navigation is handled by ref.listen
+                              // } catch (e) {
+                              //   // Error is handled by ref.listen
+                              // }
+                              context.go("/homepage");
                             }
                           },
                           style: ElevatedButton.styleFrom(
@@ -436,7 +437,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
 
                         TextButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            context.go('/signUp');
+                          },
                           child: Text(
                             "Create an Account",
                             style: TextStyle(

@@ -10,7 +10,6 @@ final secureStorage = FlutterSecureStorage();
 
 enum AuthStatus { loggedOut, authenticating, loggedIn }
 
-
 class AuthState {
   final AuthStatus status;
   final String? token;
@@ -18,9 +17,12 @@ class AuthState {
 
   const AuthState._(this.status, {this.token, this.errorMessage});
 
-  factory AuthState.loggedOut({String? errorMessage}) => AuthState._(AuthStatus.loggedOut, errorMessage: errorMessage);
-  factory AuthState.authenticating() => const AuthState._(AuthStatus.authenticating);
-  factory AuthState.loggedIn(String token) => AuthState._(AuthStatus.loggedIn, token: token);
+  factory AuthState.loggedOut({String? errorMessage}) =>
+      AuthState._(AuthStatus.loggedOut, errorMessage: errorMessage);
+  factory AuthState.authenticating() =>
+      const AuthState._(AuthStatus.authenticating);
+  factory AuthState.loggedIn(String token) =>
+      AuthState._(AuthStatus.loggedIn, token: token);
 }
 
 class AuthController extends StateNotifier<AuthState> {
@@ -54,8 +56,7 @@ class AuthController extends StateNotifier<AuthState> {
     }
   }
 
-
-   Future<void> signUp(SignUpRequest request) async {
+  Future<void> signUp(SignUpRequest request) async {
     state = AuthState.authenticating();
     try {
       final token = await _repo.signUp(request);
@@ -67,7 +68,6 @@ class AuthController extends StateNotifier<AuthState> {
       rethrow;
     }
   }
-
 
   // Handle user logout
   Future<void> logout() async {
@@ -93,9 +93,9 @@ class AuthController extends StateNotifier<AuthState> {
 }
 
 // Riverpod provider for the AuthController
-final authControllerProvider = StateNotifierProvider<AuthController, AuthState>((ref) {
-  final repo = ref.read(authRepositoryProvider);
-  return AuthController(repo);
-});
-
-
+final authControllerProvider = StateNotifierProvider<AuthController, AuthState>(
+  (ref) {
+    final repo = ref.read(authRepositoryProvider);
+    return AuthController(repo);
+  },
+);

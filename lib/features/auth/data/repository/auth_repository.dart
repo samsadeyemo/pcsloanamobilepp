@@ -15,10 +15,20 @@ class AuthRepository {
   /// Simulated signup – replace with real HTTP call later.
   Future<String> signUp(SignUpRequest request) async {
     await Future.delayed(const Duration(seconds: 2));
-   
-    return "mock_signup_token_456"; 
+    if (request.phoneNumber.startsWith("+234") &&
+        request.phoneNumber.length == 13) {
+      return "mock_signup_token_456";
+    }
+    throw Exception("Invalid signup data");
   }
 }
+
+Future<void> forgotPassword(String phoneNumber) async {
+    await Future.delayed(const Duration(seconds: 2));
+    if (phoneNumber != "+2341234567890") {
+      throw Exception("Phone number not found");
+    }
+  }
 
 /*
   Future<String> login(LoginRequest request) async {

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'app/routes/app_router.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -18,6 +18,9 @@ class MyApp extends StatelessWidget {
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       routerConfig: router,
+      theme: ThemeData(
+        fontFamily: 'Inter',
+      ),
     );
   }
 }

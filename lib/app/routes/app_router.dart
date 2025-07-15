@@ -7,10 +7,10 @@ import '../../features/onboarding/presentation/onboarding_screen.dart';
 final GoRouter router = GoRouter(
   initialLocation: '/',
   routes: [
-      GoRoute(path: '/', builder: (_, _) => const SplashScreen()),
-      GoRoute(path: '/onboarding', builder: (_, _) =>  OnboardingScreen()),
-      GoRoute(path: '/getStartedScreen', builder: (_, _) => GetStartedScreen()),
-      GoRoute(path: "/signIn", builder: (_, _) => LoginScreen()),
-      GoRoute(path: "/signUp", builder: (_, _) => LoginScreen()),
+      GoRoute(path: '/', builder: (context, state) => const SplashScreen()),
+      GoRoute(path: '/onboarding', builder: (context, state) =>  OnboardingScreen()),
+      GoRoute(path: '/getStartedScreen', builder: (context, state) => GetStartedScreen()),
+      GoRoute(path: "/signIn", builder: (context, state) => LoginScreen()),
+      GoRoute(path: "/signUp", builder: (context, state) => LoginScreen()),
   ],
   );

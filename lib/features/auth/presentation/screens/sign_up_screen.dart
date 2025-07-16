@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pcsloan/common/widgets/custom_input_field.dart';
 import 'package:pcsloan/features/auth/data/controllers/auth_controller.dart';
-import 'package:pcsloan/features/auth/domain/models/sign_up_request.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SignUpScreen extends ConsumerStatefulWidget {
   const SignUpScreen({super.key});
@@ -38,14 +37,14 @@ class _SignUpScren extends ConsumerState<SignUpScreen> {
 
               children: [
                 Text(
-                    'Create Your Account',
-                    style: TextStyle(
-                      fontFamily: 'Inter',
-                      fontSize: 24,
-                      color: Color(0xff0F2D62),
-                      fontWeight: FontWeight.w600,
-                    ),
+                  'Create Your Account',
+                  style: TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 24,
+                    color: Color(0xff0F2D62),
+                    fontWeight: FontWeight.w600,
                   ),
+                ),
                 Text(
                   'Please fill in your information below',
                   style: TextStyle(
@@ -151,6 +150,7 @@ class _SignUpScren extends ConsumerState<SignUpScreen> {
                           child: ElevatedButton(
                             onPressed: () async {
                               if (_formKey.currentState!.validate()) {
+                                savePhoneNumber(phoneNumber);
                                 context.go('/verify-phone');
                                 // try {
                                 //   await ref
@@ -251,7 +251,7 @@ class _SignUpScren extends ConsumerState<SignUpScreen> {
                       ),
                     ),
 
-                    Align(
+                Align(
                   alignment: Alignment.bottomCenter,
                   child: Padding(
                     padding: const EdgeInsets.only(bottom: 20),
@@ -290,5 +290,10 @@ class _SignUpScren extends ConsumerState<SignUpScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> savePhoneNumber(String phoneNumber) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('phoneNumber', phoneNumber);
   }
 }

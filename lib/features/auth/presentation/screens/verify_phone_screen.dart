@@ -1,126 +1,141 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:pcsloan/features/auth/data/controllers/auth_controller.dart';
+import 'package:pcsloan/common/widgets/custon_pin_code_field.dart';
+import 'package:pcsloan/common/widgets/otp_count_down_widget.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class VerifyPhoneScreen extends ConsumerStatefulWidget {
+class VerifyPhoneScreen extends StatefulWidget {
   const VerifyPhoneScreen({super.key});
 
   @override
-  ConsumerState<VerifyPhoneScreen> createState() => _VerifyPhoneScreenState();
+  State<VerifyPhoneScreen> createState() => _VerifyPhoneScreenState();
 }
 
-class _VerifyPhoneScreenState extends ConsumerState<VerifyPhoneScreen> {
-  final _formKey = GlobalKey<FormState>();
-  String pin = '';
+class _VerifyPhoneScreenState extends State<VerifyPhoneScreen> {
+  String? _phoneNumber; // value we'll show in the Text widget
+  bool _isLoading = true; // simple loading flag
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPhoneNumberOnce();
+  }
+
+  Future<void> _loadPhoneNumberOnce() async {
+    final prefs = await SharedPreferences.getInstance();
+    final phoneNumber = prefs.getString('phoneNumber');
+
+    // update state exactly once
+    setState(() {
+      _phoneNumber = phoneNumber;
+      _isLoading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authControllerProvider);
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Verify Phone'),
-        backgroundColor: const Color(0xffE5E7EB),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Enter the code sent to your phone number',
-              style: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 16,
-                color: Color(0xff0F2D62),
+      body: SafeArea(
+        child: Padding(
+          padding: EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AppBar(
+                leading: IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Color(0xff0F2D62)),
+                  onPressed: () => Navigator.pop(context),
+                ),
+                title: Text(
+                  'Verify Phone',
+                  style: TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 24,
+                    color: Color(0xff0F2D62),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                centerTitle: false,
+                backgroundColor: Colors.transparent,
+                elevation: 0,
               ),
-            ),
-            const SizedBox(height: 20),
-            Form(
-              key: _formKey,
-              child: Column(
-                children: [
-                  TextFormField(
-                    keyboardType: TextInputType.number,
-                    onChanged: (value) => setState(() => pin = value),
-                    validator: (value) =>
-                        value != null && value.length == 6 ? null : 'Pin must be 6 digits',
-                    decoration: InputDecoration(
-                      hintText: 'Enter 6-digit code',
-                      hintStyle: const TextStyle(
-                        color: Color(0xFFADAEBC),
-                        fontSize: 16,
-                        fontFamily: 'Inter',
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(color: Color(0xffD1D5DB)),
-                      ),
-                      filled: true,
-                      fillColor: Colors.white,
+              const SizedBox(height: 20),
+              Text(
+                'Enter the verfication code sent to',
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 16,
+                  color: Color(0xff4B5563),
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+              const SizedBox(height: 10),
+
+              _isLoading
+                  ? const CircularProgressIndicator()
+                  : Text(
+                    _phoneNumber == null || _phoneNumber!.isEmpty
+                        ? 'No Phone-Number saved'
+                        : '$_phoneNumber',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontFamily: "Inter",
+                      color: Color(0xff0F2D62),
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                ],
+              const SizedBox(height: 30),
+
+              Align(
+                alignment: Alignment.center,
+                child: PinCodeFields(
+                  length: 6,
+                  boxSize: 45,
+                  onCompleted: (code) {
+                    // send to backend / verify
+                    print('User entered code: $code');
+                  },
+                ),
               ),
-            ),
-            const SizedBox(height: 20),
-            authState.status == AuthStatus.authenticating
-                ? const CircularProgressIndicator()
-                : SizedBox(
-                    width: double.infinity,
+
+              const SizedBox(height: 24),
+
+              Align(
+                alignment: Alignment.center,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.timelapse_outlined,
+                      color: Color(0xff908FDF),
+                      size: 16,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Code expires in',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontFamily: 'Inter',
+                        color: Color(0xFF4B5563),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+
+                    OtpCountdown(totalSeconds: 180),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 30),
+              Align(
+                alignment: Alignment.center,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 0, right: 0),
+                  child: SizedBox(
+                    width: 342,
                     height: 50,
                     child: ElevatedButton(
-                      onPressed: () {
-                        if (_formKey.currentState!.validate()) {
-                          if (pin == '123456') { // Mock pin
-                            context.go('/password');
-                          } else {
-                            showDialog(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                backgroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                content: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(
-                                      Icons.error,
-                                      color: Colors.red,
-                                      size: 48,
-                                    ),
-                                    const SizedBox(height: 16),
-                                    Text(
-                                      'Verification failed: Invalid code',
-                                      style: const TextStyle(
-                                        color: Color(0xff0F2D62),
-                                        fontFamily: 'Inter',
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ],
-                                ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.of(context).pop(),
-                                    child: const Text(
-                                      'OK',
-                                      style: TextStyle(
-                                        color: Color(0xffA198FF),
-                                        fontFamily: 'Inter',
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          }
-                        }
-                      },
+                      onPressed: () async {},
                       style: ElevatedButton.styleFrom(
                         padding: EdgeInsets.zero,
                         shape: RoundedRectangleBorder(
@@ -138,9 +153,9 @@ class _VerifyPhoneScreenState extends ConsumerState<VerifyPhoneScreen> {
                         ),
                         child: Container(
                           alignment: Alignment.center,
-                          child: const Text(
-                            'Verify',
-                            style: TextStyle(
+                          child: Text(
+                            "Verify Code",
+                            style: const TextStyle(
                               color: Colors.white,
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
@@ -151,7 +166,62 @@ class _VerifyPhoneScreenState extends ConsumerState<VerifyPhoneScreen> {
                       ),
                     ),
                   ),
-          ],
+                ),
+              ),
+              
+              const SizedBox(height: 25),
+
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 20),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "Didn’t receive the code?",
+                        style: TextStyle(
+                          fontFamily: "Inter",
+                          color: Color(0xff4B5563),
+                          fontSize: 14,
+                        ),
+                      ),
+
+                      TextButton(
+                        onPressed: () {
+                          return null;
+                        },
+                        child: Text(
+                          "Click to resend",
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Color(0xffA198FF),
+                            fontFamily: "Inter",
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Align(
+                alignment: Alignment.center,
+                child: TextButton(
+                  onPressed: () {
+                    return null;
+                  },
+                  child: Text(
+                    "Change Phone Number",
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Color(0xffA198FF),
+                      fontFamily: "Inter",
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

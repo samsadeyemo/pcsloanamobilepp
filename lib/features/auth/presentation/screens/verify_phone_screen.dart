@@ -35,19 +35,20 @@ class _VerifyPhoneScreenState extends State<VerifyPhoneScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xffFFFFFF),
       body: SafeArea(
         child: Padding(
-          padding: EdgeInsets.all(24),
+          padding: EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               AppBar(
                 leading: IconButton(
                   icon: const Icon(Icons.arrow_back, color: Color(0xff0F2D62)),
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () => context.go('/signUp'),
                 ),
                 title: Text(
-                  'Verify Phone',
+                  'Verify Your Phone',
                   style: TextStyle(
                     fontFamily: 'Inter',
                     fontSize: 24,

@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pcsloan/common/widgets/custon_pin_code_field.dart';
 import 'package:pcsloan/common/widgets/otp_count_down_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class VerifyPhoneScreen extends StatefulWidget {
+class VerifyPhoneScreen extends ConsumerStatefulWidget {
   const VerifyPhoneScreen({super.key});
 
   @override
-  State<VerifyPhoneScreen> createState() => _VerifyPhoneScreenState();
+  ConsumerState<VerifyPhoneScreen> createState() => _VerifyPhoneScreenState();
 }
 
-class _VerifyPhoneScreenState extends State<VerifyPhoneScreen> {
+class _VerifyPhoneScreenState extends ConsumerState<VerifyPhoneScreen> {
   String? _phoneNumber; // value we'll show in the Text widget
   bool _isLoading = true; // simple loading flag
 
@@ -136,7 +137,9 @@ class _VerifyPhoneScreenState extends State<VerifyPhoneScreen> {
                     width: 342,
                     height: 50,
                     child: ElevatedButton(
-                      onPressed: () async {},
+                      onPressed: () async {
+                        context.go('/create-password');
+                      },
                       style: ElevatedButton.styleFrom(
                         padding: EdgeInsets.zero,
                         shape: RoundedRectangleBorder(
@@ -169,7 +172,7 @@ class _VerifyPhoneScreenState extends State<VerifyPhoneScreen> {
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: 25),
 
               Align(

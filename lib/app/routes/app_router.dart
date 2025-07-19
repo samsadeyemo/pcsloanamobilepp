@@ -1,4 +1,5 @@
 import 'package:go_router/go_router.dart';
+import 'package:pcsloan/features/auth/presentation/screens/create_password.dart';
 import 'package:pcsloan/features/auth/presentation/screens/get_started_screen.dart';
 import 'package:pcsloan/features/auth/presentation/screens/login_screen.dart';
 import 'package:pcsloan/features/auth/presentation/screens/sign_up_screen.dart';
@@ -20,10 +21,10 @@ final GoRouter router = GoRouter(
     ),
     GoRoute(path: "/signIn", builder: (context, state) => LoginScreen()),
     GoRoute(path: "/signUp", builder: (context, state) => SignUpScreen()),
-    //   GoRoute(
-    //   path: '/forgot-password',
-    //   builder: (context, state) => const ForgotPasswordScreen(),
-    // ),
+      GoRoute(
+      path: '/create-password',
+      builder: (context, state) => const CreatePasswordScreen(),
+    ),
     GoRoute(
       path: '/verify-phone',
       builder: (context, state) => const VerifyPhoneScreen(),

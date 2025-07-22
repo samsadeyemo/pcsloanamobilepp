@@ -214,7 +214,7 @@ class _CreatePasswordScreenState extends ConsumerState<CreatePasswordScreen> {
                     child: ElevatedButton(
                       onPressed: () async {
                         if (_obscurePassword == _obscurePassword1) {
-                          context.go("");
+                          context.go("/transaction-screen");
                         }
                       },
                       style: ElevatedButton.styleFrom(

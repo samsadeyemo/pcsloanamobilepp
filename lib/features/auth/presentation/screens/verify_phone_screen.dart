@@ -44,10 +44,6 @@ class _VerifyPhoneScreenState extends ConsumerState<VerifyPhoneScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               AppBar(
-                leading: IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Color(0xff0F2D62)),
-                  onPressed: () => context.go('/signUp'),
-                ),
                 title: Text(
                   'Verify Your Phone',
                   style: TextStyle(
@@ -57,7 +53,7 @@ class _VerifyPhoneScreenState extends ConsumerState<VerifyPhoneScreen> {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                centerTitle: false,
+                centerTitle: true,
                 backgroundColor: Colors.transparent,
                 elevation: 0,
               ),

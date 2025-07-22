@@ -1,4 +1,5 @@
 import 'package:go_router/go_router.dart';
+import 'package:pcsloan/features/auth/presentation/screens/account_created_screen.dart';
 import 'package:pcsloan/features/auth/presentation/screens/create_password.dart';
 import 'package:pcsloan/features/auth/presentation/screens/get_started_screen.dart';
 import 'package:pcsloan/features/auth/presentation/screens/login_screen.dart';
@@ -33,6 +34,10 @@ final GoRouter router = GoRouter(
     GoRoute(
       path: '/transaction-screen',
       builder: (context, state) => const TransactionPinScreen(),
+    ),
+    GoRoute(
+      path: '/account-created-screen',
+      builder: (context, state) => const AccountCreatedScreen(),
     ),
   ],
 );

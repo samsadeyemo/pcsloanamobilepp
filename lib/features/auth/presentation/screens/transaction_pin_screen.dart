@@ -70,9 +70,8 @@ class _TransactionPinScreen extends ConsumerState<TransactionPinScreen> {
                     height: 50,
                     child: ElevatedButton(
                       onPressed: () async {
-                        // if (_obscurePassword == _obscurePassword1) {
-                        //   context.go("/transaction-screen");
-                        // }
+                          context.go("/account-created-screen");
+                        
                       },
                       style: ElevatedButton.styleFrom(
                         padding: EdgeInsets.zero,

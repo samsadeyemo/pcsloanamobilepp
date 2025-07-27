@@ -116,38 +116,9 @@ class _TransactionPinScreen extends ConsumerState<TransactionPinScreen> {
 
               Container(
                 // color: Color(0xffd9dbf1),
-                width: 400,
+                width: 430,
                 height: 70,
-                child: Row(
-                  children: [
-                    const SizedBox(height: 25, width: 30,),
 
-                    Icon(
-                      Icons.shield_sharp,
-                      size: 20,
-                      color: Color(0xffA198FF),
-                    ),
-                    
-
-                    Column(
-                      children: [
-                        const SizedBox(height: 17, width: 8),
-                        Text(
-                          'This PIN will be required to authorize',
-                          style: TextStyle(
-                            fontSize: 14
-                          ),
-                        ), 
-                        Text(
-                          "any financial activity on your account",
-                          style: TextStyle(
-                            fontSize: 14
-                          ),
-                        ),
-                      ],
-                    )
-                  ],
-                ),
                 decoration: BoxDecoration(
                   color: Color(0xffd9dbf1),
                   border: Border.all(
@@ -156,8 +127,36 @@ class _TransactionPinScreen extends ConsumerState<TransactionPinScreen> {
                   ),
                   borderRadius: BorderRadius.circular(10), // Rounded corners
                 ),
+                child: Align(
+                  alignment: Alignment.center,
+                  child: Row(
+                    children: [
+                      const SizedBox(height: 25, width: 30),
+
+                      Icon(
+                        Icons.shield_sharp,
+                        size: 20,
+                        color: Color(0xffA198FF),
+                      ),
+
+                      Column(
+                        children: [
+                          const SizedBox(height: 12, width: 8),
+                          Text(
+                            'This PIN will be required to authorize',
+                            style: TextStyle(fontSize: 14),
+                          ),
+                          Text(
+                            "any financial activity on your account",
+                            style: TextStyle(fontSize: 14),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
               ),
-              const SizedBox(height: 50),
+              const SizedBox(height: 30),
 
               Align(
                 alignment: Alignment.center,

@@ -50,14 +50,18 @@ final GoRouter router = GoRouter(
       path: '/account-created-screen',
       builder: (context, state) => const AccountCreatedScreen(),
     ),
+
     GoRoute(
       path: '/forgot-password-screen',
       builder: (context, state) => const ForgetPasswordScreen(),
+
     ),
     GoRoute(
       path: '/verify-password-otp',
       builder: (context, state) => const VerifyOtpScreen()
       ),
       
+
+
   ],
 );

@@ -24,6 +24,7 @@ class AccountCreatedScreen extends StatelessWidget {
                     CircleAvatar(
                       radius: 40,
                       backgroundColor: Color(0xffd9dbf1),
+
                       child: Icon(Icons.check, size: 40, color: Color(0xff7C70DF)),
                     ),
                     SizedBox(height: 20),
@@ -97,3 +98,4 @@ class AccountCreatedScreen extends StatelessWidget {
     );
   }
 }
+

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:pcsloan/common/widgets/custom_input_field.dart';
 
 class ForgetPasswordScreen extends ConsumerStatefulWidget {
@@ -73,7 +74,7 @@ class _ForgetPasswordScreen extends ConsumerState<ForgetPasswordScreen> {
                     height: 52,
                     child: ElevatedButton(
                       onPressed: () {
-                        // context.go('/signIn');
+                        context.go('/verify-password-otp');
                       },
                       style: ElevatedButton.styleFrom(
                         padding: EdgeInsets.zero,

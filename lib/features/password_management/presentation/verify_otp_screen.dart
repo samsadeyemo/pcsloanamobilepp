@@ -194,7 +194,7 @@ class _VerifyOtpScreen extends ConsumerState<VerifyOtpScreen> {
                       height: 52,
                       child: ElevatedButton(
                         onPressed: () {
-                          context.go('/verify-password-otp');
+                          context.go('/password-change-success');
                         },
                         style: ElevatedButton.styleFrom(
                           padding: EdgeInsets.zero,
@@ -262,7 +262,7 @@ class _VerifyOtpScreen extends ConsumerState<VerifyOtpScreen> {
                     ),
                   ),
                 ),
-SizedBox(height: 100),
+SizedBox(height: 140),
 
                 Positioned(
                   left: 0,

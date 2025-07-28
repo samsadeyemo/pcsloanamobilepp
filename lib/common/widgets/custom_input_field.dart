@@ -41,7 +41,7 @@ class CustomInputField extends StatelessWidget {
           decoration: BoxDecoration(
             border: Border.all(color: Color(0xffD1D5DB)),
             borderRadius: BorderRadius.circular(10),
-            color: Color(0xffE5E7EB),
+            color: Color(0xffFFFFFF),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
           child: Row(

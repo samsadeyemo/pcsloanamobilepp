@@ -80,7 +80,7 @@ class _PinCodeFieldsState extends State<PinCodeFields> {
   BoxDecoration get _defaultBoxDecoration => BoxDecoration(
         border: Border.all(color: const Color(0xFFD1D5DB)),
         borderRadius: BorderRadius.circular(8),
-        color: const Color(0xFFE5E7EB),
+        color: const Color(0xFFFFFFFF),
       );
 
   @override

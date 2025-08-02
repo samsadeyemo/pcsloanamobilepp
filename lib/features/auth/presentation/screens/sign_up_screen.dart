@@ -114,11 +114,7 @@ class _SignUpScren extends ConsumerState<SignUpScreen> {
                         isOptional: true,
                         keyboardType: TextInputType.emailAddress,
                         onChanged: (value) => email = value,
-                        validator:
-                            (value) =>
-                                value != null && value.contains('@')
-                                    ? null
-                                    : 'Please enter a valid email',
+                        
                       ),
 
                       CustomInputField(

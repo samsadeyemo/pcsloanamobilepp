@@ -65,7 +65,6 @@ class _PinCodeFieldsState extends State<PinCodeFields> {
         _focusNodes[index].unfocus();
       }
     }
-    // If user pressed backspace on empty field, move back
     if (value.isEmpty && index > 0) {
       _focusNodes[index - 1].requestFocus();
     }

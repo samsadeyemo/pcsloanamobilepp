@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:pcsloan/features/auth/data/controllers/auth_controller.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -16,61 +15,61 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   String phoneNumber = '';
   String password = "";
 
-  @override
-  void initState() {
-    super.initState();
-    ref.listenManual(authControllerProvider, (previous, next) {
-      if (next.status == AuthStatus.loggedIn) {
-        context.go('/home');
-      } else if (next.status == AuthStatus.loggedOut &&
-          previous?.status == AuthStatus.authenticating) {
-        showDialog(
-          context: context,
-          builder:
-              (context) => AlertDialog(
-                backgroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                content: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.error, color: Colors.red, size: 48),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Login failed: ${next.errorMessage ?? "Invalid credentials"}',
-                      style: const TextStyle(
-                        color: Color(0xff0F2D62),
-                        fontFamily: 'Inter',
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: const Text(
-                      'OK',
-                      style: TextStyle(
-                        color: Color(0xffA198FF),
-                        fontFamily: 'Inter',
-                        fontSize: 14,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-        );
-      }
-    });
-  }
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   ref.listenManual(authControllerProvider, (previous, next) {
+  //     if (next.status == AuthStatus.loggedIn) {
+  //       context.go('/home');
+  //     } else if (next.status == AuthStatus.loggedOut &&
+  //         previous?.status == AuthStatus.authenticating) {
+  //       showDialog(
+  //         context: context,
+  //         builder:
+  //             (context) => AlertDialog(
+  //               backgroundColor: Colors.white,
+  //               shape: RoundedRectangleBorder(
+  //                 borderRadius: BorderRadius.circular(10),
+  //               ),
+  //               content: Column(
+  //                 mainAxisSize: MainAxisSize.min,
+  //                 children: [
+  //                   const Icon(Icons.error, color: Colors.red, size: 48),
+  //                   const SizedBox(height: 16),
+  //                   Text(
+  //                     'Login failed: ${next.errorMessage ?? "Invalid credentials"}',
+  //                     style: const TextStyle(
+  //                       color: Color(0xff0F2D62),
+  //                       fontFamily: 'Inter',
+  //                       fontSize: 16,
+  //                       fontWeight: FontWeight.w500,
+  //                     ),
+  //                     textAlign: TextAlign.center,
+  //                   ),
+  //                 ],
+  //               ),
+  //               actions: [
+  //                 TextButton(
+  //                   onPressed: () => Navigator.of(context).pop(),
+  //                   child: const Text(
+  //                     'OK',
+  //                     style: TextStyle(
+  //                       color: Color(0xffA198FF),
+  //                       fontFamily: 'Inter',
+  //                       fontSize: 14,
+  //                     ),
+  //                   ),
+  //                 ),
+  //               ],
+  //             ),
+  //       );
+  //     }
+  //   });
+  // }
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authControllerProvider);
+    // final authState = ref.watch(authControllerProvider);
     return Scaffold(
       backgroundColor: Color(0xffFFFFFF),
       body: SafeArea(
@@ -282,9 +281,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                 ),
                 SizedBox(height: 10),
-                authState.status == AuthStatus.authenticating
-                    ? const CircularProgressIndicator()
-                    : Padding(
+                // authState.status == AuthStatus.authenticating
+                    // ? const CircularProgressIndicator():
+                     Padding(
                       padding: const EdgeInsets.only(top: 0, right: 0),
                       child: SizedBox(
                         width: 342,

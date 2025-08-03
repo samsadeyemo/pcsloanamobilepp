@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pcsloan/common/widgets/custom_input_field.dart';
-import 'package:pcsloan/features/auth/data/controllers/auth_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SignUpScreen extends ConsumerStatefulWidget {
@@ -24,7 +23,6 @@ class _SignUpScren extends ConsumerState<SignUpScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authControllerProvider);
     return Scaffold(
       backgroundColor: Color(0xffE5E7EB),
       body: SafeArea(
@@ -134,9 +132,10 @@ class _SignUpScren extends ConsumerState<SignUpScreen> {
                 ),
 
                 const SizedBox(height: 20),
-                authState.status == AuthStatus.authenticating
-                    ? const CircularProgressIndicator()
-                    : Align(
+                // authState.status == AuthStatus.authenticating
+                //     ? const CircularProgressIndicator()
+                //     : 
+                Align(
                       alignment: Alignment.bottomCenter,
                       child: Padding(
                         padding: EdgeInsets.only(bottom: 1),

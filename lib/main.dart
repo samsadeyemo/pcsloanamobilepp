@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pcsloan/features/auth/data/repositories/auth_repository_provider.dart';
 import 'package:pcsloan/features/auth/providers/auth_provider.dart';
 import 'app/routes/app_router.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';

@@ -1,3 +1,5 @@
+//Handles HTTP communication with the backend.
+
 import 'dart:convert'; // For JSON encoding/decoding
 import 'package:http/http.dart' as http; // For HTTP requests
 import 'package:flutter_riverpod/flutter_riverpod.dart'; // For Riverpod

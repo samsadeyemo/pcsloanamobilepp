@@ -1,3 +1,7 @@
+//This file defines the AuthRepository for handling authentication data operations.
+//Takes ApiService and SharedPreferences for API calls and persistence.
+
+
 import 'dart:convert';
 import 'package:pcsloan/service/api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';

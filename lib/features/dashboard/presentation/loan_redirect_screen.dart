@@ -1,29 +1,35 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:pcsloan/features/dashboard/presentation/active_loan_screen.dart';
-import 'package:pcsloan/features/dashboard/presentation/no_loan_screen.dart';
 import 'package:pcsloan/features/dashboard/providers/loan_status_provider.dart';
 
-class LoanRedirectScreen extends ConsumerWidget {
+class LoanRedirectScreen extends ConsumerStatefulWidget {
   const LoanRedirectScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final loanStatus = ref.watch(loanStatusProvider);
+  ConsumerState<LoanRedirectScreen> createState() => _LoanRedirectScreenState();
+}
 
-    return loanStatus.when(
-      loading: () => Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (e, _) => Scaffold(body: Center(child: Text('Error: $e'))),
-      data: (hasActiveLoan) {
-        if (hasActiveLoan) {
+class _LoanRedirectScreenState extends ConsumerState<LoanRedirectScreen> {
+  bool _navigated = false;
+
+  @override
+  Widget build(BuildContext context) {
+    ref.listen<AsyncValue<bool>>(loanStatusProvider, (prev, next) {
+      if (_navigated) return;
+
+      next.whenData((hasLoan) {
+        _navigated = true;
+        if (hasLoan) {
           context.pushReplacement('/active-loan');
         } else {
           context.pushReplacement('/no-loan');
         }
-      },
+      });
+    });
+
+    return const Scaffold(
+      body: Center(child: CircularProgressIndicator()),
     );
   }
 }

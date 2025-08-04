@@ -1,3 +1,6 @@
+//This file defines the AuthState class and AuthNotifier for managing authentication state.
+
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pcsloan/features/auth/data/repositories/auth_repository.dart';
 

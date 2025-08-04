@@ -1,3 +1,5 @@
+//This file sets up Riverpod providers for dependencies.
+
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pcsloan/features/auth/providers/auth_provider.dart';

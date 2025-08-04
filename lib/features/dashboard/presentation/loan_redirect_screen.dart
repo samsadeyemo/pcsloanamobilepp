@@ -2,7 +2,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pcsloan/features/dashboard/presentation/active_login_screen.dart';
+import 'package:go_router/go_router.dart';
+import 'package:pcsloan/features/dashboard/presentation/active_loan_screen.dart';
 import 'package:pcsloan/features/dashboard/presentation/no_loan_screen.dart';
 import 'package:pcsloan/features/dashboard/providers/loan_status_provider.dart';
 
@@ -18,9 +19,9 @@ class LoanRedirectScreen extends ConsumerWidget {
       error: (e, _) => Scaffold(body: Center(child: Text('Error: $e'))),
       data: (hasActiveLoan) {
         if (hasActiveLoan) {
-          return ActiveLoanScreen();
+          context.pushReplacement('/active-loan');
         } else {
-          return NoLoanScreen();
+          context.pushReplacement('/no-loan');
         }
       },
     );

@@ -254,7 +254,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               //   );
                               // }
 
-                              context.go("/homepage");
+                              context.go("/loan-redirect");
                             }
                           },
                           style: ElevatedButton.styleFrom(

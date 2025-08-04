@@ -6,6 +6,9 @@ import 'package:pcsloan/features/auth/presentation/screens/login_screen.dart';
 import 'package:pcsloan/features/auth/presentation/screens/sign_up_screen.dart';
 import 'package:pcsloan/features/auth/presentation/screens/transaction_pin_screen.dart';
 import 'package:pcsloan/features/auth/presentation/screens/verify_phone_screen.dart';
+import 'package:pcsloan/features/dashboard/presentation/active_loan_screen.dart';
+import 'package:pcsloan/features/dashboard/presentation/loan_redirect_screen.dart';
+import 'package:pcsloan/features/dashboard/presentation/no_loan_screen.dart';
 import 'package:pcsloan/features/password_management/presentation/forget_password_screen.dart';
 import 'package:pcsloan/features/password_management/presentation/password_changed_success_screen.dart';
 import 'package:pcsloan/features/password_management/presentation/verify_otp_screen.dart';
@@ -64,7 +67,19 @@ final GoRouter router = GoRouter(
     GoRoute(
       path: '/password-change-success',
       builder: (context, state) => const PasswordChangedSuccessScreen()
-      )
+      ),
+    GoRoute(
+      path: '/loan-redirect',
+      builder: (context, state) => const LoanRedirectScreen()
+      ),
+    GoRoute(
+      path: '/active-loan',
+      builder: (context, state) => const ActiveLoanScreen(),
+    ),
+    GoRoute(
+      path: '/no-loan',
+      builder: (context, state) => const NoLoanScreen(),
+    )
       
 
 

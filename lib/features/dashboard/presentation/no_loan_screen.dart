@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:pcsloan/common/widgets/custom_app_bar.dart';
 import 'package:pcsloan/common/widgets/custom_bottom_nav_bar.dart';
 import 'package:pcsloan/common/widgets/custom_circle_text_badge.dart';
+import 'package:pcsloan/common/widgets/gradient_action_button.dart';
 
 class NoLoanScreen extends ConsumerStatefulWidget {
   const NoLoanScreen({super.key});
@@ -196,13 +198,13 @@ class _NoLoanScreen extends ConsumerState<NoLoanScreen> {
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Padding(
-                      padding: EdgeInsets.only(left: 11),
+                      padding: EdgeInsets.only(left: 4),
                       child: Column(
                         children: [
                           Row(
                             children: [
                               CircleTextBadge(text: '1'),
-                              SizedBox(width: 20),
+                              SizedBox(width: 15),
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
 
@@ -247,7 +249,7 @@ class _NoLoanScreen extends ConsumerState<NoLoanScreen> {
                           Row(
                             children: [
                               CircleTextBadge(text: '2'),
-                              SizedBox(width: 20),
+                              SizedBox(width: 15),
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
 
@@ -275,7 +277,6 @@ class _NoLoanScreen extends ConsumerState<NoLoanScreen> {
                                       fontSize: 12,
                                     ),
                                   ),
-                                  
                                 ],
                               ),
                             ],
@@ -284,7 +285,7 @@ class _NoLoanScreen extends ConsumerState<NoLoanScreen> {
                           Row(
                             children: [
                               CircleTextBadge(text: '3'),
-                              SizedBox(width: 20),
+                              SizedBox(width: 15),
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
 
@@ -312,7 +313,6 @@ class _NoLoanScreen extends ConsumerState<NoLoanScreen> {
                                       fontSize: 12,
                                     ),
                                   ),
-                                  
                                 ],
                               ),
                             ],
@@ -321,6 +321,83 @@ class _NoLoanScreen extends ConsumerState<NoLoanScreen> {
                       ),
                     ),
                   ),
+                  Align(
+                    alignment: Alignment.center,
+                    child: Padding(
+                      padding: EdgeInsets.only(top: 40),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 16,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF9FAFB),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFFE5E7EB)),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.shield,
+                                  size: 22,
+                                  color: Color(0xff0F2D62),
+                                ),
+                                SizedBox(width: 10),
+                                Text(
+                                  'Eligibility Check',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF1F2937),
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            SizedBox(height: 8),
+                            Text(
+                              'Available for verified civil servants with a minimum of 6 months service record.',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Color(0xFF6B7280),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  Align(
+                    alignment: Alignment.center,
+                    child: Padding(
+                      padding: EdgeInsets.only(top: 50),
+                      child: GradientActionButton(
+                        text: "+  Apply for a Loan",
+                        size: 18,
+                        onPressed: () {
+                          context.go("/loan-redirect");
+                        },
+                      ),
+                    ),
+                  ),
+                  Align(
+                    alignment: Alignment.center,
+                    child: Padding(
+                      padding: EdgeInsets.only(top: 8),
+                      child: Text(
+                        'Start your loan application today',
+                        style: TextStyle(
+                          color: Color(0xff6B7280),
+                          fontFamily: "Inter",
+                          fontSize: 14
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 20,)
                 ],
               ),
             ),

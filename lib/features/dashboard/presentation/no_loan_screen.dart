@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pcsloan/common/widgets/custom_app_bar.dart';
 import 'package:pcsloan/common/widgets/custom_bottom_nav_bar.dart';
+import 'package:pcsloan/common/widgets/custom_circle_text_badge.dart';
 
 class NoLoanScreen extends ConsumerStatefulWidget {
   const NoLoanScreen({super.key});
@@ -11,8 +12,6 @@ class NoLoanScreen extends ConsumerStatefulWidget {
 }
 
 class _NoLoanScreen extends ConsumerState<NoLoanScreen> {
-  int _currentIndex = 0;
-
   @override
   Widget build(BuildContext context) {
     {
@@ -35,7 +34,7 @@ class _NoLoanScreen extends ConsumerState<NoLoanScreen> {
         body: SafeArea(
           child: SingleChildScrollView(
             child: Padding(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -76,7 +75,252 @@ class _NoLoanScreen extends ConsumerState<NoLoanScreen> {
                       ),
                     ),
                   ),
-                  
+                  Align(
+                    alignment: Alignment.topCenter,
+                    child: Padding(
+                      padding: EdgeInsets.only(top: 0),
+                      child: Text(
+                        'Get started with your first loan application and',
+                        style: TextStyle(
+                          color: Color(0xff4B5563),
+                          fontFamily: 'Inter',
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Align(
+                    alignment: Alignment.topCenter,
+                    child: Padding(
+                      padding: EdgeInsets.only(top: 0),
+                      child: Text(
+                        'access fast, secure credit designed for civil',
+                        style: TextStyle(
+                          color: Color(0xff4B5563),
+                          fontFamily: 'Inter',
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Align(
+                    alignment: Alignment.topCenter,
+                    child: Padding(
+                      padding: EdgeInsets.only(top: 0),
+                      child: Text(
+                        'servants.',
+                        style: TextStyle(
+                          color: Color(0xff4B5563),
+                          fontFamily: 'Inter',
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  Align(
+                    alignment: Alignment.topCenter,
+                    child: Padding(
+                      padding: EdgeInsets.only(top: 15),
+                      child: Container(
+                        width: 346,
+                        height: 212,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF7C70DF), Color(0xFFA198FF)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          border: Border.all(
+                            color: Color(0xFFE5E7EB),
+                            width: 1,
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.info_outlined,
+                                  size: 24,
+                                  color: Colors.white,
+                                ),
+                                SizedBox(width: 10),
+                                const Text(
+                                  'Loan Benefits',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            const SizedBox(height: 12),
+                            const BenefitItem(
+                              text: 'Competitive interest rates',
+                            ),
+                            const BenefitItem(text: 'Quick approval process'),
+                            const BenefitItem(text: 'Flexible repayment terms'),
+                            const BenefitItem(text: 'No hidden fees'),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 30),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Padding(
+                      padding: EdgeInsets.only(left: 11),
+                      child: Text(
+                        'How It Works',
+                        style: TextStyle(
+                          color: Color(0xff0F2D62),
+                          fontSize: 18,
+                          fontFamily: 'Inter',
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 15),
+
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Padding(
+                      padding: EdgeInsets.only(left: 11),
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              CircleTextBadge(text: '1'),
+                              SizedBox(width: 20),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+
+                                children: [
+                                  Padding(
+                                    padding: EdgeInsets.only(top: 5),
+
+                                    child: Text(
+                                      "Apply Online",
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        color: Color(0xff1F2937),
+                                        fontFamily: 'Inter',
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+
+                                  Text(
+                                    "Complete your loan application in just a few",
+                                    style: TextStyle(
+                                      color: Color(0xff4B5563),
+                                      fontFamily: 'Inter',
+                                      fontWeight: FontWeight.normal,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  Text(
+                                    "minutes",
+                                    style: TextStyle(
+                                      color: Color(0xff4B5563),
+                                      fontFamily: 'Inter',
+                                      fontWeight: FontWeight.normal,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 10),
+                          Row(
+                            children: [
+                              CircleTextBadge(text: '2'),
+                              SizedBox(width: 20),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+
+                                children: [
+                                  Padding(
+                                    padding: EdgeInsets.only(top: 5),
+
+                                    child: Text(
+                                      "Get Approved",
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        color: Color(0xff1F2937),
+                                        fontFamily: 'Inter',
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+
+                                  Text(
+                                    "Receive instant approval based on your profile",
+                                    style: TextStyle(
+                                      color: Color(0xff4B5563),
+                                      fontFamily: 'Inter',
+                                      fontWeight: FontWeight.normal,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  
+                                ],
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 10),
+                          Row(
+                            children: [
+                              CircleTextBadge(text: '3'),
+                              SizedBox(width: 20),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+
+                                children: [
+                                  Padding(
+                                    padding: EdgeInsets.only(top: 5),
+
+                                    child: Text(
+                                      "Receive Funds",
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        color: Color(0xff1F2937),
+                                        fontFamily: 'Inter',
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+
+                                  Text(
+                                    "Money disbursed directly to your bank account",
+                                    style: TextStyle(
+                                      color: Color(0xff4B5563),
+                                      fontFamily: 'Inter',
+                                      fontWeight: FontWeight.normal,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  
+                                ],
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -84,5 +328,30 @@ class _NoLoanScreen extends ConsumerState<NoLoanScreen> {
         ),
       );
     }
+  }
+}
+
+class BenefitItem extends StatelessWidget {
+  final String text;
+
+  const BenefitItem({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          const Icon(Icons.check_circle, color: Colors.white, size: 20),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(color: Colors.white, fontSize: 16),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

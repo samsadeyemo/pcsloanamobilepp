@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:pcsloan/common/widgets/custom_actions_button.dart';
 import 'package:pcsloan/common/widgets/custom_app_bar.dart';
 import 'package:pcsloan/common/widgets/custom_bottom_nav_bar.dart';
@@ -57,7 +58,7 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  margin: EdgeInsets.symmetric( vertical: 12),
+                  margin: EdgeInsets.symmetric(vertical: 12),
                   child: Padding(
                     padding: EdgeInsets.all(20),
                     child: Column(
@@ -86,8 +87,14 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
                           ),
                         ),
                         SizedBox(height: 12),
-                        _buildRow('Total to Repay:', formatCurrency(loan['totalToRepay'])),
-                        _buildRow('Amount Repaid:', formatCurrency(loan['amountRepaid'])),
+                        _buildRow(
+                          'Total to Repay:',
+                          formatCurrency(loan['totalToRepay']),
+                        ),
+                        _buildRow(
+                          'Amount Repaid:',
+                          formatCurrency(loan['amountRepaid']),
+                        ),
                         _buildRow('Balance:', formatCurrency(loan['balance'])),
                         _buildRow('Tenure:', '${loan['tenureMonths']} Months'),
                         SizedBox(height: 16),
@@ -144,8 +151,8 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
                         Align(
                           alignment: Alignment.center,
                           child: SizedBox(
-                            width: 250,
-                            height: 45,
+                            width: 290,
+                            height: 50,
                             child: TextButton(
                               onPressed: () {
                                 // Navigate to repayment progress screen
@@ -173,39 +180,176 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
                     ),
                   ),
                 ),
-
+                  SizedBox(height: 20,),
                 Text(
                   "Quick Actions",
                   style: TextStyle(
                     color: Color(0xff0F2D62),
                     fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 40),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    ActionBox(
+                      icon: Icons.credit_card,
+                      label: "Make Repayment",
+                      iconColor: Color(0xff7C70DF),
+                      iconOpacity: Color(0xff7C70DF).withOpacity(0.3),
+                      onTap: () {
+                        // Repayment logic
+                      },
+                    ),
+                    ActionBox(
+                      iconOpacity: Color(0xff4DB6AC).withOpacity(0.2),
+                      icon: Icons.calendar_month,
+                      label: "Schedule",
+                      iconColor: Color(0xff4DB6AC),
+                      onTap: () {
+                        // Schedule logic
+                      },
+                    ),
+                  ],
+                ),
+                Card(
+                  color: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(7),
+                    side: BorderSide(
+                      color: Colors.grey.shade100, // Border color
+                      width: 1.5, // Border width
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Align(
+                        alignment: Alignment.topRight,
+                        child: TextButton(
+                          onPressed:
+                              () => context.go(
+                                '/all-transactions',
+                              ), // Route to new screen
+                          child: const Text(
+                            'View All',
+                            style: TextStyle(color: Colors.green),
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 6),
+                      ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: 3, // Limit to 3 for this card
+                        itemBuilder: (context, index) {
+                          final tx = loan['transactions'][index];
+                          return ListTile(
+                            leading: Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color:
+                                    tx['isCredit']
+                                        ? Colors.deepPurple[100]
+                                        : Colors.pink[50],
+                              ),
+                              child: Icon(
+                                tx['isCredit']
+                                    ? Icons.arrow_downward
+                                    : Icons.arrow_upward,
+                                color:
+                                    tx['isCredit']
+                                        ? Color(0xff7C70DF)
+                                        : Colors.red,
+                              ),
+                            ),
+                            title: Text(
+                              tx['type'],
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            subtitle: Text(
+                              tx['date'],
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
+                            ),
+                            trailing: Text(
+                              tx['isCredit']
+                                  ? '+ ${formatCurrency(tx['amount'])}'
+                                  : '- ${formatCurrency(tx['amount'])}',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color:
+                                    tx['isCredit']
+                                        ? Color(0xff7C70DF)
+                                        : Colors.red,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
                   ),
                 ),
 
-                Row(
-  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-  children: [
-    ActionBox(
-      icon: Icons.credit_card,
-      label: "Make Repayment",
-      iconColor: Color(0xff7C70DF),
-      iconOpacity: Color(0xff7C70DF).withOpacity(0.3),
-      onTap: () {
-        // Repayment logic
-      },
-    ),
-    ActionBox(
-      iconOpacity: Color(0xff4DB6AC).withOpacity(0.2),
-      icon: Icons.calendar_month,
-      label: "Schedule",
-      iconColor: Color(0xff4DB6AC),
-      onTap: () {
-        // Schedule logic
-      },
-    ),
-  ],
-)
+                Align(
+                  alignment: Alignment.center,
+                  child: Padding(
+                    padding: EdgeInsets.only(top: 40),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 16,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF9FAFB),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.transparent),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: const [
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.notifications,
+                                size: 22,
+                                color: Color(0xff0F2D62),
+                              ),
+                              SizedBox(width: 10),
+                              Text(
+                                'Next Repayment Due',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF1F2937),
+                                ),
+                              ),
+                            ],
+                          ),
 
+                          SizedBox(height: 8),
+                          Text(
+                            'Your next repayment of ₦25,000.00 is due on April 15, 2025.',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Color(0xFF6B7280),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -233,15 +377,12 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
     );
   }
 
-
-String formatCurrency(double amount) {
-  final formatter = NumberFormat.currency(
-    locale: 'en_NG', // Nigerian locale
-    symbol: '₦',
-    decimalDigits: 2,
-  );
-  return formatter.format(amount);
-}
-
-
+  String formatCurrency(double amount) {
+    final formatter = NumberFormat.currency(
+      locale: 'en_NG', // Nigerian locale
+      symbol: '₦',
+      decimalDigits: 2,
+    );
+    return formatter.format(amount);
+  }
 }

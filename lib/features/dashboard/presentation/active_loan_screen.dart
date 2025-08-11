@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pcsloan/common/widgets/custom_app_bar.dart';
+import 'package:pcsloan/common/widgets/custom_bottom_nav_bar.dart';
+import 'package:pcsloan/features/dashboard/providers/loan_provider.dart';
+import 'package:intl/intl.dart';
 
 class ActiveLoanScreen extends ConsumerStatefulWidget {
   const ActiveLoanScreen({super.key});
@@ -13,8 +16,18 @@ class ActiveLoanScreen extends ConsumerStatefulWidget {
 class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
   @override
   Widget build(BuildContext context) {
-      final String profileImageUrl =
-          "https://fareedtijani.vercel.app/assets/FareedTijani-BrMuVf91.jpg";
+    final loanState = ref.watch(loanProvider);
+
+    if (loanState.isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+    // Error state
+    if (loanState.error != null) {
+      return Scaffold(body: Center(child: Text('Error: ${loanState.error}')));
+    }
+    final loan = loanState.loan!;
+    final String profileImageUrl =
+        "https://fareedtijani.vercel.app/assets/FareedTijani-BrMuVf91.jpg";
 
     return Scaffold(
       appBar: CustomAppBar(
@@ -27,45 +40,173 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
           );
         },
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        onTap: (index) {
-          switch (index) {
-            case 0:
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => ActiveLoanScreen()),
-              );
-              break;
-            case 1:
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => ActiveLoanScreen()),
-              );
-              break;
-            case 2:
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => ActiveLoanScreen()),
-              );
-              break;
-          }
-        },
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Page 1',
+      bottomNavigationBar: CustomBottomNavBar(),
+      backgroundColor: Color(0xffFFFFFF),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(15),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Card(
+                  elevation: 6,
+                  color: Color(0xff7C70DF),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  margin: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  child: Padding(
+                    padding: EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+                          children: [
+                            Text(
+                              'Active Loan',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Color(0xffFFFFFF),
+                              ),
+                            ),
+                            Icon(Icons.info_outlined, color: Color(0xffFFFFFF)),
+                          ],
+                        ),
+                        Text(
+                          formatCurrency(loan['amount']),
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xffFFFFFF),
+                          ),
+                        ),
+                        SizedBox(height: 12),
+                        _buildRow('Total to Repay:', formatCurrency(loan['totalToRepay'])),
+                        _buildRow('Amount Repaid:', formatCurrency(loan['amountRepaid'])),
+                        _buildRow('Balance:', formatCurrency(loan['balance'])),
+                        _buildRow('Tenure:', '${loan['tenureMonths']} Months'),
+                        SizedBox(height: 16),
+                        Container(
+                          padding: EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(
+                              0.1,
+                            ), // Semi-transparent white
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Colors.transparent, // Subtle border
+                              width: 1,
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'Repayment Progress',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  Text(
+                                    '33.3%',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 7),
+                              LinearProgressIndicator(
+                                value: loan['repaymentProgress'] / 100,
+                                minHeight: 8,
+                                backgroundColor: Colors.white.withOpacity(0.2),
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.white,
+                                ),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        SizedBox(height: 16),
+                        Align(
+                          alignment: Alignment.center,
+                          child: SizedBox(
+                            width: 250,
+                            height: 45,
+                            child: TextButton(
+                              onPressed: () {
+                                // Navigate to repayment progress screen
+                              },
+                              style: TextButton.styleFrom(
+                                backgroundColor: Colors.white.withOpacity(
+                                  0.1,
+                                ), // Almost transparent white
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  side: BorderSide(
+                                    color: Colors.transparent,
+                                    width: 1.0,
+                                  ),
+                                ),
+                              ),
+                              child: Text(
+                                'View Repayment Progress',
+                                style: TextStyle(color: Color(0xffFFFFFF)),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.book),
-            label: 'Page 2',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],),
+        ),
+      ),
     );
   }
+
+  Widget _buildRow(String label, String value) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: TextStyle(color: Color(0xffFFFFFF))),
+          Text(
+            value,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Color(0xffFFFFFF),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+
+String formatCurrency(double amount) {
+  final formatter = NumberFormat.currency(
+    locale: 'en_NG', // Nigerian locale
+    symbol: '₦',
+    decimalDigits: 2,
+  );
+  return formatter.format(amount);
 }
 
 
+}

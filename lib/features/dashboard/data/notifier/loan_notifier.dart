@@ -47,8 +47,8 @@ class LoanNotifier extends StateNotifier<LoanState> {
           'status': 'Active',
           'transactions': [
             {'type': 'Loan Disbursement', 'date': 'Jan 15, 2025', 'amount': 250000.0, 'isCredit': true},
-            {'type': 'Monthly Repayment', 'date': 'Feb 15, 2025', 'amount': -25000.0, 'isCredit': false},
-            {'type': 'Monthly Repayment', 'date': 'Mar 15, 2025', 'amount': -25000.0, 'isCredit': false},
+            {'type': 'Monthly Repayment', 'date': 'Feb 15, 2025', 'amount': 25000.0, 'isCredit': false},
+            {'type': 'Monthly Repayment', 'date': 'Mar 15, 2025', 'amount': 25000.0, 'isCredit': false},
           ],
           'nextRepaymentDue': {'date': 'Apr 15, 2025', 'amount': 25000.0},
         };

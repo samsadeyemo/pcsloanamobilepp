@@ -28,8 +28,8 @@ class ActionBox extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: Colors.grey.shade300, 
-            width: 0.7, 
+            color: Colors.grey.shade100, 
+            width: 1.5, 
           ),
           // boxShadow: [
           //   BoxShadow(

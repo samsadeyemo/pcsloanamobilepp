@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pcsloan/common/widgets/custom_actions_button.dart';
 import 'package:pcsloan/common/widgets/custom_app_bar.dart';
 import 'package:pcsloan/common/widgets/custom_bottom_nav_bar.dart';
 import 'package:pcsloan/features/dashboard/providers/loan_provider.dart';
@@ -45,17 +46,18 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.all(15),
+            padding: const EdgeInsets.all(20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Card(
                   elevation: 6,
                   color: Color(0xff7C70DF),
+
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  margin: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  margin: EdgeInsets.symmetric( vertical: 12),
                   child: Padding(
                     padding: EdgeInsets.all(20),
                     child: Column(
@@ -171,6 +173,39 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
                     ),
                   ),
                 ),
+
+                Text(
+                  "Quick Actions",
+                  style: TextStyle(
+                    color: Color(0xff0F2D62),
+                    fontSize: 18,
+                  ),
+                ),
+
+                Row(
+  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+  children: [
+    ActionBox(
+      icon: Icons.credit_card,
+      label: "Make Repayment",
+      iconColor: Color(0xff7C70DF),
+      iconOpacity: Color(0xff7C70DF).withOpacity(0.3),
+      onTap: () {
+        // Repayment logic
+      },
+    ),
+    ActionBox(
+      iconOpacity: Color(0xff4DB6AC).withOpacity(0.2),
+      icon: Icons.calendar_month,
+      label: "Schedule",
+      iconColor: Color(0xff4DB6AC),
+      onTap: () {
+        // Schedule logic
+      },
+    ),
+  ],
+)
+
               ],
             ),
           ),

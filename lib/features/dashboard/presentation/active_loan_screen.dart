@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pcsloan/common/widgets/custom_app_bar.dart';
 import 'package:pcsloan/common/widgets/custom_bottom_nav_bar.dart';
 import 'package:pcsloan/features/dashboard/providers/loan_provider.dart';
+import 'package:intl/intl.dart';
 
 class ActiveLoanScreen extends ConsumerStatefulWidget {
   const ActiveLoanScreen({super.key});
@@ -75,7 +76,7 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
                           ],
                         ),
                         Text(
-                          '₦${loan['amount'].toStringAsFixed(2)}',
+                          formatCurrency(loan['amount']),
                           style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
@@ -83,9 +84,9 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
                           ),
                         ),
                         SizedBox(height: 12),
-                        _buildRow('Total to Repay:', '₦${loan['totalToRepay'].toStringAsFixed(2)}'),
-                        _buildRow('Amount Repaid:', '₦${loan['amountRepaid'].toStringAsFixed(2)}'),
-                        _buildRow('Balance:', '₦${loan['balance'].toStringAsFixed(2)}'),
+                        _buildRow('Total to Repay:', formatCurrency(loan['totalToRepay'])),
+                        _buildRow('Amount Repaid:', formatCurrency(loan['amountRepaid'])),
+                        _buildRow('Balance:', formatCurrency(loan['balance'])),
                         _buildRow('Tenure:', '${loan['tenureMonths']} Months'),
                         SizedBox(height: 16),
                         Container(
@@ -196,4 +197,16 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
       ),
     );
   }
+
+
+String formatCurrency(double amount) {
+  final formatter = NumberFormat.currency(
+    locale: 'en_NG', // Nigerian locale
+    symbol: '₦',
+    decimalDigits: 2,
+  );
+  return formatter.format(amount);
+}
+
+
 }

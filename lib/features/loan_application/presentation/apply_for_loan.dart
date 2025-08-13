@@ -159,7 +159,7 @@ class _ApplyForLoan extends ConsumerState<ApplyForLoan> {
                       }).toList(),
                 ),
 
-Align(
+                Align(
                   alignment: Alignment.center,
                   child: Padding(
                     padding: EdgeInsets.only(top: 40),
@@ -175,7 +175,7 @@ Align(
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children:  [
+                        children: [
                           Row(
                             children: [
                               Icon(
@@ -210,19 +210,18 @@ Align(
                 ),
 
                 Align(
-                    alignment: Alignment.center,
-                    child: Padding(
-                      padding: EdgeInsets.only(top: 100),
-                      child: GradientActionButton(
-                        text: "Continue",
-                        size: 18,
-                        onPressed: () {
-                          context.go("/loan_application");
-                        },
-                      ),
+                  alignment: Alignment.center,
+                  child: Padding(
+                    padding: EdgeInsets.only(top: 100),
+                    child: GradientActionButton(
+                      text: "Continue",
+                      size: 18,
+                      onPressed: () {
+                        context.go("/Loan-status-screen");
+                      },
                     ),
                   ),
-
+                ),
               ],
             ),
           ),

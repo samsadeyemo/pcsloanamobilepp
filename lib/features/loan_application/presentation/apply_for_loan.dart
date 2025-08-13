@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:pcsloan/common/widgets/custom_tenure_button.dart';
+import 'package:pcsloan/common/widgets/gradient_action_button.dart';
 
 class ApplyForLoan extends ConsumerStatefulWidget {
   const ApplyForLoan({super.key});
@@ -157,7 +159,69 @@ class _ApplyForLoan extends ConsumerState<ApplyForLoan> {
                       }).toList(),
                 ),
 
+Align(
+                  alignment: Alignment.center,
+                  child: Padding(
+                    padding: EdgeInsets.only(top: 40),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 16,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF9FAFB),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.transparent),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children:  [
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.check_circle,
+                                size: 25,
+                                color: Color(0xff7C70DF),
+                              ),
+                              SizedBox(width: 10),
+                              Text(
+                                'You are eligible for this loan',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF1F2937),
+                                ),
+                              ),
+                            ],
+                          ),
 
+                          SizedBox(height: 8),
+                          Text(
+                            'Based on your profile and employment status, you qualify for up to ₦2,000,000.',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Color(0xFF6B7280),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+
+                Align(
+                    alignment: Alignment.center,
+                    child: Padding(
+                      padding: EdgeInsets.only(top: 100),
+                      child: GradientActionButton(
+                        text: "Continue",
+                        size: 18,
+                        onPressed: () {
+                          context.go("/loan_application");
+                        },
+                      ),
+                    ),
+                  ),
 
               ],
             ),

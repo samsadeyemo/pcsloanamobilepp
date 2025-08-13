@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pcsloan/common/widgets/custom_tenure_button.dart';
 
 class ApplyForLoan extends ConsumerStatefulWidget {
   const ApplyForLoan({super.key});
@@ -9,9 +10,19 @@ class ApplyForLoan extends ConsumerStatefulWidget {
 }
 
 class _ApplyForLoan extends ConsumerState<ApplyForLoan> {
+  String? selectedTenure;
   @override
   Widget build(BuildContext context) {
     String loanAmount = '';
+
+    final List<String> tenures = [
+      '3 Months',
+      '6 Months',
+      '12 Months',
+      '18 Months',
+      '24 Months',
+      '36 Months',
+    ];
     return Scaffold(
       backgroundColor: Color(0xffFFFFFF),
       appBar: AppBar(
@@ -105,25 +116,49 @@ class _ApplyForLoan extends ConsumerState<ApplyForLoan> {
                   children: [
                     Text(
                       'Min: ₦10,000',
-                      style: TextStyle(fontSize: 12, color: Color(0xFF4B5563)
-                      ),
+                      style: TextStyle(fontSize: 12, color: Color(0xFF4B5563)),
                     ),
                     Text(
                       'Max: ₦2,000,000',
-                      style: TextStyle(fontSize: 12, color: Color(0xFF4B5563),
-                      )
-                    )
-                  ]
+                      style: TextStyle(fontSize: 12, color: Color(0xFF4B5563)),
+                    ),
+                  ],
                 ),
-                SizedBox(height: 50,),
+                SizedBox(height: 70),
                 Text(
                   'Select Tenure (Months)',
                   style: TextStyle(
                     color: Color(0xff4B5563),
                     fontSize: 16,
-                    fontWeight: FontWeight.w400
+                    fontWeight: FontWeight.w400,
                   ),
-                )
+                ),
+                SizedBox(height: 10),
+
+                GridView.count(
+                  crossAxisCount: 3,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: 2,
+                  // padding: const EdgeInsets.all(16),
+                  children:
+                      tenures.map((tenure) {
+                        return MonthButton(
+                          label: tenure,
+                          isSelected: selectedTenure == tenure,
+                          onTap: () {
+                            setState(() {
+                              selectedTenure = tenure;
+                            });
+                          },
+                        );
+                      }).toList(),
+                ),
+
+
+
               ],
             ),
           ),

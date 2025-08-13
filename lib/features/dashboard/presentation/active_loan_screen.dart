@@ -273,6 +273,7 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
                               style: const TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.bold,
+                                overflow: TextOverflow.visible
                               ),
                             ),
                             subtitle: Text(

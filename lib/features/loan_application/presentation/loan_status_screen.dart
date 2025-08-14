@@ -2,8 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pcsloan/features/loan_application/presentation/apply_for_loan.dart';
-import 'package:pcsloan/features/loan_application/presentation/loan_loading_indicator.dart';
+import 'package:pcsloan/common/widgets/loan_loading_indicator.dart';
 import 'package:go_router/go_router.dart'; // Ensure go_router is imported
 
 class LoanStatusScreen extends ConsumerWidget {
@@ -135,7 +134,7 @@ class LoanStatusScreen extends ConsumerWidget {
       await Future.delayed(const Duration(seconds: 4));
       if (context.mounted) {
         debugPrint('Timer fired - navigating to ApplyForLoan');
-        context.go('/loan_application'); // Use go_router navigation
+        context.go('/loan-summary'); // Use go_router navigation
       } else {
         debugPrint('Widget not mounted - skipping navigation');
       }

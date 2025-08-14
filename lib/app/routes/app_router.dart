@@ -11,6 +11,7 @@ import 'package:pcsloan/features/dashboard/presentation/loan_redirect_screen.dar
 import 'package:pcsloan/features/dashboard/presentation/no_loan_screen.dart';
 import 'package:pcsloan/features/loan_application/presentation/apply_for_loan.dart';
 import 'package:pcsloan/features/loan_application/presentation/loan_status_screen.dart';
+import 'package:pcsloan/features/loan_application/presentation/loan_summary.dart';
 import 'package:pcsloan/features/password_management/presentation/forget_password_screen.dart';
 import 'package:pcsloan/features/password_management/presentation/password_changed_success_screen.dart';
 import 'package:pcsloan/features/password_management/presentation/verify_otp_screen.dart';
@@ -89,7 +90,11 @@ final GoRouter router = GoRouter(
     GoRoute(
       path: '/Loan-status-screen',
       builder: (context, state) => const LoanStatusScreen(),
-      )
+      ),
+      GoRoute(
+        path: '/loan-summary',
+        builder: (context, state) => const LoanSummary(),
+        ),
       
 
 

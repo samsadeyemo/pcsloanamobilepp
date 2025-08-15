@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:pcsloan/common/widgets/custom_circle_text_badge.dart';
+import 'package:pcsloan/common/widgets/gradient_action_button.dart';
 
 class BvnVerificationScreen extends ConsumerStatefulWidget {
   const BvnVerificationScreen({super.key});
@@ -12,6 +14,9 @@ class BvnVerificationScreen extends ConsumerStatefulWidget {
 }
 
 class _BvnVerificationScreen extends ConsumerState<BvnVerificationScreen> {
+  final TextEditingController _controller = TextEditingController();
+  String bvnNumber = '';
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -259,7 +264,118 @@ class _BvnVerificationScreen extends ConsumerState<BvnVerificationScreen> {
                           ),
                         ],
                       ),
+                      SizedBox(width: 10),
                     ],
+                  ),
+                ),
+                SizedBox(height: 20),
+                Text(
+                  'Enter BVN Number',
+                  style: TextStyle(color: Color(0xff4B5563), fontSize: 16),
+                ),
+                SizedBox(height: 10),
+
+                TextField(
+                  controller: _controller,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    hintText: '22012345678',
+                    suffixIcon: Icon(Icons.person, color: Color(0xffADAEBC)),
+
+                    border: OutlineInputBorder(),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Color(0xffADAEBC)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: Colors.deepPurple,
+                        width: 2.0,
+                      ), // On focus
+                    ),
+                    errorBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.red), // On error
+                    ),
+                    focusedErrorBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: Colors.redAccent,
+                        width: 2.0,
+                      ),
+                    ),
+                    hintStyle: TextStyle(color: Color(0xffADAEBC)),
+                  ),
+                  onChanged: (value) {
+                    setState(() {
+                      bvnNumber = value;
+                    });
+                  },
+                ),
+                Align(
+                  alignment: Alignment.center,
+                  child: Padding(
+                    padding: EdgeInsets.only(top: 40),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 16,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF9FAFB),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.transparent),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Align(
+                            alignment: Alignment.center,
+                            child: Icon(
+                              Icons.lock,
+                              size: 25,
+                              color: Color(0xff7C70DF),
+                            ),
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            'Your BVN is encrypted and stored securely. We only use it for identity verification purposes. It is a one time verification. ',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Color(0xFF6B7280),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 20),
+                Divider(thickness: 2, color: Color(0xFFE5E7EB)),
+                SizedBox(height: 20),
+                GradientActionButton(
+                  text: "Proceed to Facial Verification",
+                  size: 18,
+                  onPressed: () {
+                    context.go("/bvn-verification-screen");
+                  },
+                ),
+                SizedBox(height: 20),
+                Align(
+                  alignment: Alignment.center,
+                  child: TextButton(
+                    onPressed: () {
+                      return null;
+                    },
+                    child: Text(
+                      "Need help with BVN?",
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Color(0xffA198FF),
+                        fontFamily: "Inter",
+                      ),
+                    ),
                   ),
                 ),
               ],

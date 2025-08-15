@@ -251,12 +251,14 @@ class _LoanSummary extends ConsumerState<LoanSummary> {
                 ),
                 SizedBox(height: 10),
                 Divider(thickness: 2, color: Color(0xFFE5E7EB)),
+                SizedBox(height: 10),
+
                 SizedBox(
                   width: 350,
                   height: 50,
                   child: ElevatedButton(
                     onPressed: () {
-                      // handle biometric login
+                      context.go('/loan_application');
                     },
                     style: ElevatedButton.styleFrom(
                       padding: EdgeInsets.zero,
@@ -300,7 +302,7 @@ class _LoanSummary extends ConsumerState<LoanSummary> {
                   text: "Accept Offer",
                   size: 18,
                   onPressed: () {
-                    context.go("/Loan-status-screen");
+                    context.go("/bvn-verification-screen");
                   },
                 ),
               ],

@@ -3,18 +3,44 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pcsloan/common/widgets/loan_loading_indicator.dart';
-import 'package:go_router/go_router.dart'; // Ensure go_router is imported
+import 'package:go_router/go_router.dart';
 
-class LoanStatusScreen extends ConsumerWidget {
+class LoanStatusScreen extends ConsumerStatefulWidget {
   const LoanStatusScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // Trigger navigation after build
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _autoNavigate(context);
-    });
+  ConsumerState<LoanStatusScreen> createState() => _LoanStatusScreenState();
+}
 
+class _LoanStatusScreenState extends ConsumerState<LoanStatusScreen> {
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _startAutoNavigate();
+  }
+
+  void _startAutoNavigate() {
+    debugPrint('Timer started for auto-navigation');
+    _timer = Timer(const Duration(seconds: 4), () {
+      if (mounted) {
+        debugPrint('Timer fired - navigating to LoanSummary');
+        context.push('/loan-summary');
+      } else {
+        debugPrint('Widget not mounted - skipping navigation');
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel(); // Cancel timer if widget is disposed
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         leading: SizedBox(
@@ -23,11 +49,11 @@ class LoanStatusScreen extends ConsumerWidget {
             child: Container(
               width: 30,
               height: 30,
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xffF3F4F6),
+                color: Color(0xffF3F4F6),
               ),
-              child: Center(
+              child: const Center(
                 child: FittedBox(
                   child: Icon(
                     Icons.arrow_back_sharp,
@@ -39,10 +65,10 @@ class LoanStatusScreen extends ConsumerWidget {
             ),
           ),
         ),
-        backgroundColor: Color(0xffFFFFFF),
+        backgroundColor: const Color(0xffFFFFFF),
         titleSpacing: 0,
-        title: Text(
-          'Were Reviewing Your Application',
+        title: const Text(
+          'We’re Reviewing Your Application',
           style: TextStyle(
             fontSize: 18,
             color: Color(0xff0F2D62),
@@ -51,13 +77,13 @@ class LoanStatusScreen extends ConsumerWidget {
           ),
         ),
       ),
-      backgroundColor: Color(0xffFFFFFF),
+      backgroundColor: const Color(0xffFFFFFF),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            SizedBox(height: 80),
-            Align(
+            const SizedBox(height: 80),
+            const Align(
               alignment: Alignment.center,
               child: DualRingSpinner(
                 message: "Processing your application...",
@@ -65,11 +91,11 @@ class LoanStatusScreen extends ConsumerWidget {
                 size: 150,
               ),
             ),
-            SizedBox(height: 90),
+            const SizedBox(height: 90),
             Align(
               alignment: Alignment.center,
               child: Padding(
-                padding: EdgeInsets.only(top: 40),
+                padding: const EdgeInsets.only(top: 40),
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 24,
@@ -80,7 +106,7 @@ class LoanStatusScreen extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: Colors.transparent),
                   ),
-                  child: Column(
+                  child: const Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Align(
@@ -93,22 +119,23 @@ class LoanStatusScreen extends ConsumerWidget {
                       ),
                       SizedBox(height: 8),
                       Text(
-                        'Our system is reviewing your application. This usually takes 3-5 seconds.',
+                        'Our system is reviewing your application. This usually takes 3–5 seconds.',
                         style: TextStyle(
                           fontSize: 14,
                           color: Color(0xFF6B7280),
                         ),
+                        textAlign: TextAlign.center,
                       ),
                     ],
                   ),
                 ),
               ),
             ),
-            Spacer(),
-            Align(
+            const Spacer(),
+            const Align(
               alignment: Alignment.bottomCenter,
               child: Padding(
-                padding: const EdgeInsets.only(bottom: 10),
+                padding: EdgeInsets.only(bottom: 10),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -125,21 +152,5 @@ class LoanStatusScreen extends ConsumerWidget {
         ),
       ),
     );
-  }
-
-  // Method to handle auto-navigation
-  Future<void> _autoNavigate(BuildContext context) async {
-    debugPrint('Timer started for auto-navigation');
-    try {
-      await Future.delayed(const Duration(seconds: 4));
-      if (context.mounted) {
-        debugPrint('Timer fired - navigating to ApplyForLoan');
-        context.push('/loan-summary'); // Use go_router navigation
-      } else {
-        debugPrint('Widget not mounted - skipping navigation');
-      }
-    } catch (e) {
-      debugPrint('Navigation error: $e');
-    }
   }
 }

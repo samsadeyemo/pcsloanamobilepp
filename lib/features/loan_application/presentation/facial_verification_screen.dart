@@ -34,36 +34,6 @@ class _FacialVerificationScreenState
     _checkPermission();
   }
 
-  // Future<void> _checkPermission() async {
-  //   final status = await Permission.camera.request();
-  //   if (status.isGranted) {
-  //     final cameras = await availableCameras();
-  //     // Pick front camera if available
-  //     final frontCamera = cameras.firstWhere(
-  //       (cam) => cam.lensDirection == CameraLensDirection.front,
-  //       orElse: () => cameras.first,
-  //     );
-
-  //     _controller = CameraController(frontCamera, ResolutionPreset.medium);
-  //     await _controller!.initialize();
-  //     if (mounted) {
-  //       setState(() {
-  //         _isPermissionGranted = true;
-  //         _isCameraReady = true;
-  //       });
-  //     }
-  //   } else {
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       const SnackBar(
-  //         content: Text(
-  //           'Camera permission denied. Please enable it in settings.',
-  //         ),
-  //       ),
-  //     );
-  //     await openAppSettings();
-  //   }
-  // }
-
   Future<void> _checkPermission() async {
     final status = await Permission.camera.request();
 
@@ -236,7 +206,7 @@ class _FacialVerificationScreenState
                 Align(
                   alignment: Alignment.topCenter,
                   child: Padding(
-                    padding: EdgeInsets.only(top: 5),
+                    padding: EdgeInsets.only(top: 0),
                     child: Container(
                       width: 70,
                       height: 70,
@@ -417,7 +387,9 @@ class _FacialVerificationScreenState
 
                 GradientActionButton(
                   text: 'Proceed',
-                  onPressed: () {},
+                  onPressed: () {
+                    context.go('/debit-authorization-screen');
+                  },
                   size: 18,
                 ),
 

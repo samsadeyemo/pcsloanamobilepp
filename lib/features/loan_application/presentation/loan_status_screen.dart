@@ -134,7 +134,7 @@ class LoanStatusScreen extends ConsumerWidget {
       await Future.delayed(const Duration(seconds: 4));
       if (context.mounted) {
         debugPrint('Timer fired - navigating to ApplyForLoan');
-        context.go('/loan-summary'); // Use go_router navigation
+        context.push('/loan-summary'); // Use go_router navigation
       } else {
         debugPrint('Widget not mounted - skipping navigation');
       }

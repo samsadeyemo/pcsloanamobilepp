@@ -302,7 +302,7 @@ class _LoanSummary extends ConsumerState<LoanSummary> {
                   text: "Accept Offer",
                   size: 18,
                   onPressed: () {
-                    context.go("/bvn-verification-screen");
+                    context.push("/bvn-verification-screen");
                   },
                 ),
               ],

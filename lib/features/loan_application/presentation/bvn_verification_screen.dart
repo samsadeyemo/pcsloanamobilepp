@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pcsloan/common/widgets/custom_circle_text_badge.dart';
+import 'package:pcsloan/common/widgets/custom_loan_app_bar.dart';
 import 'package:pcsloan/common/widgets/gradient_action_button.dart';
 
 class BvnVerificationScreen extends ConsumerStatefulWidget {
@@ -21,41 +22,7 @@ class _BvnVerificationScreen extends ConsumerState<BvnVerificationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xffFFFFFF),
-      appBar: AppBar(
-        leading: SizedBox(
-          width: 40,
-          child: Center(
-            child: Container(
-              width: 30,
-              height: 30,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xffF3F4F6),
-              ),
-              child: Center(
-                child: FittedBox(
-                  child: Icon(
-                    Icons.arrow_back_sharp,
-                    size: 20,
-                    color: Color(0xff4B5563),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-        backgroundColor: Color(0xffFFFFFF),
-        title: Text(
-          'Verification',
-          style: TextStyle(
-            fontSize: 18,
-            color: Color(0xff0F2D62),
-            fontFamily: 'Inter',
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ),
-
+      appBar:CustomLoanAppBar(title: 'Verification',),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
@@ -358,7 +325,7 @@ class _BvnVerificationScreen extends ConsumerState<BvnVerificationScreen> {
                   text: "Proceed to Facial Verification",
                   size: 18,
                   onPressed: () {
-                    context.go("/bvn-verification-screen");
+                    context.push("/facial-verification-screen");
                   },
                 ),
                 SizedBox(height: 20),

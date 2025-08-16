@@ -338,7 +338,7 @@ class _BvnVerificationScreen extends ConsumerState<BvnVerificationScreen> {
                     child: Text(
                       "Need help with BVN?",
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: 14,
                         color: Color(0xffA198FF),
                         fontFamily: "Inter",
                       ),

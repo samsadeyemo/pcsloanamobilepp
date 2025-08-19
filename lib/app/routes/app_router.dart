@@ -13,6 +13,7 @@ import 'package:pcsloan/features/loan_application/presentation/apply_for_loan.da
 import 'package:pcsloan/features/loan_application/presentation/bvn_verification_screen.dart';
 import 'package:pcsloan/features/loan_application/presentation/debit_authorization.dart';
 import 'package:pcsloan/features/loan_application/presentation/facial_verification_screen.dart';
+import 'package:pcsloan/features/loan_application/presentation/loan_disbursed_screen.dart';
 import 'package:pcsloan/features/loan_application/presentation/loan_status_screen.dart';
 import 'package:pcsloan/features/loan_application/presentation/loan_summary.dart';
 import 'package:pcsloan/features/password_management/presentation/forget_password_screen.dart';
@@ -109,6 +110,10 @@ final GoRouter router = GoRouter(
       GoRoute(
         path: '/debit-authorization-screen',
         builder: (context, state) => const DebitAuthorizationScreen(),
+        ),
+      GoRoute(
+        path: '/loan-disbursed-screen',
+        builder: (context, state) => const LoanDisbursedScreen(),
         )  
       
 

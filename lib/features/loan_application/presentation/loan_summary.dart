@@ -15,6 +15,8 @@ class _LoanSummary extends ConsumerState<LoanSummary> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        surfaceTintColor: Colors.transparent,
+        scrolledUnderElevation: 0,
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 12),

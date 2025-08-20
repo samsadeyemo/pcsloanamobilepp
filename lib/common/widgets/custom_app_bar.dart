@@ -15,6 +15,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
+      surfaceTintColor: Colors.transparent,
+      scrolledUnderElevation: 0,
       backgroundColor: const Color(0xffFFFFFF),
       elevation: 0,
       leadingWidth: 100,
@@ -55,12 +57,14 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
             child: CircleAvatar(
               radius: 20,
               backgroundColor: Colors.grey[200],
-              backgroundImage: profileImageUrl.isNotEmpty
-                  ? NetworkImage(profileImageUrl)
-                  : null,
-              child: profileImageUrl.isEmpty
-                  ? const Icon(Icons.person, color: Colors.grey)
-                  : null,
+              backgroundImage:
+                  profileImageUrl.isNotEmpty
+                      ? NetworkImage(profileImageUrl)
+                      : null,
+              child:
+                  profileImageUrl.isEmpty
+                      ? const Icon(Icons.person, color: Colors.grey)
+                      : null,
             ),
           ),
         ),

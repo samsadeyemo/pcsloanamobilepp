@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pcsloan/common/widgets/custom_loan_app_false.dart';
 import 'package:pcsloan/common/widgets/loan_loading_indicator.dart';
 import 'package:go_router/go_router.dart';
 
@@ -42,41 +43,9 @@ class _LoanStatusScreenState extends ConsumerState<LoanStatusScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        leading: SizedBox(
-          width: 40,
-          child: Center(
-            child: Container(
-              width: 30,
-              height: 30,
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                color: Color(0xffF3F4F6),
-              ),
-              child: const Center(
-                child: FittedBox(
-                  child: Icon(
-                    Icons.arrow_back_sharp,
-                    size: 20,
-                    color: Color(0xff4B5563),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-        backgroundColor: const Color(0xffFFFFFF),
-        titleSpacing: 0,
-        title: const Text(
-          'We’re Reviewing Your Application',
-          style: TextStyle(
-            fontSize: 18,
-            color: Color(0xff0F2D62),
-            fontFamily: 'Inter',
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ),
+      appBar: CustomLoanAppBarFalse(title: 'We’re Reviewing Your Application',),
+     
+           
       backgroundColor: const Color(0xffFFFFFF),
       body: Padding(
         padding: const EdgeInsets.all(20),

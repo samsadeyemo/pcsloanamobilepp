@@ -36,6 +36,8 @@ class CustomLoanAppBar extends StatelessWidget implements PreferredSizeWidget {
           ),
         ),
       ),
+      surfaceTintColor: Colors.transparent,
+      scrolledUnderElevation: 0,
       backgroundColor: const Color(0xffFFFFFF),
       title: Text(
         title,

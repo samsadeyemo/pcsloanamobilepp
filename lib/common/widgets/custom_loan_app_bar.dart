@@ -14,7 +14,7 @@ class CustomLoanAppBar extends StatelessWidget implements PreferredSizeWidget {
         child: Center(
           child: GestureDetector(
             onTap: () {
-              context.go('/previousRoute'); // Replace with your actual route
+              context.pop(); // Replace with your actual route
             },
             child: Container(
               width: 30,

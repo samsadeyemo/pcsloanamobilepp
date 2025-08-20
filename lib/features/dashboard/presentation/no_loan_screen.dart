@@ -378,7 +378,7 @@ class _NoLoanScreen extends ConsumerState<NoLoanScreen> {
                         text: "+  Apply for a Loan",
                         size: 18,
                         onPressed: () {
-                          context.go("/loan_application");
+                          context.push("/loan_application");
                         },
                       ),
                     ),

@@ -15,10 +15,26 @@ class _LoanSummary extends ConsumerState<LoanSummary> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: CircleAvatar(
+              backgroundColor: Colors.grey.shade200,
+              radius: 16,
+              child: IconButton(
+                icon: const Icon(Icons.close, color: Colors.black54, size: 16),
+                onPressed: () {
+                  context.go('/no-loan');
+                }, // do something when pressed
+              ),
+            ),
+          ),
+        ],
         title: Text(
           'Review Loan Offer',
           style: TextStyle(color: Color(0xff0F2D62), fontSize: 18),
         ),
+        automaticallyImplyLeading: false,
         backgroundColor: Color(0xffFFFFFF),
       ),
       backgroundColor: Color(0xffFFFFFF),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pcsloan/features/auth/providers/auth_provider.dart';
+import 'package:local_auth/local_auth.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -15,6 +16,80 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _obscurePassword = true;
   String phoneNumber = '';
   String password = "";
+  String _authMessage = 'Use fingerprint to log in';
+  final LocalAuthentication _auth = LocalAuthentication();
+
+bool _biometricAvailable = false;
+
+@override
+void initState() {
+  super.initState();
+  _checkBiometricAvailability();
+}
+
+Future<void> _checkBiometricAvailability() async {
+  try {
+    final isSupported = await _auth.isDeviceSupported();
+    final canCheck = await _auth.canCheckBiometrics;
+    final types = await _auth.getAvailableBiometrics();
+    debugPrint('isSupported: $isSupported');
+    debugPrint('canCheck: $canCheck');
+    debugPrint('available types: $types');
+
+    final available = isSupported && canCheck && types.isNotEmpty;
+    if (mounted) {
+      setState(() {
+        _biometricAvailable = available;
+        _authMessage = available
+            ? 'Use fingerprint to log in'
+            : 'Biometric login not available on this device';
+      });
+    }
+  } catch (e) {
+    debugPrint('Biometric check error: $e');
+    if (!mounted) return;
+    setState(() => _authMessage = 'Biometric check error: $e');
+  }
+}
+
+Future<void> _authenticateWithFingerprint() async {
+  // Guard: bail out early if not available
+  if (!_biometricAvailable) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Biometric authentication not available')),
+    );
+    return;
+  }
+
+  setState(() => _authMessage = 'Authenticating...');
+
+  try {
+    final authenticated = await _auth.authenticate(
+      localizedReason: 'Please verify your identity to log in',
+      options: const AuthenticationOptions(
+        biometricOnly: true,
+        useErrorDialogs: true,
+        stickyAuth: true, // keeps prompt alive across app switches
+      ),
+    );
+
+    if (!mounted) return;
+
+    if (authenticated) {
+      setState(() => _authMessage = 'Login successful!');
+      // brief feedback (optional)
+      await Future.delayed(const Duration(milliseconds: 350));
+      context.go('/loan-redirect');  // your route
+    } else {
+      setState(() => _authMessage = 'Authentication failed or canceled.');
+    }
+  } catch (e) {
+    if (!mounted) return;
+    setState(() => _authMessage = 'Error: $e');
+  }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -319,9 +394,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     width: 342,
                     height: 50,
                     child: ElevatedButton(
-                      onPressed: () {
-                        // handle biometric login
-                      },
+                      onPressed: _authenticateWithFingerprint,
+                      
                       style: ElevatedButton.styleFrom(
                         padding: EdgeInsets.zero,
                         shape: RoundedRectangleBorder(

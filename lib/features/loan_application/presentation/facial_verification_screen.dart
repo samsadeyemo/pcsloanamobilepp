@@ -329,7 +329,7 @@ class _FacialVerificationScreenState
                               Text(
                                 'Tips for best results',
                                 style: TextStyle(
-                                  fontSize: 18.0,
+                                  fontSize: 16.0,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -358,7 +358,7 @@ class _FacialVerificationScreenState
                     children: [
                       Icon(
                         Icons.question_mark_outlined,
-                        size: 20,
+                        size: 16,
                         color: Color(0xffA198FF),
                       ),
                       SizedBox(width: 3),

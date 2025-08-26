@@ -363,7 +363,7 @@ class _LoanDisbursedScreen extends ConsumerState<LoanDisbursedScreen> {
                             ),
                             SizedBox(height: 6),
                             Text(
-                              'Your first repayment is due in 30 days. Set up auto-debit to avoid late fees and maintain a good credit score',
+                              'Monthly payment of ₦12,500 for 24 months starting July 19, 2025',
                               style: TextStyle(
                                 fontSize: 13,
                                 color: Colors.black87,

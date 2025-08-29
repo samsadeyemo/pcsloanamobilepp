@@ -33,7 +33,11 @@ class CustomActivityFinanceCard extends StatelessWidget {
             child: Row(
               children: [
                 // Icon in rounded square
-                Container(
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
@@ -49,10 +53,23 @@ class CustomActivityFinanceCard extends StatelessWidget {
                     size: 20,
                   ),
                 ),
-                const SizedBox(width: 16),
+
+                 const SizedBox(height: 20),
+                    Text(
+                      "This month",
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white.withOpacity(0.7),
+                      ),
+                    ),
+                  ]
+                ),
+                
+                const SizedBox(width: 0),
                 // Center text
                 Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
@@ -64,7 +81,7 @@ class CustomActivityFinanceCard extends StatelessWidget {
                         letterSpacing: 0.2,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    // const SizedBox(height: 8),
                     Text(
                       "₦${totalInflow.toStringAsFixed(0)}",
                       style: const TextStyle(
@@ -73,15 +90,7 @@ class CustomActivityFinanceCard extends StatelessWidget {
                         color: Colors.white,
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      "This month",
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.white.withOpacity(0.7),
-                      ),
-                    ),
+                   
                   ],
                 ),
                 const Spacer(),
@@ -95,7 +104,7 @@ class CustomActivityFinanceCard extends StatelessWidget {
             right: 16,
             bottom: 16,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.14),
                 border: Border.all(
@@ -112,7 +121,7 @@ class CustomActivityFinanceCard extends StatelessWidget {
                         : Icons.arrow_downward,
                     size: 14,
                     color: percentageChange >= 0
-                        ? const Color(0xFFFFFFFF) // green
+                        ? const Color(0xFFFFFFFF) 
                         : Colors.redAccent,
                   ),
                   const SizedBox(width: 6),

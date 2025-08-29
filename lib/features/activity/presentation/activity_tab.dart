@@ -25,7 +25,7 @@ class _ActivityTabState extends ConsumerState<ActivityTab> {
               color: Color(0xff0F2D62),
               fontSize: 18,
               fontFamily: "Inter"
-              ), 
+              ),
         ),
         centerTitle: false,
         automaticallyImplyLeading: false,

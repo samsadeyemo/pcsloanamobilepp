@@ -1,4 +1,5 @@
 import 'package:go_router/go_router.dart';
+import 'package:pcsloan/features/activity/presentation/activity_tab.dart';
 import 'package:pcsloan/features/auth/presentation/screens/account_created_screen.dart';
 import 'package:pcsloan/features/auth/presentation/screens/create_password.dart';
 import 'package:pcsloan/features/auth/presentation/screens/get_started_screen.dart';
@@ -114,7 +115,12 @@ final GoRouter router = GoRouter(
       GoRoute(
         path: '/loan-disbursed-screen',
         builder: (context, state) => const LoanDisbursedScreen(),
-        )  
+        ),
+        GoRoute(
+          path: '/activity-tab',
+          builder: (context, state) => const ActivityTab(),
+          )
+
       
 
 

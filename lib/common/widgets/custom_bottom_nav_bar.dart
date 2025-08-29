@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:pcsloan/features/activity/presentation/activity_tab.dart';
 import 'package:pcsloan/features/dashboard/presentation/no_loan_screen.dart';
+import 'package:pcsloan/features/loan_application/presentation/apply_for_loan.dart';
 
 class CustomBottomNavBar extends StatelessWidget {
   const CustomBottomNavBar({super.key});
@@ -29,19 +31,19 @@ class CustomBottomNavBar extends StatelessWidget {
               case 1:
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const NoLoanScreen()),
+                  MaterialPageRoute(builder: (context) => const ApplyForLoan()),
                 );
                 break;
               case 2:
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const NoLoanScreen()),
+                  MaterialPageRoute(builder: (context) => const ActivityTab()),
                 );
                 break;
               case 3:
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const NoLoanScreen()),
+                  MaterialPageRoute(builder: (context) => const ActivityTab()),
                 );
                 break;
             }

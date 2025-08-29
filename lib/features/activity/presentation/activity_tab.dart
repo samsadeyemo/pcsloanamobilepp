@@ -4,6 +4,7 @@ import 'package:pcsloan/common/widgets/custom_activity_bottom_nav_bar.dart';
 import 'package:pcsloan/common/widgets/custom_activity_finance_card.dart';
 import 'package:pcsloan/common/widgets/custom_activity_finance_summary_card.dart';
 import 'package:pcsloan/features/activity/data/transaction_model.dart';
+import 'package:pcsloan/features/activity/presentation/recent_transactions_screen.dart';
 import 'package:pcsloan/features/activity/presentation/transaction_detail_screen.dart';
 
 class ActivityTab extends ConsumerStatefulWidget {
@@ -109,7 +110,10 @@ class _ActivityTabState extends ConsumerState<ActivityTab> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0,),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 10.0,
+                      horizontal: 10.0,
+                    ),
                     child: Text(
                       'Recent Transactions',
                       style: TextStyle(
@@ -123,11 +127,20 @@ class _ActivityTabState extends ConsumerState<ActivityTab> {
                     onPressed: () {
                       // Implement view all action
                     },
-                    child: Text(
-                      'View All',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Color(0xff00B7BD),
+                    child: TextButton(
+                      onPressed:
+                          () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => RecentTransactionsPage(),
+                            ),
+                          ),
+                      child: Text(
+                        'View All',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Color(0xff00B7BD),
+                        ),
                       ),
                     ),
                   ),
@@ -143,8 +156,11 @@ class _ActivityTabState extends ConsumerState<ActivityTab> {
                         tx.isCredit ? Icons.arrow_downward : Icons.arrow_upward,
                         color: tx.isCredit ? Colors.green : Colors.red,
                       ),
-                      title: Text(tx.title, style: TextStyle(fontSize: 14),),
-                      subtitle: Text(tx.dateTime, style: TextStyle(fontSize: 12),),
+                      title: Text(tx.title, style: TextStyle(fontSize: 14)),
+                      subtitle: Text(
+                        tx.dateTime,
+                        style: TextStyle(fontSize: 12),
+                      ),
                       trailing: Text(
                         tx.amount,
                         style: TextStyle(

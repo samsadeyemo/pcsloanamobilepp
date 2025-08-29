@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pcsloan/common/widgets/custom_activity_bottom_nav_bar.dart';
+import 'package:pcsloan/common/widgets/custom_activity_finance_card.dart';
 
 class ActivityTab extends ConsumerStatefulWidget {
   const ActivityTab({super.key});
@@ -31,6 +32,19 @@ class _ActivityTabState extends ConsumerState<ActivityTab> {
         backgroundColor: Color(0xffFFFFFF),
       ),
       bottomNavigationBar: CustomActionBottomNavBar(),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CustomActivityFinanceCard(
+                  totalInflow: 80000,
+                  percentageChange: 15.2,
+                ),
+              ],
+            )
+        ),)
     );
   }
 }

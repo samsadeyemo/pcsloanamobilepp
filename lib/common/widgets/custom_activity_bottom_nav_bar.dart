@@ -3,12 +3,12 @@ import 'package:pcsloan/features/activity/presentation/activity_tab.dart';
 import 'package:pcsloan/features/dashboard/presentation/no_loan_screen.dart';
 import 'package:pcsloan/features/loan_application/presentation/apply_for_loan.dart';
 
-class CustomBottomNavBar extends StatelessWidget {
-  const CustomBottomNavBar({super.key});
+class CustomActionBottomNavBar extends StatelessWidget {
+  const CustomActionBottomNavBar({super.key});
 
   @override
   Widget build(BuildContext context) {
-    int _currentIndex = 0;
+    int _currentIndex = 2;
 
     return StatefulBuilder(
       builder: (context, setState) {

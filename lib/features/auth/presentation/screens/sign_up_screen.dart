@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:pcsloan/common/widgets/custom_input_field.dart';
+import 'package:pcsloan/common/widgets/signup_input_field.dart';
+import 'package:pcsloan/features/auth/providers/signup_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SignUpScreen extends ConsumerStatefulWidget {
@@ -14,27 +15,46 @@ class SignUpScreen extends ConsumerStatefulWidget {
 class _SignUpScren extends ConsumerState<SignUpScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  String staffId = '';
-  String firstName = '';
-  String lastName = '';
-  String phoneNumber = '';
-  String email = '';
-  String bvn = '';
+  // controllers for editable fields
+  final _staffIdController = TextEditingController();
+  final _firstNameController = TextEditingController();
+  final _lastNameController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _bvnController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
+    final state = ref.watch(signupProvider);
+    final notifier = ref.read(signupProvider.notifier);
+    ref.listen<SignupState>(signupProvider, (prev, next) {
+      if (next.error != null && next.error!.isNotEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(next.error!), backgroundColor: Colors.red),
+        );
+      }
+    });
+
+    // update controllers when data comes in
+    if (state.employeeData != null) {
+      _firstNameController.text = state.employeeData!['firstname'] ?? '';
+      _lastNameController.text = state.employeeData!['lastname'] ?? '';
+      _phoneController.text = state.employeeData!['phone'] ?? '';
+      // these can still be edited by user
+      _emailController.text = state.employeeData!['email'] ?? '';
+      _bvnController.text = state.employeeData!['bvn'] ?? '';
+    }
+
     return Scaffold(
-      backgroundColor: Color(0xffE5E7EB),
+      backgroundColor: const Color(0xffE5E7EB),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.all(24),
-
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-
               children: [
-                Text(
+                const Text(
                   'Create Your Account',
                   style: TextStyle(
                     fontFamily: 'Inter',
@@ -43,7 +63,7 @@ class _SignUpScren extends ConsumerState<SignUpScreen> {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                Text(
+                const Text(
                   'Please fill in your information below',
                   style: TextStyle(
                     fontFamily: 'Inter',
@@ -52,75 +72,138 @@ class _SignUpScren extends ConsumerState<SignUpScreen> {
                     fontWeight: FontWeight.w400,
                   ),
                 ),
+                const SizedBox(height: 16),
                 Form(
                   key: _formKey,
                   child: Column(
                     children: [
-                      CustomInputField(
+                      // Staff ID (user enters, then fetch details)
+                      SignupInputField(
                         icon: Icons.badge_outlined,
                         label: 'Staff ID',
                         hintText: 'Enter your Staff ID',
-                        onChanged: (value) => staffId = value,
+                        controller: _staffIdController,
                         validator:
                             (value) =>
                                 value != null && value.isNotEmpty
                                     ? null
                                     : 'Staff ID is required',
                       ),
-
-                      CustomInputField(
+                      const SizedBox(height: 8),
+                      if (state.employeeData == null)
+                        // ElevatedButton(
+                        //   onPressed: () {
+                        //     if (_staffIdController.text.isNotEmpty) {
+                        //       notifier.fetchEmployee(_staffIdController.text);
+                        //     }
+                        //   },
+                        //   child:
+                        //       state.fetching
+                        //           ? const SizedBox(
+                        //             height: 20,
+                        //             width: 20,
+                        //             child: CircularProgressIndicator(
+                        //               strokeWidth: 2,
+                        //             ),
+                        //           )
+                        //           : const Text("Fetch Details"),
+                        // ),
+                        ElevatedButton(
+                          onPressed: () {
+                            if (_staffIdController.text.isNotEmpty) {
+                              notifier.fetchEmployee(_staffIdController.text);
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(25),
+                            ),
+                            backgroundColor: Colors.transparent,
+                            shadowColor: Colors.transparent,
+                          ),
+                          child: Ink(
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xff7C70DF), Color(0xffA198FF)],
+                              ),
+                              borderRadius: BorderRadius.circular(25),
+                            ),
+                            child: Container(
+                              alignment: Alignment.center,
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 14,
+                                horizontal: 24,
+                              ),
+                              child:
+                                  state.fetching
+                                      ? const SizedBox(
+                                        height: 20,
+                                        width: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor: AlwaysStoppedAnimation(
+                                            Colors.white,
+                                          ),
+                                        ),
+                                      )
+                                      : const Text(
+                                        "Fetch Details",
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                          fontFamily: 'Inter',
+                                        ),
+                                      ),
+                            ),
+                          ),
+                        ),
+                      const SizedBox(height: 16),
+                      // First Name (disabled)
+                      SignupInputField(
                         icon: Icons.person,
                         label: 'First Name',
-                        hintText: 'Enter your first name',
-                        onChanged: (value) => firstName = value,
-                        validator:
-                            (value) =>
-                                value != null && value.isNotEmpty
-                                    ? null
-                                    : 'First name is required',
+                        hintText: '',
+                        controller: _firstNameController,
+                        enabled: false,
                       ),
 
-                      CustomInputField(
+                      // Last Name (disabled)
+                      SignupInputField(
                         icon: Icons.person,
                         label: 'Last Name',
-                        hintText: 'Enter your last name',
-                        onChanged: (value) => lastName = value,
-                        validator:
-                            (value) =>
-                                value != null && value.isNotEmpty
-                                    ? null
-                                    : 'Last name is required',
+                        hintText: '',
+                        controller: _lastNameController,
+                        enabled: false,
                       ),
 
-                      CustomInputField(
+                      // Phone Number (disabled, but we’ll save later)
+                      SignupInputField(
                         icon: Icons.phone,
                         label: 'Phone Number',
-                        hintText: 'Enter your phone number',
-                        keyboardType: TextInputType.phone,
-                        onChanged: (value) => phoneNumber = value,
-                        validator:
-                            (value) =>
-                                value != null && value.length >= 10
-                                    ? null
-                                    : 'Phone number must be at least 10 digits',
+                        hintText: '',
+                        controller: _phoneController,
+                        enabled: false,
                       ),
 
-                      CustomInputField(
+                      // Email (optional, user editable)
+                      SignupInputField(
                         icon: Icons.email,
                         label: 'Email',
                         hintText: 'Enter your email',
-                        isOptional: true,
+                        controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
-                        onChanged: (value) => email = value,
-                        
+                        isOptional: true,
                       ),
 
-                      CustomInputField(
+                      // BVN (editable)
+                      SignupInputField(
                         icon: Icons.shield_outlined,
                         label: 'BVN',
                         hintText: 'Enter your BVN',
+                        controller: _bvnController,
                         keyboardType: TextInputType.phone,
-                        onChanged: (value) => bvn = value,
                         validator:
                             (value) =>
                                 value != null && value.length == 11
@@ -132,119 +215,73 @@ class _SignUpScren extends ConsumerState<SignUpScreen> {
                 ),
 
                 const SizedBox(height: 20),
-                // authState.status == AuthStatus.authenticating
-                //     ? const CircularProgressIndicator()
-                //     : 
+
                 Align(
-                      alignment: Alignment.bottomCenter,
-                      child: Padding(
-                        padding: EdgeInsets.only(bottom: 1),
-                        child: SizedBox(
-                          width: double.infinity,
-                          height: 50,
-                          child: ElevatedButton(
-                            onPressed: () async {
-                              if (_formKey.currentState!.validate()) {
-                                savePhoneNumber(phoneNumber);
-                                context.go('/verify-phone');
-                                // try {
-                                //   await ref
-                                //       .read(authControllerProvider.notifier)
-                                //       .signUp(
-                                //         SignUpRequest(
-                                //           firstName: firstName,
-                                //           lastName: lastName,
-                                //           staffId: staffId,
-                                //           bvn: bvn,
-                                //           phoneNumber: phoneNumber,
-                                //         ),
-                                //       );
-                                //   context.go('/verify-phone');
-                                // } catch (e) {
-                                //   showDialog(
-                                //     context: context,
-                                //     builder:
-                                //         (context) => AlertDialog(
-                                //           backgroundColor: Colors.white,
-                                //           shape: RoundedRectangleBorder(
-                                //             borderRadius: BorderRadius.circular(10),
-                                //           ),
-                                //           content: Column(
-                                //             mainAxisSize: MainAxisSize.min,
-                                //             children: [
-                                //               const Icon(
-                                //                 Icons.error,
-                                //                 color: Colors.red,
-                                //                 size: 48,
-                                //               ),
-                                //               const SizedBox(height: 16),
-                                //               Text(
-                                //                 authState.errorMessage ??
-                                //                     'Sign-up failed: Invalid data',
-                                //                 style: const TextStyle(
-                                //                   color: Color(0xff0F2D62),
-                                //                   fontFamily: 'Inter',
-                                //                   fontSize: 16,
-                                //                   fontWeight: FontWeight.w500,
-                                //                 ),
-                                //                 textAlign: TextAlign.center,
-                                //               ),
-                                //             ],
-                                //           ),
-                                //           actions: [
-                                //             TextButton(
-                                //               onPressed:
-                                //                   () => Navigator.of(context).pop(),
-                                //               child: const Text(
-                                //                 'OK',
-                                //                 style: TextStyle(
-                                //                   color: Color(0xffA198FF),
-                                //                   fontFamily: 'Inter',
-                                //                   fontSize: 14,
-                                //                 ),
-                                //               ),
-                                //             ),
-                                //           ],
-                                //         ),
-                                //   );
-                                // }
-                              }
-                            },
-                            style: ElevatedButton.styleFrom(
-                              padding: EdgeInsets.zero,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(25),
-                              ),
-                              backgroundColor: Colors.transparent,
-                              shadowColor: Colors.transparent,
+                  alignment: Alignment.bottomCenter,
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 1),
+                    child: SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          if (_formKey.currentState!.validate()) {
+                            await savePhoneNumber(_phoneController.text);
+
+                            await notifier.createAccount(
+                              email: _emailController.text,
+                              bvn: _bvnController.text,
+                            );
+
+                            if (state.error == null && state.accountCreated) {
+                              context.go('/verify-phone');
+                            } else if (state.error != null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(state.error!)),
+                              );
+                            }
+                          }
+                        },
+
+                        style: ElevatedButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(25),
+                          ),
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                        ),
+                        child: Ink(
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xff7C70DF), Color(0xffA198FF)],
                             ),
-                            child: Ink(
-                              decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  colors: [
-                                    Color(0xff7C70DF),
-                                    Color(0xffA198FF),
-                                  ],
-                                ),
-                                borderRadius: BorderRadius.circular(25),
-                              ),
-                              child: Container(
-                                alignment: Alignment.center,
-                                child: const Text(
-                                  'Continue',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                    fontFamily: 'Inter',
-                                  ),
-                                ),
-                              ),
-                            ),
+                            borderRadius: BorderRadius.circular(25),
+                          ),
+                          child: Container(
+                            alignment: Alignment.center,
+                            child:
+                                state.creating
+                                    ? const CircularProgressIndicator(
+                                      valueColor: AlwaysStoppedAnimation(
+                                        Colors.white,
+                                      ),
+                                    )
+                                    : const Text(
+                                      'Continue',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        fontFamily: 'Inter',
+                                      ),
+                                    ),
                           ),
                         ),
                       ),
                     ),
+                  ),
+                ),
 
                 Align(
                   alignment: Alignment.bottomCenter,
@@ -253,7 +290,7 @@ class _SignUpScren extends ConsumerState<SignUpScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
+                        const Text(
                           "Already have an account?",
                           style: TextStyle(
                             fontFamily: "Inter",
@@ -261,12 +298,11 @@ class _SignUpScren extends ConsumerState<SignUpScreen> {
                             fontSize: 14,
                           ),
                         ),
-
                         TextButton(
                           onPressed: () {
                             context.go('/signIn');
                           },
-                          child: Text(
+                          child: const Text(
                             "Login",
                             style: TextStyle(
                               fontSize: 14,

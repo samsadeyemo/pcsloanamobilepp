@@ -69,6 +69,8 @@ class _ActivityTabState extends ConsumerState<ActivityTab> {
         ),
         centerTitle: false,
         automaticallyImplyLeading: false,
+        surfaceTintColor: Colors.transparent,
+        scrolledUnderElevation: 0,
         backgroundColor: Color(0xffFFFFFF),
       ),
       bottomNavigationBar: CustomActionBottomNavBar(),

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:pcsloan/features/auth/providers/auth_provider.dart';
 import 'package:local_auth/local_auth.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -93,8 +92,8 @@ Future<void> _authenticateWithFingerprint() async {
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authProvider);
-    final authNotifier = ref.read(authProvider.notifier);
+    // final authState = ref.watch(authProvider);
+    // final authNotifier = ref.read(authProvider.notifier);
     return Scaffold(
       backgroundColor: Color(0xffFFFFFF),
       body: SafeArea(
@@ -306,9 +305,10 @@ Future<void> _authenticateWithFingerprint() async {
                   ),
                 ),
                 SizedBox(height: 10),
-                authState.isLoading
-                    ? const CircularProgressIndicator()
-                    : Padding(
+                // authState.isLoading
+                //     ? const CircularProgressIndicator()
+                //     :
+                Padding(
                       padding: const EdgeInsets.only(top: 0, right: 0),
                       child: SizedBox(
                         width: 342,

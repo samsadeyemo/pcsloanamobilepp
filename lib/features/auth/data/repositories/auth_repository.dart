@@ -1,33 +1,37 @@
-//This file defines the AuthRepository for handling authentication data operations.
-//Takes ApiService and SharedPreferences for API calls and persistence.
-
-
-import 'dart:convert';
-import 'package:pcsloan/service/api_service.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:dio/dio.dart';
 
 class AuthRepository {
-  final ApiService apiService;
-  final SharedPreferences prefs;
+  final Dio _dio;
+  AuthRepository(this._dio);
 
-  AuthRepository(this.apiService, this.prefs);
-
-  Future<Map<String, String>> login(String phoneNumber, String password) async {
-    final response = await apiService.login(phoneNumber, password);
-    final token = response['token'] as String;
-    final userId = response['userId'] as String;
-
-    await prefs.setString('token', token);
-    await prefs.setString('userId', userId);
-
-    return {'token': token, 'userId': userId};
+  // Fetch employee details using employeeId
+  Future<Map<String, dynamic>> fetchEmployeeDetails(String id) async {
+    final response = await _dio.get('/auth/$id');
+    return response.data["data"] as Map<String, dynamic>;
   }
 
-  void logout() {
-    prefs.remove('token');
-    prefs.remove('userId');
+  // Create account with all user data
+  Future<void> createAccount(Map<String, dynamic> payload) async {
+    // print(payload);
+    // final response = await _dio.post("/auth/register", data: payload);
+    // print(response);
+    // if (response.statusCode != 200) {
+    //   throw Exception("Failed to create account");
+    // }
+    try {
+      print(payload);
+      final response = await _dio.post("/auth/register", data: payload);
+      print("Response status: ${response.statusCode}");
+      print("Response data: ${response.data}");
+      return response.data;
+    } on DioError catch (e) {
+      if (e.response != null) {
+        print("Error status: ${e.response?.statusCode}");
+        print("Error data: ${e.response?.data}");
+      } else {
+        print("Request error: ${e.message}");
+      }
+      rethrow;
+    }
   }
-
-  String? getToken() => prefs.getString('token');
-  String? getUserId() => prefs.getString('userId');
 }

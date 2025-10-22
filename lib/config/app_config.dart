@@ -18,3 +18,5 @@ class AppConfig {
     return AppConfig._(env, baseUrl);
   }
 }
+
+final AppConfig appConfig = AppConfig.fromEnv();

@@ -13,30 +13,12 @@ Future<void> main() async {
   final sharedPreferences = await SharedPreferences.getInstance();
   runApp(
     ProviderScope(
-      // overrides: [
-      //   sharedPreferencesProvider.overrideWithValue(sharedPreferences),
-      // ],
+     
       child: const MyApp(),
     ),
   );
 }
 
-// class MyApp extends ConsumerWidget {
-//   const MyApp({super.key});
-
-//   @override
-//   Widget build(BuildContext context, WidgetRef ref) {
-//     final config = ref.read(appConfigProvider); 
-//     debugPrint("Running in ${config.env} mode, API base: ${config.apiBaseUrl}");
-
-//     return MaterialApp.router(
-//       debugShowCheckedModeBanner: config.env.toUpperCase() != 'PROD',
-//       routerConfig: router,
-//       theme: ThemeData(fontFamily: 'Inter'),
-//     );
-//   }
-   
-// }
 class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 

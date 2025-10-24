@@ -65,36 +65,84 @@ class AuthService {
     }
   }
 
-
-
   Future<Map<String, dynamic>> verifyOtp({
-  required String otp,
-  required String phone,
-}) async {
-  final url = Uri.parse('$baseUrl/auth/verify');
+    required String otp,
+    required String phone,
+  }) async {
+    final url = Uri.parse('$baseUrl/auth/verify');
 
-  final Map<String, dynamic> body = {
-    'otp': otp,
-    'phone': phone,
-  };
+    final Map<String, dynamic> body = {'otp': otp, 'phone': phone};
 
-  final response = await http.post(
-    url,
-    headers: {'Content-Type': 'application/json'},
-    body: jsonEncode(body),
-  );
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(body),
+    );
 
-  print("➡️ POST $url");
-  print("⬅️ ${response.body}");
+    print("➡️ POST $url");
+    print("⬅️ ${response.body}");
 
-  final decoded = jsonDecode(response.body);
+    final decoded = jsonDecode(response.body);
 
-  if (response.statusCode == 201 && decoded['status'] == 'success') {
-    return decoded;
-  } else {
-    throw Exception(decoded['message'] ?? 'OTP verification failed');
+    if (response.statusCode == 201 && decoded['status'] == 'success') {
+      return decoded;
+    } else {
+      throw Exception(decoded['message'] ?? 'OTP verification failed');
+    }
+  }
+
+  Future<Map<String, dynamic>> resendVerificationCode(String employeeNo) async {
+    final url = Uri.parse('$baseUrl/auth/resend');
+    final Map<String, dynamic> body = {'employee_id': employeeNo};
+
+    if (employeeNo.isEmpty) {
+      throw Exception('Employee ID cannot be empty');
+    }
+
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(body),
+    );
+
+    final decoded = jsonDecode(response.body);
+
+    if (response.statusCode == 200 && decoded['status'] == 'success') {
+      return decoded;
+    } else {
+      throw Exception(decoded['message'] ?? 'Resend OTP failed');
+    }
+  }
+
+  Future<Map<String, dynamic>> createPassword({
+    required String employeeId,
+    required String password,
+    required String confirmPassword,
+  }) async {
+    final url = Uri.parse("$baseUrl/auth/password");
+
+    final Map<String, dynamic> body = {
+      'employee_id': employeeId,
+      'password': password,
+      'confirm_password': confirmPassword,
+    };
+
+    if (password != confirmPassword) {
+      throw Exception('Passwords do not match');
+    }
+
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(body),
+    );
+
+    final decoded = jsonDecode(response.body);
+
+    if (response.statusCode == 201 && decoded['status'] == 'success') {
+      return decoded;
+    } else {
+      throw Exception(decoded['message'] ?? 'Password creation failed');
+    }
   }
 }
-
-}
-

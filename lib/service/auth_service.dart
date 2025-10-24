@@ -59,7 +59,7 @@ class AuthService {
     final decoded = jsonDecode(response.body);
 
     if (response.statusCode == 201 && decoded['status'] == 'success') {
-      return decoded['data']?['user'] ?? {};
+      return decoded;
     } else {
       throw Exception(decoded['message'] ?? 'Registration failed');
     }
@@ -89,8 +89,8 @@ class AuthService {
 
   final decoded = jsonDecode(response.body);
 
-  if (response.statusCode == 200 && decoded['status'] == 'success') {
-    return decoded['message'] ?? {};
+  if (response.statusCode == 201 && decoded['status'] == 'success') {
+    return decoded;
   } else {
     throw Exception(decoded['message'] ?? 'OTP verification failed');
   }

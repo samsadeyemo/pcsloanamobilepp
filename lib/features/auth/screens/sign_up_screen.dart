@@ -90,7 +90,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
     setState(() => _creating = true);
     try {
-      final user = await _authService.registerUser(
+      final result = await _authService.registerUser(
         email: _emailController.text,
         firstName: _firstNameController.text,
         lastName: _lastNameController.text,
@@ -99,10 +99,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
         employeeId: _staffIdController.text,
       );
 
-      await LocalStorage.saveUser(user);
+      await LocalStorage.saveUser(result["data"]);
       // await LocalStorage.setFlag('account_created', true);
+      String resultMessage = result["message"] ?? "Account created successfully";
       await prefs.setBool('account_created', true);
-      _showSnackBar("Account created successfully!");
+      _showSnackBar(resultMessage);
 
       context.go('/verify-phone');
     } catch (e) {

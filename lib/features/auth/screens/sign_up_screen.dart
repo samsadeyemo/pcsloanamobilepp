@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:pcsloan/common/widgets/signup_input_field.dart';
 import 'package:pcsloan/service/auth_service.dart';
 import 'package:pcsloan/utils/local_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -83,6 +84,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   Future<void> _createAccount() async {
+    final prefs = await SharedPreferences.getInstance();
+
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _creating = true);
@@ -97,11 +100,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
       );
 
       await LocalStorage.saveUser(user);
+      // await LocalStorage.setFlag('account_created', true);
+      await prefs.setBool('account_created', true);
       _showSnackBar("Account created successfully!");
 
       context.go('/verify-phone');
     } catch (e) {
-      _showSnackBar("User with data already exists", isError: true);
+     _showSnackBar(e.toString().replaceFirst('Exception: ', ''), isError: true);
     } finally {
       setState(() => _creating = false);
     }

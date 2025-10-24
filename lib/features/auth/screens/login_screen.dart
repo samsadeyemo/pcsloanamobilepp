@@ -316,19 +316,6 @@ Future<void> _authenticateWithFingerprint() async {
                         child: ElevatedButton(
                           onPressed: () async {
                             if (_formKey.currentState!.validate()) {
-                              // await ref
-                              //     .read(authProvider.notifier)
-                              //     .login(phoneNumber.trim(), password.trim());
-
-                              // final newState = ref.read(authProvider);
-                              // if (newState.token != null) {
-                              //   context.go("/homepage"); // navigate after login
-                              // } else if (newState.error != null) {
-                              //   ScaffoldMessenger.of(context).showSnackBar(
-                              //     SnackBar(content: Text(newState.error!)),
-                              //   );
-                              // }
-
                               context.go("/loan-redirect");
                             }
                           },

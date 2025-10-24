@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pcsloan/utils/local_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -21,12 +22,17 @@ class _SplashScreenState extends State<SplashScreen> {
     final prefs = await SharedPreferences.getInstance();
     final seen = prefs.getBool('onboarding_done') ?? false;
     final seenSignup = prefs.getBool('account_created') ?? false;
+    final accountVerified =  prefs.getBool('phone_verified') ?? false;
 
     if (seen & !seenSignup) {
       context.go('/getStartedScreen');
-    } else if (seen & seenSignup) {
+    } else if (seen & seenSignup & !accountVerified) {
       context.go('/verify-phone');
-    } else context.go('/onboarding');
+    } else if (seen & seenSignup & accountVerified) {
+      context.go('/create-password');
+    } 
+    else
+      context.go('/onboarding');
   }
 
   @override

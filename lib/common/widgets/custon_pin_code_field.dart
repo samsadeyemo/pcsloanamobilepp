@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-/// ---------------------------------------------------------------------------
-///  REUSABLE OTP / PIN INPUT WIDGET
-/// ---------------------------------------------------------------------------
+/// Reusable OTP / PIN input widget
+/// - supports pasting a full code into any box (it will distribute the digits)
+/// - moves focus forward/back automatically
+/// - calls `onCompleted` when all boxes are filled
 class PinCodeFields extends StatefulWidget {
   const PinCodeFields({
     super.key,
@@ -13,6 +14,7 @@ class PinCodeFields extends StatefulWidget {
     this.textStyle,
     this.boxDecoration,
     this.onCompleted,
+    this.autoFocus = true,
   });
 
   /// How many digits?
@@ -33,6 +35,9 @@ class PinCodeFields extends StatefulWidget {
   /// Called when user fills all boxes
   final ValueChanged<String>? onCompleted;
 
+  /// Whether to autofocus the first field
+  final bool autoFocus;
+
   @override
   State<PinCodeFields> createState() => _PinCodeFieldsState();
 }
@@ -47,6 +52,9 @@ class _PinCodeFieldsState extends State<PinCodeFields> {
     _controllers =
         List.generate(widget.length, (_) => TextEditingController());
     _focusNodes = List.generate(widget.length, (_) => FocusNode());
+
+    // Optional: listen for paste events on the first field (not required,
+    // we handle paste in each field in _handlePaste).
   }
 
   @override
@@ -56,24 +64,73 @@ class _PinCodeFieldsState extends State<PinCodeFields> {
     super.dispose();
   }
 
+  /// Called whenever a field changes. Handles:
+  ///  - single char input: move focus forward
+  ///  - deletion to empty: move focus backward
+  ///  - paste (value.length > 1): distribute characters across boxes starting at index
   void _onChanged(String value, int index) {
+    // If user pasted multiple characters into one field, distribute them
+    if (value.length > 1) {
+      _handlePaste(value, index);
+      return;
+    }
+
+    // Normal single-character input:
     if (value.isNotEmpty) {
-      // move to next field
+      // move to next field if available
       if (index + 1 < widget.length) {
         _focusNodes[index + 1].requestFocus();
       } else {
+        // last box filled -> remove focus
         _focusNodes[index].unfocus();
       }
-    }
-    if (value.isEmpty && index > 0) {
-      _focusNodes[index - 1].requestFocus();
+    } else {
+      // if cleared and not first box, move back
+      if (index > 0) {
+        _focusNodes[index - 1].requestFocus();
+      }
     }
 
-    final code = _controllers.map((c) => c.text).join();
-    if (code.length == widget.length && !code.contains('')) {
+    _notifyIfComplete();
+    setState(() {});
+  }
+
+  /// Distribute pasted text (only digits) starting at `startIndex`.
+  /// Example: boxes = 4, startIndex = 1, pasted "9876" -> fill indexes 1,2,3 with 9,8,7 (stop at end)
+  void _handlePaste(String pasted, int startIndex) {
+    final digits = pasted.replaceAll(RegExp(r'[^0-9]'), '').split('');
+    if (digits.isEmpty) return;
+
+    int writeIndex = startIndex;
+    for (final d in digits) {
+      if (writeIndex >= widget.length) break;
+      _controllers[writeIndex].text = d;
+      writeIndex++;
+    }
+
+    // move focus to the next empty box or unfocus when done
+    if (writeIndex < widget.length) {
+      _focusNodes[writeIndex].requestFocus();
+    } else {
+      FocusScope.of(context).unfocus();
+    }
+
+    _notifyIfComplete();
+    setState(() {});
+  }
+
+  /// Join controller texts and call onCompleted if all boxes are filled.
+  void _notifyIfComplete() {
+    final code = _controllers.map((c) => c.text.trim()).join();
+    final allFilled = _controllers.every((c) => c.text.trim().isNotEmpty);
+
+    if (allFilled && code.length == widget.length) {
+      // unfocus to close keyboard
+      FocusScope.of(context).unfocus();
+
+      // call callback
       widget.onCompleted?.call(code);
     }
-    setState(() {}); // redraw to reflect current state
   }
 
   BoxDecoration get _defaultBoxDecoration => BoxDecoration(
@@ -96,7 +153,7 @@ class _PinCodeFieldsState extends State<PinCodeFields> {
           child: TextField(
             controller: _controllers[index],
             focusNode: _focusNodes[index],
-            autofocus: index == 0,
+            autofocus: widget.autoFocus && index == 0,
             textAlign: TextAlign.center,
             maxLength: 1,
             keyboardType: TextInputType.number,
@@ -114,6 +171,10 @@ class _PinCodeFieldsState extends State<PinCodeFields> {
               LengthLimitingTextInputFormatter(1),
             ],
             onChanged: (val) => _onChanged(val, index),
+            onSubmitted: (_) {
+              // If user taps done on keyboard, try notify if complete
+              _notifyIfComplete();
+            },
           ),
         );
       }),

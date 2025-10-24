@@ -22,5 +22,15 @@ class LocalStorage {
     await prefs.remove(_userKey);
   }
 
+  static Future<void> setPhoneVerified(bool value) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setBool('phone_verified', value);
+}
+
+  static Future<bool> isPhoneVerified() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('phone_verified') ?? false;
+  }
+
   
 }

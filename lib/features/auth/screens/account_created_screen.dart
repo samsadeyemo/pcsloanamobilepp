@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class AccountCreatedScreen extends StatelessWidget {
   const AccountCreatedScreen({super.key});
@@ -51,7 +52,7 @@ class AccountCreatedScreen extends StatelessWidget {
                           height: 50,
                           child: ElevatedButton(
                             onPressed: () async {
-                              // context.go("/account-created-screen");
+                              context.go("/signIn");
                             },
                             style: ElevatedButton.styleFrom(
                               padding: EdgeInsets.zero,

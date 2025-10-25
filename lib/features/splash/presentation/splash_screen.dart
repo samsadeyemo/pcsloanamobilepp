@@ -21,8 +21,10 @@ class _SplashScreenState extends State<SplashScreen> {
     await Future.delayed(const Duration(seconds: 1));
     final prefs = await SharedPreferences.getInstance();
     final seen = prefs.getBool('onboarding_done') ?? false;
-    final seenSignup = prefs.getBool('account_created') ?? false;
-    final accountVerified =  prefs.getBool('phone_verified') ?? false;
+    // final seenSignup = prefs.getBool('account_created') ?? false;
+    // final accountVerified =  prefs.getBool('phone_verified') ?? false;
+    final seenSignup = await LocalStorage.isAccountCreated();
+    final accountVerified = await LocalStorage.isPhoneVerified();
 
     if (seen & !seenSignup) {
       context.go('/getStartedScreen');

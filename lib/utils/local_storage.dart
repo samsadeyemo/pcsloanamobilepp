@@ -32,5 +32,21 @@ class LocalStorage {
     return prefs.getBool('phone_verified') ?? false;
   }
 
+  static Future<void> setAccountCreated(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('account_created', value);
+  }
+
+  static Future<bool> isAccountCreated() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('account_created') ?? false;
+  }
+
+
+  static Future<void> clearAll() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+  }
+
   
 }

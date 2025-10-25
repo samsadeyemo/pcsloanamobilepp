@@ -84,7 +84,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   Future<void> _createAccount() async {
-    final prefs = await SharedPreferences.getInstance();
+    // final prefs = await SharedPreferences.getInstance();
 
     if (!_formKey.currentState!.validate()) return;
 
@@ -102,7 +102,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
       await LocalStorage.saveUser(result["data"]);
       // await LocalStorage.setFlag('account_created', true);
       String resultMessage = result["message"] ?? "Account created successfully";
-      await prefs.setBool('account_created', true);
+      await LocalStorage.setAccountCreated(true);
+      // await prefs.setBool('account_created', true);
       _showSnackBar(resultMessage);
 
       context.go('/verify-phone');

@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pcsloan/utils/local_storage.dart';
@@ -25,15 +27,17 @@ class _SplashScreenState extends State<SplashScreen> {
     // final accountVerified =  prefs.getBool('phone_verified') ?? false;
     final seenSignup = await LocalStorage.isAccountCreated();
     final accountVerified = await LocalStorage.isPhoneVerified();
+    final passwordCreated = await LocalStorage.isPasswordCreated();
 
     if (seen & !seenSignup) {
       context.go('/getStartedScreen');
     } else if (seen & seenSignup & !accountVerified) {
       context.go('/verify-phone');
-    } else if (seen & seenSignup & accountVerified) {
+    } else if (seen & seenSignup & accountVerified & !passwordCreated) {
       context.go('/create-password');
-    } 
-    else
+    } else if (seen & seenSignup & accountVerified & passwordCreated) {
+      context.go('/transaction-screen');
+    }else
       context.go('/onboarding');
   }
 

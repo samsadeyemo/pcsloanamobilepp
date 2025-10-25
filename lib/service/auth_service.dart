@@ -145,4 +145,40 @@ class AuthService {
       throw Exception(decoded['message'] ?? 'Password creation failed');
     }
   }
+
+  Future<Map<String, dynamic>> createTransactionPin({
+    required String employeeId,
+    required String pin,
+    required String confirmPin,
+  }) async {
+    final url = Uri.parse("$baseUrl/auth/pin");
+
+    final Map<String, dynamic> body = {
+      'employee_id': employeeId,
+      'pin': pin,
+      'confirm_pin': confirmPin,
+    };
+
+    if (pin != confirmPin) {
+      throw Exception('Pin do not match');
+    }
+
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(body),
+    );
+
+    final decoded = jsonDecode(response.body);
+
+    if (response.statusCode == 201 && decoded['status'] == 'success') {
+      return decoded;
+    } else {
+      throw Exception(decoded['message'] ?? 'Pin creation failed');
+    }
+  }
 }
+
+
+
+

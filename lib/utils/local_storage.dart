@@ -42,6 +42,23 @@ class LocalStorage {
     return prefs.getBool('account_created') ?? false;
   }
 
+  static Future<void> setPasswordCreated(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('password_created', value);
+  }
+  static Future<bool> isPasswordCreated() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('password_created') ?? false;
+  }
+  static Future<void> setPinCreated(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('pin_created', value);
+  }
+  static Future<bool> isPinCreated() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('pin_created') ?? false;
+  }
+
 
   static Future<void> clearAll() async {
     final prefs = await SharedPreferences.getInstance();

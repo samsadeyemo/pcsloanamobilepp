@@ -36,25 +36,22 @@ class _VerifyPhoneScreenState extends ConsumerState<VerifyPhoneScreen> {
     );
   }
 
- Future<void> _loadPhoneNumberOnce() async {
-  final data = await LocalStorage.getUser();
-  print("User from local storage: $data");
+  Future<void> _loadPhoneNumberOnce() async {
+    final data = await LocalStorage.getUser();
+    print("User from local storage: $data");
 
-  // Navigate into the nested structure
-  final phoneNumber = data?['user']?['phone'] ?? '';
+    // Navigate into the nested structure
+    final phoneNumber = data?['user']?['phone'] ?? '';
 
-  if (!mounted) return;
-  setState(() {
-    _phoneNumber = phoneNumber;
-    _isLoading = false;
-  });
-}
-
-
+    if (!mounted) return;
+    setState(() {
+      _phoneNumber = phoneNumber;
+      _isLoading = false;
+    });
+  }
 
   Future<void> _verifyOtp() async {
-    final prefs = await SharedPreferences.getInstance();
-    print("na otp code for the first log: $_otpCode");
+    // final prefs = await SharedPreferences.getInstance();
     if (_otpCode == "") return;
     setState(() => _verifying = true);
     try {
@@ -62,19 +59,38 @@ class _VerifyPhoneScreenState extends ConsumerState<VerifyPhoneScreen> {
         otp: _otpCode,
         phone: _phoneNumber,
       );
-      print("na the result be dis $result");
-      await prefs.setBool('phone_verified', true);
-      String resultMessage = result["message"] ?? "Phone number verified successfully";
-      _showSnackBar("$resultMessage" ?? "Phone number verified successfully", isError: false);
+      // await prefs.setBool('phone_verified', true);
+      await LocalStorage.setPhoneVerified(true);
+      String resultMessage =
+          result["message"] ?? "Phone number verified successfully";
+      _showSnackBar(
+        resultMessage,
+        isError: false,
+      );
       context.go('/create-password');
     } catch (e) {
       _showSnackBar(
         e.toString().replaceFirst('Exception: ', ''),
         isError: true,
       );
-    }
-     finally {
+    } finally {
       setState(() => _verifying = false);
+    }
+  }
+
+  Future<void> _resendOtp() async {
+    final data = await LocalStorage.getUser();
+    final employeeId = data?['user']?['employee_id'] ?? '';
+    if (employeeId == "") return;
+    try {
+      final result = await _authService.resendVerificationCode(employeeId);
+      String resultMessage = result["message"] ?? "OTP resent successfully";
+      _showSnackBar(resultMessage, isError: false);
+    } catch (e) {
+      _showSnackBar(
+        e.toString().replaceFirst('Exception: ', ''),
+        isError: true,
+      );
     }
   }
 
@@ -139,7 +155,6 @@ class _VerifyPhoneScreenState extends ConsumerState<VerifyPhoneScreen> {
                     // send to backend / verify
                     _otpCode = code;
                     _verifyOtp();
-                    print('User entered code 🍀🍀: $code');
                   },
                 ),
               ),
@@ -208,8 +223,7 @@ class _VerifyPhoneScreenState extends ConsumerState<VerifyPhoneScreen> {
                       ),
 
                       TextButton(
-                        onPressed: () => _showSnackBar("Resend functionality not implemented yet."),
-
+                        onPressed:() => _resendOtp(),
                         child: Text(
                           "Click to resend",
                           style: TextStyle(

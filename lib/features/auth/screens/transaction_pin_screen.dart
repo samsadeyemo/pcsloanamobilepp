@@ -46,6 +46,7 @@ class _TransactionPinScreen extends ConsumerState<TransactionPinScreen> {
           String resultMessage =
               result["message"] ?? "Transaction PIN created successfully";
           _showSnackBar(resultMessage, isError: false);
+          await LocalStorage.setPinCreated(true);
           setState(() => _verifying = false);
           context.go("/account-created-screen");
         } catch (e) {

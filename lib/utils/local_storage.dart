@@ -59,6 +59,12 @@ class LocalStorage {
     return prefs.getBool('pin_created') ?? false;
   }
 
+  static Future<void> saveToken(String token) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('auth_token', token);
+  }
+
+  
 
   static Future<void> clearAll() async {
     final prefs = await SharedPreferences.getInstance();

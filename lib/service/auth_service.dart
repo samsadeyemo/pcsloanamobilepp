@@ -177,8 +177,33 @@ class AuthService {
       throw Exception(decoded['message'] ?? 'Pin creation failed');
     }
   }
+
+  
+Future<Map<String, dynamic>> loginUser({
+    required String phone,
+    required String password,
+  }) async {
+    final url = Uri.parse("$baseUrl/auth/login");
+    final Map<String, dynamic> body = {
+      'phone': phone,
+      'password': password,
+    };
+
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(body),
+    );
+
+    final decoded = jsonDecode(response.body);
+
+    if (response.statusCode == 201 && decoded['status'] == 'success') {
+      return decoded;
+    } else {
+      throw Exception(decoded['message'] ?? 'Login failed');
+    }
+  } 
+
+
 }
-
-
-
 

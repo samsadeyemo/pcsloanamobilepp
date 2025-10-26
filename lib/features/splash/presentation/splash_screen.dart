@@ -19,26 +19,73 @@ class _SplashScreenState extends State<SplashScreen> {
     _init();
   }
 
-  Future<void> _init() async {
-    await Future.delayed(const Duration(seconds: 1));
-    final prefs = await SharedPreferences.getInstance();
-    final seen = prefs.getBool('onboarding_done') ?? false;
-    // final seenSignup = prefs.getBool('account_created') ?? false;
-    // final accountVerified =  prefs.getBool('phone_verified') ?? false;
-    final seenSignup = await LocalStorage.isAccountCreated();
-    final accountVerified = await LocalStorage.isPhoneVerified();
-    final passwordCreated = await LocalStorage.isPasswordCreated();
+  // Future<void> _init() async {
+  //   await Future.delayed(const Duration(seconds: 1));
+  //   final prefs = await SharedPreferences.getInstance();
+  //   final seen = prefs.getBool('onboarding_done') ?? false;
+  //   // final seenSignup = prefs.getBool('account_created') ?? false;
+  //   // final accountVerified =  prefs.getBool('phone_verified') ?? false;
+  //   final seenSignup = await LocalStorage.isAccountCreated();
+  //   final accountVerified = await LocalStorage.isPhoneVerified();
+  //   final passwordCreated = await LocalStorage.isPasswordCreated();
+  //   final pinCreated = await LocalStorage.isPinCreated();
 
-    if (seen & !seenSignup) {
-      context.go('/getStartedScreen');
-    } else if (seen & seenSignup & !accountVerified) {
-      context.go('/verify-phone');
-    } else if (seen & seenSignup & accountVerified & !passwordCreated) {
-      context.go('/create-password');
-    } else if (seen & seenSignup & accountVerified & passwordCreated) {
-      context.go('/transaction-screen');
-    }else
+  //   if (seen & !seenSignup) {
+  //     context.go('/getStartedScreen');
+  //   } else if (seen & seenSignup & !accountVerified) {
+  //     context.go('/verify-phone');
+  //   } else if (seen & seenSignup & accountVerified & !passwordCreated) {
+  //     context.go('/create-password');
+  //   } else if (seen & seenSignup & accountVerified & passwordCreated & !pinCreated) {
+  //     context.go('/transaction-screen');
+  //   } else if (seen & seenSignup & accountVerified & passwordCreated & pinCreated) {
+  //     context.go('/signIn');
+  //   }
+  //   else
+  //     context.go('/onboarding');
+  // }
+
+   Future<void> _init() async {
+    await Future.delayed(const Duration(seconds: 1));
+
+    final prefs = await SharedPreferences.getInstance();
+    final onboardingDone = prefs.getBool('onboarding_done') ?? false;
+
+    final accountCreated = await LocalStorage.isAccountCreated();
+    final phoneVerified = await LocalStorage.isPhoneVerified();
+    final passwordCreated = await LocalStorage.isPasswordCreated();
+    final pinCreated = await LocalStorage.isPinCreated();
+
+    if (!mounted) return; // ✅ Always guard before navigation
+
+    // 🧠 Navigation flow (clear and ordered)
+    if (!onboardingDone) {
       context.go('/onboarding');
+      return;
+    }
+
+    if (onboardingDone && !accountCreated) {
+      context.go('/getStartedScreen');
+      return;
+    }
+
+    if (accountCreated && !phoneVerified) {
+      context.go('/verify-phone');
+      return;
+    }
+
+    if (phoneVerified && !passwordCreated) {
+      context.go('/create-password');
+      return;
+    }
+
+    if (passwordCreated && !pinCreated) {
+      context.go('/transaction-screen');
+      return;
+    }
+
+    // ✅ All steps complete
+    context.go('/signIn');
   }
 
   @override

@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:pcsloan/common/widgets/signup_input_field.dart';
+import 'package:pcsloan/common/widgets/signup_password_field.dart';
+import 'package:pcsloan/service/auth_service.dart';
+import 'package:pcsloan/utils/local_storage.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -12,81 +16,183 @@ class LoginScreen extends ConsumerStatefulWidget {
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  bool _obscurePassword = true;
   String phoneNumber = '';
   String password = "";
   String _authMessage = 'Use fingerprint to log in';
+  bool isLoading = false;
   final LocalAuthentication _auth = LocalAuthentication();
+  final _authService = AuthService();
+  final _phoneController = TextEditingController();
+  final _passwordController = TextEditingController();
 
-bool _biometricAvailable = false;
+  bool _biometricAvailable = false;
 
-@override
-void initState() {
-  super.initState();
-  _checkBiometricAvailability();
-}
-
-Future<void> _checkBiometricAvailability() async {
-  try {
-    final isSupported = await _auth.isDeviceSupported();
-    final canCheck = await _auth.canCheckBiometrics;
-    final types = await _auth.getAvailableBiometrics();
-    debugPrint('isSupported: $isSupported');
-    debugPrint('canCheck: $canCheck');
-    debugPrint('available types: $types');
-
-    final available = isSupported && canCheck && types.isNotEmpty;
-    if (mounted) {
-      setState(() {
-        _biometricAvailable = available;
-        _authMessage = available
-            ? 'Use fingerprint to log in'
-            : 'Biometric login not available on this device';
-      });
-    }
-  } catch (e) {
-    debugPrint('Biometric check error: $e');
-    if (!mounted) return;
-    setState(() => _authMessage = 'Biometric check error: $e');
+  @override
+  void initState() {
+    super.initState();
+    _checkBiometricAvailability();
   }
-}
 
-Future<void> _authenticateWithFingerprint() async {
-  // Guard: bail out early if not available
-  if (!_biometricAvailable) {
-    if (!mounted) return;
+  void _showSnackBar(String message, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Biometric authentication not available')),
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Colors.red : Colors.green,
+      ),
     );
+  }
+
+  Future<void> _checkBiometricAvailability() async {
+    try {
+      final isSupported = await _auth.isDeviceSupported();
+      final canCheck = await _auth.canCheckBiometrics;
+      final types = await _auth.getAvailableBiometrics();
+      debugPrint('isSupported: $isSupported');
+      debugPrint('canCheck: $canCheck');
+      debugPrint('available types: $types');
+
+      final available = isSupported && canCheck && types.isNotEmpty;
+      if (mounted) {
+        setState(() {
+          _biometricAvailable = available;
+          _authMessage =
+              available
+                  ? 'Use fingerprint to log in'
+                  : 'Biometric login not available on this device';
+        });
+      }
+    } catch (e) {
+      debugPrint('Biometric check error: $e');
+      if (!mounted) return;
+      setState(() => _authMessage = 'Biometric check error: $e');
+    }
+  }
+
+  Future<void> _authenticateWithFingerprint() async {
+    // Guard: bail out early if not available
+    if (!_biometricAvailable) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Biometric authentication not available')),
+      );
+      return;
+    }
+
+    setState(() => _authMessage = 'Authenticating...');
+
+    try {
+      final authenticated = await _auth.authenticate(
+        localizedReason: 'Please verify your identity to log in',
+        options: const AuthenticationOptions(
+          biometricOnly: true,
+          useErrorDialogs: true,
+          stickyAuth: true, // keeps prompt alive across app switches
+        ),
+      );
+
+      if (!mounted) return;
+
+      if (authenticated) {
+        setState(() => _authMessage = 'Login successful!');
+        // brief feedback (optional)
+        await Future.delayed(const Duration(milliseconds: 350));
+        context.go('/loan-redirect'); // your route
+      } else {
+        setState(() => _authMessage = 'Authentication failed or canceled.');
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _authMessage = 'Error: $e');
+    }
+  }
+
+  // Future<void> _loginUser() async {
+  //   if (!_formKey.currentState!.validate()) {
+  //     return;
+  //   }
+  //   setState(() {
+  //     isLoading = true;
+  //   });
+  //   try {
+  //     final result = await _authService.loginUser(
+  //       phone: _phoneController.text.trim(),
+  //       password: _passwordController.text.trim(),
+  //     );
+
+  //     await LocalStorage.saveToken(result['data']['token']);
+  //     String resultMessage = result["message"] ?? "Login successful";
+  //     _showSnackBar(resultMessage, isError: false);
+  //     context.go("/loan-redirect");
+  //   } catch (e) {
+  //     _showSnackBar(e.toString(), isError: true);
+  //   } finally {
+  //     if (mounted) {
+  //       setState(() {
+  //         isLoading = false;
+  //       });
+  //     }
+  //   }
+  // }
+
+
+  Future<void> _loginUser() async {
+  if (!_formKey.currentState!.validate()) {
     return;
   }
 
-  setState(() => _authMessage = 'Authenticating...');
+  setState(() {
+    isLoading = true;
+  });
 
   try {
-    final authenticated = await _auth.authenticate(
-      localizedReason: 'Please verify your identity to log in',
-      options: const AuthenticationOptions(
-        biometricOnly: true,
-        useErrorDialogs: true,
-        stickyAuth: true, // keeps prompt alive across app switches
-      ),
+    String rawPhone = _phoneController.text.trim();
+    String formattedPhone = _normalizePhoneNumber(rawPhone);
+
+    final result = await _authService.loginUser(
+      phone: formattedPhone,
+      password: _passwordController.text.trim(),
     );
 
-    if (!mounted) return;
-
-    if (authenticated) {
-      setState(() => _authMessage = 'Login successful!');
-      // brief feedback (optional)
-      await Future.delayed(const Duration(milliseconds: 350));
-      context.go('/loan-redirect');  // your route
-    } else {
-      setState(() => _authMessage = 'Authentication failed or canceled.');
-    }
+    await LocalStorage.saveToken(result['data']['token']);
+    String resultMessage = result["message"] ?? "Login successful";
+    _showSnackBar(resultMessage, isError: false);
+    context.go("/loan-redirect");
   } catch (e) {
-    if (!mounted) return;
-    setState(() => _authMessage = 'Error: $e');
+    _showSnackBar(e.toString(), isError: true);
+  } finally {
+    if (mounted) {
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
+}
+
+/// Normalizes Nigerian phone numbers into +234 format
+String _normalizePhoneNumber(String input) {
+  String phone = input.replaceAll(RegExp(r'\s+'), ''); // remove spaces
+
+  if (phone.startsWith('+234')) {
+    // ✅ Already correct
+    return phone;
+  } else if (phone.startsWith('234')) {
+    // ✅ Missing '+'
+    return '+$phone';
+  } else if (phone.startsWith('0')) {
+    // ✅ Convert 080... → +23480...
+    return '+234${phone.substring(1)}';
+  } else {
+    // ⚠️ Fallback (user just typed e.g. 8088993491)
+    return '+234$phone';
+  }
+}
+
+
+  @override
+void dispose() {
+  _phoneController.dispose();
+  _passwordController.dispose();
+  super.dispose();
 }
 
 
@@ -150,139 +256,31 @@ Future<void> _authenticateWithFingerprint() async {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        "Phone Number",
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: Color(0xFF0F2D62),
-                          fontFamily: "Inter",
-                        ),
+                      SignupInputField(
+                        icon: Icons.phone,
+                        label: 'Phone Number',
+                        hintText: '',
+                        controller: _phoneController,
+                        keyboardType: TextInputType.phone,
+                        isPhoneNumber: true,
+                        validator:
+                            (value) =>
+                                value != null && value.length >= 10
+                                    ? null
+                                    : 'Number must be 10 digits',
                       ),
-                      const SizedBox(height: 8),
-                      Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Color(0xFFE5E7EB)),
-                          borderRadius: BorderRadius.circular(10),
-                          color: Colors.white,
-                        ),
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 10,
-                        ),
-                        child: Row(
-                          children: [
-                            Text(
-                              '+234',
-                              style: TextStyle(
-                                color: Color(0xff6B7280),
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                                fontFamily: "Inter",
-                              ),
-                            ),
-                            SizedBox(width: 8),
-                            Expanded(
-                              child: TextFormField(
-                                keyboardType: TextInputType.number,
-                                onChanged: (value) => phoneNumber = value,
-                                validator:
-                                    (value) =>
-                                        value != null && value.length >= 10
-                                            ? null
-                                            : "Phone number must be 10 Digits",
-
-                                decoration: InputDecoration(
-                                  hintText: 'Enter your phone number',
-                                  hintStyle: TextStyle(
-                                    color: Color(0xFFADAEBC),
-                                    fontSize: 16,
-                                    fontFamily: "Inter",
-                                  ),
-                                  border: InputBorder.none,
-                                  isDense: true,
-                                  contentPadding: EdgeInsets.zero,
-                                ),
-                                style: TextStyle(fontSize: 16),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(height: 20),
-                      Text(
-                        "Password",
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: Color(0xFF0F2D62),
-                          fontFamily: "Inter",
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Color(0xFFE5E7EB)),
-                          borderRadius: BorderRadius.circular(10),
-                          color: Colors.white,
-                        ),
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 11,
-                          vertical: 0,
-                        ),
-
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.lock,
-                              color: Color(0xff6B7280),
-                              size: 20,
-                            ),
-                            SizedBox(width: 8),
-                            Expanded(
-                              child: TextFormField(
-                                obscureText: _obscurePassword,
-                                onChanged: (value) => password = value,
-                                validator:
-                                    (value) =>
-                                        value != null && value.length >= 6
-                                            ? null
-                                            : "Password too short try again",
-                                keyboardType: TextInputType.text,
-                                decoration: InputDecoration(
-                                  hintText: 'Enter your password',
-                                  hintStyle: TextStyle(
-                                    color: Color(0xFFADAEBC),
-                                    fontSize: 16,
-                                    fontFamily: "Inter",
-                                  ),
-                                  border: InputBorder.none,
-                                  isDense: true,
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    vertical: 14,
-                                  ),
-                                  // contentPadding: EdgeInsets.zero,
-                                  suffixIcon: IconButton(
-                                    onPressed: () {
-                                      setState(() {
-                                        _obscurePassword = !_obscurePassword;
-                                      });
-                                    },
-                                    icon: Icon(
-                                      _obscurePassword
-                                          ? Icons.visibility_off
-                                          : Icons.visibility,
-                                      color: Color(0xff9CA3AF),
-                                      size: 20,
-                                    ),
-                                  ),
-                                ),
-                                style: TextStyle(fontSize: 16),
-                              ),
-                            ),
-                          ],
-                        ),
+                      SignupPasswordField(
+                        icon: Icons.lock_outline,
+                        label: "Password",
+                        hintText: "Enter your password",
+                        controller: _passwordController,
+                        validator: (value) {
+                          if (value == null || value.isEmpty)
+                            return "Password required";
+                          if (value.length < 6)
+                            return "Must be at least 6 characters";
+                          return null;
+                        },
                       ),
 
                       Align(
@@ -305,20 +303,15 @@ Future<void> _authenticateWithFingerprint() async {
                   ),
                 ),
                 SizedBox(height: 10),
-                // authState.isLoading
-                //     ? const CircularProgressIndicator()
-                //     :
-                Padding(
+                isLoading
+                    ? const CircularProgressIndicator()
+                    : Padding(
                       padding: const EdgeInsets.only(top: 0, right: 0),
                       child: SizedBox(
                         width: 342,
                         height: 50,
                         child: ElevatedButton(
-                          onPressed: () async {
-                            if (_formKey.currentState!.validate()) {
-                              context.go("/loan-redirect");
-                            }
-                          },
+                          onPressed: () => _loginUser(),
                           style: ElevatedButton.styleFrom(
                             padding: EdgeInsets.zero,
                             shape: RoundedRectangleBorder(
@@ -382,7 +375,7 @@ Future<void> _authenticateWithFingerprint() async {
                     height: 50,
                     child: ElevatedButton(
                       onPressed: _authenticateWithFingerprint,
-                      
+
                       style: ElevatedButton.styleFrom(
                         padding: EdgeInsets.zero,
                         shape: RoundedRectangleBorder(

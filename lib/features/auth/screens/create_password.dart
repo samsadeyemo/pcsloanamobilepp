@@ -74,10 +74,7 @@ class _CreatePasswordScreenState extends ConsumerState<CreatePasswordScreen> {
       _showSnackBar(result["message"] ?? "Password created successfully");
       context.go("/transaction-screen");
     } catch (e) {
-      _showSnackBar(
-        e.toString().replaceFirst('Exception: ', ''),
-        isError: true,
-      );
+      _showSnackBar(e.toString().replaceFirst('Exception: ', ''), isError: true);
     } finally {
       if (mounted) setState(() => _verifying = false);
     }
@@ -140,16 +137,17 @@ class _CreatePasswordScreenState extends ConsumerState<CreatePasswordScreen> {
                       Icon(Icons.info, color: Color(0xffA198FF), size: 12),
                       SizedBox(width: 10),
                       Expanded(
-                        child: Text(
-                          'Password must be at least 8 characters long & include letters, numbers & special chars',
-                          style: TextStyle(
-                            fontFamily: 'Inter',
-                            fontSize: 12,
-                            fontWeight: FontWeight.w400,
-                            color: Color(0xff4B5563),
-                          ),
+      child: Text(
+                        'Password must be at least 8 characters long & include letters, numbers & special chars',
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 12,
+                          fontWeight: FontWeight.w400,
+                          color: Color(0xff4B5563),
+                          
                         ),
                       ),
+                      )
                     ],
                   ),
                   const SizedBox(height: 30),
@@ -269,14 +267,10 @@ class _CreatePasswordScreenState extends ConsumerState<CreatePasswordScreen> {
                 contentPadding: const EdgeInsets.symmetric(vertical: 14),
                 suffixIcon: IconButton(
                   onPressed: () {
-                    setState(
-                      () => _obscureConfirmPassword = !_obscureConfirmPassword,
-                    );
+                    setState(() => _obscureConfirmPassword = !_obscureConfirmPassword);
                   },
                   icon: Icon(
-                    _obscureConfirmPassword
-                        ? Icons.visibility_off
-                        : Icons.visibility,
+                    _obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
                     color: const Color(0xff9CA3AF),
                     size: 20,
                   ),
@@ -313,25 +307,24 @@ class _CreatePasswordScreenState extends ConsumerState<CreatePasswordScreen> {
         child: Container(
           alignment: Alignment.center,
           padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
-          child:
-              loading
-                  ? const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation(Colors.white),
-                    ),
-                  )
-                  : Text(
-                    label ?? '',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      fontFamily: 'Inter',
-                    ),
+          child: loading
+              ? const SizedBox(
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation(Colors.white),
                   ),
+                )
+              : Text(
+                  label ?? '',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    fontFamily: 'Inter',
+                  ),
+                ),
         ),
       ),
     );

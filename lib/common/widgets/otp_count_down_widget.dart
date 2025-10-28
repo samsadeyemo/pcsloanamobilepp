@@ -1,38 +1,53 @@
+// otp_count_down_widget.dart
 import 'dart:async';
 import 'package:flutter/material.dart';
 
 class OtpCountdown extends StatefulWidget {
   const OtpCountdown({
     super.key,
-    this.totalSeconds = 180,              
+    this.totalSeconds = 300, // 5 minutes
     this.onExpired,
   });
 
   final int totalSeconds;
-
   final VoidCallback? onExpired;
 
   @override
-  State<OtpCountdown> createState() => _OtpCountdownState();
+  State<OtpCountdown> createState() => OtpCountdownState();
 }
 
-class _OtpCountdownState extends State<OtpCountdown> {
+/// Public state so parent can hold a GlobalKey<OtpCountdownState> and call reset()
+class OtpCountdownState extends State<OtpCountdown> {
   late int _secondsLeft;
   Timer? _ticker;
 
-  @override
-  void initState() {
-    super.initState();
+  void _startTimer() {
+    _ticker?.cancel();
     _secondsLeft = widget.totalSeconds;
 
+    // Tick every second
     _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (_secondsLeft == 0) {
-        _ticker!.cancel();
+      if (!mounted) return;
+      if (_secondsLeft <= 0) {
+        _ticker?.cancel();
         widget.onExpired?.call();
+        setState(() {}); // ensure UI updates to show 00:00 if needed
       } else {
         setState(() => _secondsLeft--);
       }
     });
+    setState(() {});
+  }
+
+  /// Call this to restart the countdown from widget.totalSeconds
+  void reset() {
+    _startTimer();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _startTimer();
   }
 
   @override
@@ -51,7 +66,7 @@ class _OtpCountdownState extends State<OtpCountdown> {
       style: const TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.bold,
-        color: Color(0xffA198FF),             
+        color: Color(0xffA198FF),
       ),
     );
   }

@@ -107,7 +107,7 @@ class AuthService {
 
     final decoded = jsonDecode(response.body);
 
-    if (response.statusCode == 200 && decoded['status'] == 'success') {
+    if (response.statusCode == 201 && decoded['status'] == 'success') {
       return decoded;
     } else {
       throw Exception(decoded['message'] ?? 'Resend OTP failed');

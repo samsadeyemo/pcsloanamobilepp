@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:pcsloan/common/widgets/signup_input_field.dart';
 import 'package:pcsloan/service/auth_service.dart';
 import 'package:pcsloan/utils/local_storage.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -12,7 +11,8 @@ class SignUpScreen extends StatefulWidget {
   State<SignUpScreen> createState() => _SignUpScreenState();
 }
 
-class _SignUpScreenState extends State<SignUpScreen> {
+class _SignUpScreenState extends State<SignUpScreen>
+    with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _authService = AuthService();
 
@@ -28,21 +28,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool _creating = false;
   Map<String, dynamic>? _employeeData;
 
+  bool get _showExtraFields => _employeeData != null;
+
   @override
   void initState() {
     super.initState();
 
-    // Clear fields when staff ID is cleared
+    // Clear fields when staff ID is cleared manually
     _staffIdController.addListener(() {
-      if (_staffIdController.text.isEmpty) {
-        setState(() {
-          _employeeData = null;
-          _firstNameController.clear();
-          _lastNameController.clear();
-          _phoneController.clear();
-          _emailController.clear();
-          _bvnController.clear();
-        });
+      if (_staffIdController.text.isEmpty && _employeeData != null) {
+        _resetFetchedData();
       }
     });
   }
@@ -67,25 +62,27 @@ class _SignUpScreenState extends State<SignUpScreen> {
       final data = await _authService.fetchEmployee(_staffIdController.text);
 
       setState(() {
-  _employeeData = data;
-  _firstNameController.text = data['first_name'] ?? data['firstname'] ?? '';
-  _lastNameController.text = data['last_name'] ?? data['lastname'] ?? '';
-  _phoneController.text = data['phone_number'] ?? data['phone'] ?? '';
-  _emailController.text = data['email'] ?? '';
-  _bvnController.text = data['bvn'] ?? '';
-});
+        _employeeData = data;
+        _firstNameController.text =
+            data['first_name'] ?? data['firstname'] ?? '';
+        _lastNameController.text = data['last_name'] ?? data['lastname'] ?? '';
+        _phoneController.text = data['phone_number'] ?? data['phone'] ?? '';
+        _emailController.text = data['email'] ?? '';
+        _bvnController.text = data['bvn'] ?? '';
+      });
 
       _showSnackBar("Employee found successfully");
     } catch (e) {
-      _showSnackBar(e.toString().replaceFirst('Exception: ', ''), isError: true);
+      _showSnackBar(
+        e.toString().replaceFirst('Exception: ', ''),
+        isError: true,
+      );
     } finally {
       setState(() => _fetching = false);
     }
   }
 
   Future<void> _createAccount() async {
-    // final prefs = await SharedPreferences.getInstance();
-
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _creating = true);
@@ -100,18 +97,32 @@ class _SignUpScreenState extends State<SignUpScreen> {
       );
 
       await LocalStorage.saveUser(result["data"]);
-      // await LocalStorage.setFlag('account_created', true);
-      String resultMessage = result["message"] ?? "Account created successfully";
       await LocalStorage.setAccountCreated(true);
-      // await prefs.setBool('account_created', true);
+      String resultMessage =
+          result["message"] ?? "Account created successfully";
       _showSnackBar(resultMessage);
 
       context.go('/verify-phone');
     } catch (e) {
-     _showSnackBar(e.toString().replaceFirst('Exception: ', ''), isError: true);
+      _showSnackBar(
+        e.toString().replaceFirst('Exception: ', ''),
+        isError: true,
+      );
     } finally {
       setState(() => _creating = false);
     }
+  }
+
+  void _resetFetchedData() {
+    setState(() {
+      _employeeData = null;
+      _firstNameController.clear();
+      _lastNameController.clear();
+      _phoneController.clear();
+      _emailController.clear();
+      _bvnController.clear();
+      _staffIdController.clear();
+    });
   }
 
   @override
@@ -122,118 +133,149 @@ class _SignUpScreenState extends State<SignUpScreen> {
         child: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Create Your Account',
-                  style: TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 24,
-                    color: Color(0xff0F2D62),
-                    fontWeight: FontWeight.w600,
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Create Your Account',
+                    style: TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 24,
+                      color: Color(0xff0F2D62),
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-                const Text(
-                  'Please fill in your information below',
-                  style: TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 14,
-                    color: Color(0xff4B5563),
-                    fontWeight: FontWeight.w400,
+                  const Text(
+                    'Please fill in your information below',
+                    style: TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 14,
+                      color: Color(0xff4B5563),
+                      fontWeight: FontWeight.w400,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                Form(
-                  key: _formKey,
-                  child: Column(
-                    children: [
-                      SignupInputField(
-                        icon: Icons.badge_outlined,
-                        label: 'Staff ID',
-                        hintText: 'Enter your Staff ID',
-                        controller: _staffIdController,
-                        validator: (value) =>
+                  const SizedBox(height: 16),
+
+                  // Staff ID Section
+                  SignupInputField(
+                    icon: Icons.badge_outlined,
+                    label: 'Staff ID',
+                    hintText: 'Enter your Staff ID',
+                    controller: _staffIdController,
+                    enabled: !_showExtraFields, // Disable if fetched
+                    validator:
+                        (value) =>
                             value != null && value.isNotEmpty
                                 ? null
                                 : 'Staff ID is required',
-                      ),
-                      const SizedBox(height: 8),
-
-                      if (_employeeData == null)
-                        _gradientButton(
-                          label: _fetching ? null : "Fetch Details",
-                          onPressed: _fetching ? null : _fetchEmployee,
-                          loading: _fetching,
-                        ),
-
-                      const SizedBox(height: 16),
-
-                      SignupInputField(
-                        icon: Icons.person,
-                         hintText: '',
-                        label: 'First Name',
-                        controller: _firstNameController,
-                        enabled: false,
-                      ),
-                      SignupInputField(
-                        icon: Icons.person,
-                        label: 'Last Name',
-                         hintText: '',
-                        controller: _lastNameController,
-                        enabled: false,
-                      ),
-                      SignupInputField(
-                        icon: Icons.phone,
-                        label: 'Phone Number',
-                         hintText: '',
-                        controller: _phoneController,
-                        enabled: false,
-                      ),
-                      SignupInputField(
-                        icon: Icons.email,
-                        label: 'Email',
-                        hintText: 'Enter your email',
-                        controller: _emailController,
-                        keyboardType: TextInputType.emailAddress,
-                        isOptional: true,
-                      ),
-                      SignupInputField(
-                        icon: Icons.shield_outlined,
-                        label: 'BVN',
-                        hintText: 'Enter your BVN',
-                        controller: _bvnController,
-                        keyboardType: TextInputType.phone,
-                        validator: (value) =>
-                            value != null && value.length == 11
-                                ? null
-                                : 'BVN must be 11 digits',
-                      ),
-                    ],
                   ),
-                ),
-                const SizedBox(height: 20),
+                  const SizedBox(height: 8),
 
-                Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Padding(
-                    padding: const EdgeInsets.only(bottom: 1),
-                    child: SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: _gradientButton(
-                        label: _creating ? null : "Continue",
-                        onPressed: _creating ? null : _createAccount,
-                        loading: _creating,
+                  if (!_showExtraFields)
+                    _gradientButton(
+                      label: _fetching ? null : "Fetch Details",
+                      onPressed: _fetching ? null : _fetchEmployee,
+                      loading: _fetching,
+                    ),
+
+                  if (_showExtraFields)
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 6.0),
+                        child: TextButton(
+                          onPressed: _resetFetchedData,
+                          style: TextButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            minimumSize: const Size(0, 0),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: const Text(
+                            "Made a mistake?",
+                            style: TextStyle(
+                              color: Color(0xff7C70DF),
+                              fontWeight: FontWeight.w500,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
 
-                Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Padding(
-                    padding: const EdgeInsets.only(bottom: 20),
+                  // Animated fade-in section
+                  AnimatedOpacity(
+                    duration: const Duration(milliseconds: 300),
+                    opacity: _showExtraFields ? 1.0 : 0.0,
+                    curve: Curves.easeInOut,
+                    child:
+                        _showExtraFields
+                            ? Column(
+                              children: [
+                                const SizedBox(height: 16),
+                                SignupInputField(
+                                  icon: Icons.person,
+                                  hintText: '',
+                                  label: 'First Name',
+                                  controller: _firstNameController,
+                                  enabled: false,
+                                ),
+                                SignupInputField(
+                                  icon: Icons.person,
+                                  label: 'Last Name',
+                                  hintText: '',
+                                  controller: _lastNameController,
+                                  enabled: false,
+                                ),
+                                SignupInputField(
+                                  icon: Icons.phone,
+                                  label: 'Phone Number',
+                                  hintText: '',
+                                  controller: _phoneController,
+                                  enabled: false,
+                                ),
+                                SignupInputField(
+                                  icon: Icons.email,
+                                  label: 'Email',
+                                  hintText: 'Enter your email',
+                                  controller: _emailController,
+                                  keyboardType: TextInputType.emailAddress,
+                                  isOptional: true,
+                                ),
+                                SignupInputField(
+                                  icon: Icons.shield_outlined,
+                                  label: 'BVN',
+                                  hintText: 'Enter your BVN',
+                                  controller: _bvnController,
+                                  keyboardType: TextInputType.phone,
+                                  validator:
+                                      (value) =>
+                                          value != null && value.length == 11
+                                              ? null
+                                              : 'BVN must be 11 digits',
+                                ),
+                                const SizedBox(height: 20),
+                                SizedBox(
+                                  width: double.infinity,
+                                  height: 50,
+                                  child: _gradientButton(
+                                    label: _creating ? null : "Continue",
+                                    onPressed:
+                                        _creating ? null : _createAccount,
+                                    loading: _creating,
+                                  ),
+                                ),
+                              ],
+                            )
+                            : const SizedBox.shrink(),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Already have an account section (always visible)
+                  Align(
+                    alignment: Alignment.bottomCenter,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -259,8 +301,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       ],
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -277,9 +319,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
         padding: EdgeInsets.zero,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(25),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
         backgroundColor: Colors.transparent,
         shadowColor: Colors.transparent,
       ),
@@ -293,24 +333,25 @@ class _SignUpScreenState extends State<SignUpScreen> {
         child: Container(
           alignment: Alignment.center,
           padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
-          child: loading
-              ? const SizedBox(
-                  height: 20,
-                  width: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation(Colors.white),
+          child:
+              loading
+                  ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation(Colors.white),
+                    ),
+                  )
+                  : Text(
+                    label ?? '',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      fontFamily: 'Inter',
+                    ),
                   ),
-                )
-              : Text(
-                  label ?? '',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    fontFamily: 'Inter',
-                  ),
-                ),
         ),
       ),
     );

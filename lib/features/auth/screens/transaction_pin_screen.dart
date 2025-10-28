@@ -32,6 +32,7 @@ class _TransactionPinScreen extends ConsumerState<TransactionPinScreen> {
   String confirmPin = "";
 
   Future<void> _createPin() async {
+    FocusScope.of(context).unfocus();
     final data = await LocalStorage.getUser();
     final employeeId = data?['user']?['employee_id'] ?? '';
     if (employeeId == '') return;

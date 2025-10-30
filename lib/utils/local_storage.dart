@@ -64,6 +64,20 @@ class LocalStorage {
     await prefs.setString('auth_token', token);
   }
 
+  static Future<String?> getToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('auth_token');
+  }
+
+  static Future<void> setHasLoan(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('has_loan', value);
+  }
+
+  static Future<bool> hasLoan() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('has_loan') ?? false;
+  }
   
 
   static Future<void> clearAll() async {

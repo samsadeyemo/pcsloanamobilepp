@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:pcsloan/features/dashboard/providers/loan_status_provider.dart';
+import 'package:pcsloan/utils/local_storage.dart';
 
 class LoanRedirectScreen extends ConsumerStatefulWidget {
   const LoanRedirectScreen({super.key});
@@ -11,23 +11,25 @@ class LoanRedirectScreen extends ConsumerStatefulWidget {
 }
 
 class _LoanRedirectScreenState extends ConsumerState<LoanRedirectScreen> {
-  bool _navigated = false;
+  @override
+  void initState() {
+    super.initState();
+    _checkLoanStatus();
+  }
+
+  Future<void> _checkLoanStatus() async {
+    final hasLoan = await LocalStorage.hasLoan();
+    if (!mounted) return;
+
+    if (hasLoan) {
+      context.go("/active-loan");
+    } else {
+      context.go("/no-loan");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    ref.listen<AsyncValue<bool>>(loanStatusProvider, (prev, next) {
-      if (_navigated) return;
-
-      next.whenData((hasLoan) {
-        _navigated = true;
-        if (hasLoan) {
-          context.pushReplacement('/active-loan');
-        } else {
-          context.pushReplacement('/no-loan');
-        }
-      });
-    });
-
     return const Scaffold(
       body: Center(child: CircularProgressIndicator()),
     );

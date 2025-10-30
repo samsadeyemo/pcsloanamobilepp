@@ -22,7 +22,8 @@ class _VerifyPhoneScreenState extends ConsumerState<VerifyPhoneScreen> {
   final _authService = AuthService();
 
   // Countdown control
-  final GlobalKey<OtpCountdownState> _countdownKey = GlobalKey<OtpCountdownState>();
+  final GlobalKey<OtpCountdownState> _countdownKey =
+      GlobalKey<OtpCountdownState>();
   bool _canResend = false; // show/hide resend button
   bool _isExpired = false; // show expired message instead of timer row
   bool _resending = false; // in-flight resend UI freeze
@@ -60,13 +61,20 @@ class _VerifyPhoneScreenState extends ConsumerState<VerifyPhoneScreen> {
     setState(() => _verifying = true);
 
     try {
-      final result = await _authService.verifyOtp(otp: _otpCode, phone: _phoneNumber);
+      final result = await _authService.verifyOtp(
+        otp: _otpCode,
+        phone: _phoneNumber,
+      );
       await LocalStorage.setPhoneVerified(true);
-      String resultMessage = result["message"] ?? "Phone number verified successfully";
+      String resultMessage =
+          result["message"] ?? "Phone number verified successfully";
       _showSnackBar(resultMessage, isError: false);
       context.go('/create-password');
     } catch (e) {
-      _showSnackBar(e.toString().replaceFirst('Exception: ', ''), isError: true);
+      _showSnackBar(
+        e.toString().replaceFirst('Exception: ', ''),
+        isError: true,
+      );
 
       // Clear entered OTP so user can retry
       _clearPinCodeFields();
@@ -92,7 +100,10 @@ class _VerifyPhoneScreenState extends ConsumerState<VerifyPhoneScreen> {
       _showSnackBar(resultMessage, isError: false);
       return true;
     } catch (e) {
-      _showSnackBar(e.toString().replaceFirst('Exception: ', ''), isError: true);
+      _showSnackBar(
+        e.toString().replaceFirst('Exception: ', ''),
+        isError: true,
+      );
       return false;
     }
   }
@@ -127,7 +138,7 @@ class _VerifyPhoneScreenState extends ConsumerState<VerifyPhoneScreen> {
   @override
   Widget build(BuildContext context) {
     const fadeDuration = Duration(milliseconds: 350);
-                    const double buttonHeight = 50;
+    const double buttonHeight = 50;
 
     return Scaffold(
       backgroundColor: const Color(0xffFFFFFF),
@@ -166,14 +177,19 @@ class _VerifyPhoneScreenState extends ConsumerState<VerifyPhoneScreen> {
                 _isLoading
                     ? const CircularProgressIndicator()
                     : Text(
-                        _phoneNumber.isEmpty ? 'No Phone-Number saved' : _phoneNumber,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontFamily: "Inter",
-                          color: Color(0xff0F2D62),
-                          fontWeight: FontWeight.w600,
-                        ),
+                      _phoneNumber.isEmpty
+                          ? 'No Phone-Number saved'
+                          : _phoneNumber.startsWith('+')
+                          ? _phoneNumber
+                          : '+$_phoneNumber',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontFamily: "Inter",
+                        color: Color(0xff0F2D62),
+                        fontWeight: FontWeight.w600,
                       ),
+                    ),
+
                 const SizedBox(height: 30),
 
                 // PIN input with keyboard freeze during verifying
@@ -200,57 +216,66 @@ class _VerifyPhoneScreenState extends ConsumerState<VerifyPhoneScreen> {
                     duration: fadeDuration,
                     switchInCurve: Curves.easeInOut,
                     switchOutCurve: Curves.easeInOut,
-                    child: _isExpired
-                        ? Row(
-                            key: const ValueKey('expired'),
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: const [
-                              Icon(Icons.error_outline, color: Colors.red, size: 16),
-                              SizedBox(width: 6),
-                              Text(
-                                'Code has expired, try resending',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontFamily: 'Inter',
+                    child:
+                        _isExpired
+                            ? Row(
+                              key: const ValueKey('expired'),
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: const [
+                                Icon(
+                                  Icons.error_outline,
                                   color: Colors.red,
-                                  fontWeight: FontWeight.w600,
+                                  size: 16,
                                 ),
-                              ),
-                            ],
-                          )
-                        : Row(
-                            key: const ValueKey('timer'),
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(Icons.timelapse_outlined, color: Color(0xff908FDF), size: 16),
-                              const SizedBox(width: 6),
-                              const Text(
-                                'Code expires in',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontFamily: 'Inter',
-                                  color: Color(0xFF4B5563),
+                                SizedBox(width: 6),
+                                Text(
+                                  'Code has expired, try resending',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontFamily: 'Inter',
+                                    color: Colors.red,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(width: 6),
-                              OtpCountdown(
-                                key: _countdownKey,
-                                totalSeconds: 300,
-                                onExpired: () {
-                                  if (!mounted) return;
-                                  setState(() {
-                                    _isExpired = true;
-                                    _canResend = true;
-                                  });
-                                },
-                              ),
-                            ],
-                          ),
+                              ],
+                            )
+                            : Row(
+                              key: const ValueKey('timer'),
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(
+                                  Icons.timelapse_outlined,
+                                  color: Color(0xff908FDF),
+                                  size: 16,
+                                ),
+                                const SizedBox(width: 6),
+                                const Text(
+                                  'Code expires in',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontFamily: 'Inter',
+                                    color: Color(0xFF4B5563),
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                OtpCountdown(
+                                  key: _countdownKey,
+                                  totalSeconds: 300,
+                                  onExpired: () {
+                                    if (!mounted) return;
+                                    setState(() {
+                                      _isExpired = true;
+                                      _canResend = true;
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
                   ),
                 ),
                 const SizedBox(height: 30),
 
-                 Align(
+                Align(
                   alignment: Alignment.bottomCenter,
                   child: Padding(
                     padding: const EdgeInsets.only(bottom: 20),
@@ -258,37 +283,42 @@ class _VerifyPhoneScreenState extends ConsumerState<VerifyPhoneScreen> {
                       duration: fadeDuration,
                       opacity: _canResend ? 1.0 : 0.0,
                       curve: Curves.easeInOut,
-                      child: _canResend
-                          ? Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Text(
-                                  "Didn’t receive the code?",
-                                  style: TextStyle(
-                                    fontFamily: "Inter",
-                                    color: Color(0xff4B5563),
-                                    fontSize: 14,
-                                  ),
-                                ),
-                                TextButton(
-                                  onPressed: _resending ? null : _onResendPressed,
-                                  style: TextButton.styleFrom(
-                                    padding: EdgeInsets.zero,
-                                    minimumSize: const Size(0, 0),
-                                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                  ),
-                                  child: Text(
-                                    _resending ? "Resending…" : "Click to resend",
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      color: Color(0xffA198FF),
+                      child:
+                          _canResend
+                              ? Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Text(
+                                    "Didn’t receive the code?",
+                                    style: TextStyle(
                                       fontFamily: "Inter",
+                                      color: Color(0xff4B5563),
+                                      fontSize: 14,
                                     ),
                                   ),
-                                ),
-                              ],
-                            )
-                          : const SizedBox.shrink(),
+                                  TextButton(
+                                    onPressed:
+                                        _resending ? null : _onResendPressed,
+                                    style: TextButton.styleFrom(
+                                      padding: EdgeInsets.zero,
+                                      minimumSize: const Size(0, 0),
+                                      tapTargetSize:
+                                          MaterialTapTargetSize.shrinkWrap,
+                                    ),
+                                    child: Text(
+                                      _resending
+                                          ? "Resending…"
+                                          : "Click to resend",
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        color: Color(0xffA198FF),
+                                        fontFamily: "Inter",
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              )
+                              : const SizedBox.shrink(),
                     ),
                   ),
                 ),
@@ -301,21 +331,24 @@ class _VerifyPhoneScreenState extends ConsumerState<VerifyPhoneScreen> {
                     height: buttonHeight,
                     child: AnimatedSwitcher(
                       duration: const Duration(milliseconds: 300),
-                      child: _verifying
-                          ? SizedBox(
-                              key: const ValueKey('verifying_spinner'),
-                              height: buttonHeight,
-                              child: const Center(
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation(Colors.blue),
+                      child:
+                          _verifying
+                              ? SizedBox(
+                                key: const ValueKey('verifying_spinner'),
+                                height: buttonHeight,
+                                child: const Center(
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation(
+                                      Colors.blue,
+                                    ),
+                                  ),
                                 ),
+                              )
+                              : const SizedBox(
+                                key: ValueKey('empty_space'),
+                                height: buttonHeight,
                               ),
-                            )
-                          : const SizedBox(
-                              key: ValueKey('empty_space'),
-                              height: buttonHeight,
-                            ),
                     ),
                   ),
                 ),
@@ -323,7 +356,6 @@ class _VerifyPhoneScreenState extends ConsumerState<VerifyPhoneScreen> {
                 const SizedBox(height: 25),
 
                 // Resend row -- invisible while countdown runs.
-               
               ],
             ),
           ),

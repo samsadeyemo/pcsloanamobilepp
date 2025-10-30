@@ -146,14 +146,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   try {
     String rawPhone = _phoneController.text.trim();
+    print('Raw phone number: $rawPhone');
     String formattedPhone = _normalizePhoneNumber(rawPhone);
-
+  print('Formatted phone number: $formattedPhone');
     final result = await _authService.loginUser(
       phone: formattedPhone,
       password: _passwordController.text.trim(),
     );
 
     await LocalStorage.saveToken(result['data']['token']);
+    print("has_loan: ${result['data']['hasLoan']}");
+    await LocalStorage.setHasLoan(result['data']['hasLoan']);
     String resultMessage = result["message"] ?? "Login successful";
     _showSnackBar(resultMessage, isError: false);
     context.go("/loan-redirect");
@@ -177,13 +180,13 @@ String _normalizePhoneNumber(String input) {
     return phone;
   } else if (phone.startsWith('234')) {
     // ✅ Missing '+'
-    return '+$phone';
+    return phone;
   } else if (phone.startsWith('0')) {
     // ✅ Convert 080... → +23480...
-    return '+234${phone.substring(1)}';
+    return '234${phone.substring(1)}';
   } else {
     // ⚠️ Fallback (user just typed e.g. 8088993491)
-    return '+234$phone';
+    return '234$phone';
   }
 }
 

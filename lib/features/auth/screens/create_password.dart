@@ -61,7 +61,7 @@ class _CreatePasswordScreenState extends ConsumerState<CreatePasswordScreen> {
     final data = await LocalStorage.getUser();
     final employeeId = data?['user']?['employee_id'] ?? '';
     if (employeeId.isEmpty) return;
-
+    FocusScope.of(context).unfocus();
     setState(() => _verifying = true);
     try {
       final result = await _authService.createPassword(

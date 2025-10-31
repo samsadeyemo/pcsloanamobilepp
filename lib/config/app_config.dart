@@ -4,6 +4,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 class AppConfig {
   final String env;
   final String apiBaseUrl;
+  final String xApiKey = dotenv.env['X_API_KEY'] ?? '';
 
   AppConfig._(this.env, this.apiBaseUrl);
 

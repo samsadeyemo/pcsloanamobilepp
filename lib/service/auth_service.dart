@@ -9,10 +9,10 @@ class AuthService {
   /// Fetch employee details using staff ID
   Future<Map<String, dynamic>> fetchEmployee(String employeeNo) async {
     final url = Uri.parse('$baseUrl/auth/$employeeNo');
-    print("➡️ GET $url");
+    
 
     final response = await http.get(url);
-    print("⬅️ ${response.body}");
+    
 
     final body = jsonDecode(response.body);
 

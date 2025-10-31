@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pcsloan/common/widgets/custom_bottom_nav_bar.dart';
 import 'package:pcsloan/common/widgets/custom_loan_app_bar.dart';
 import 'package:pcsloan/common/widgets/custom_tenure_button.dart';
 import 'package:pcsloan/common/widgets/gradient_action_button.dart';
@@ -29,6 +30,7 @@ class _ApplyForLoan extends ConsumerState<ApplyForLoan> {
     return Scaffold(
       backgroundColor: Color(0xffFFFFFF),
       appBar: CustomLoanAppBar(title: 'Apply for a Loan',),
+      bottomNavigationBar: CustomBottomNavBar(currentIndex: 1),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(

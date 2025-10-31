@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pcsloan/common/widgets/custom_activity_bottom_nav_bar.dart';
 import 'package:pcsloan/common/widgets/custom_activity_finance_card.dart';
 import 'package:pcsloan/common/widgets/custom_activity_finance_summary_card.dart';
+import 'package:pcsloan/common/widgets/custom_bottom_nav_bar.dart';
 import 'package:pcsloan/features/activity/data/transaction_model.dart';
 import 'package:pcsloan/features/activity/presentation/recent_transactions_screen.dart';
 import 'package:pcsloan/features/activity/presentation/transaction_detail_screen.dart';
@@ -73,7 +74,7 @@ class _ActivityTabState extends ConsumerState<ActivityTab> {
         scrolledUnderElevation: 0,
         backgroundColor: Color(0xffFFFFFF),
       ),
-      bottomNavigationBar: CustomActionBottomNavBar(),
+      bottomNavigationBar: CustomBottomNavBar(currentIndex: 2),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(18),

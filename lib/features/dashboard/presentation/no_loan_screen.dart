@@ -5,6 +5,7 @@ import 'package:pcsloan/common/widgets/custom_app_bar.dart';
 import 'package:pcsloan/common/widgets/custom_bottom_nav_bar.dart';
 import 'package:pcsloan/common/widgets/custom_circle_text_badge.dart';
 import 'package:pcsloan/common/widgets/gradient_action_button.dart';
+import 'package:pcsloan/utils/local_storage.dart';
 
 class NoLoanScreen extends ConsumerStatefulWidget {
   const NoLoanScreen({super.key});
@@ -14,16 +15,43 @@ class NoLoanScreen extends ConsumerStatefulWidget {
 }
 
 class _NoLoanScreen extends ConsumerState<NoLoanScreen> {
+  String? _userName;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserNameOnce();
+  }
+
+  Future<void> _loadUserNameOnce() async {
+    try {
+      final data = await LocalStorage.getUser();
+      print("object data: $data");
+      final name = data?['first_name']?.toString().trim();
+      if (!mounted) return;
+
+      setState(() {
+        _userName = (name?.isNotEmpty ?? false) ? name : null;
+      });
+    } catch (e, st) {
+      debugPrint('❌ Failed to load username: $e\n$st');
+      if (!mounted) return;
+      setState(() => _userName = null);
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
-    {
+    
       final String profileImageUrl =
-          "https://fareedtijani.vercel.app/assets/FareedTijani-BrMuVf91.jpg";
-
+          "https://hirejourney.xyz/default_profile.png";
+      final userName = _userName ?? "User";
       return Scaffold(
+        
         backgroundColor: Color(0xffFFFFFF),
         appBar: CustomAppBar(
-          userName: 'Fareed',
+          userName: userName,
           profileImageUrl: profileImageUrl,
           onProfileTap: () {
             Navigator.push(
@@ -32,7 +60,7 @@ class _NoLoanScreen extends ConsumerState<NoLoanScreen> {
             );
           },
         ),
-        bottomNavigationBar: CustomBottomNavBar(),
+        bottomNavigationBar: CustomBottomNavBar(currentIndex: 0),
         body: SafeArea(
           child: SingleChildScrollView(
             child: Padding(
@@ -404,7 +432,7 @@ class _NoLoanScreen extends ConsumerState<NoLoanScreen> {
           ),
         ),
       );
-    }
+    
   }
 }
 

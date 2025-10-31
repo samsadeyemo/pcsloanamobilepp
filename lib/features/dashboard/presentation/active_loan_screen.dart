@@ -7,6 +7,7 @@ import 'package:pcsloan/common/widgets/custom_app_bar.dart';
 import 'package:pcsloan/common/widgets/custom_bottom_nav_bar.dart';
 import 'package:pcsloan/features/dashboard/providers/loan_provider.dart';
 import 'package:intl/intl.dart';
+import 'package:pcsloan/utils/local_storage.dart';
 
 class ActiveLoanScreen extends ConsumerStatefulWidget {
   const ActiveLoanScreen({super.key});
@@ -16,8 +17,37 @@ class ActiveLoanScreen extends ConsumerStatefulWidget {
 }
 
 class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
+  String? _userName;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserNameOnce();
+  }
+
+  Future<void> _loadUserNameOnce() async {
+    try {
+      final data = await LocalStorage.getUser();
+      print("object data: $data");
+      final name = data?['first_name']?.toString().trim();
+      if (!mounted) return;
+
+      setState(() {
+        _userName = (name?.isNotEmpty ?? false) ? name : null;
+      });
+    } catch (e, st) {
+      debugPrint('❌ Failed to load username: $e\n$st');
+      if (!mounted) return;
+      setState(() => _userName = null);
+    }
+  }
+  
+
+
+
   @override
   Widget build(BuildContext context) {
+     final userName = _userName ?? "User";
     final loanState = ref.watch(loanProvider);
 
     if (loanState.isLoading) {
@@ -33,7 +63,7 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
 
     return Scaffold(
       appBar: CustomAppBar(
-        userName: 'Fareed',
+        userName: userName,
         profileImageUrl: profileImageUrl,
         onProfileTap: () {
           Navigator.push(

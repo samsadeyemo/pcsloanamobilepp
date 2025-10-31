@@ -153,9 +153,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       phone: formattedPhone,
       password: _passwordController.text.trim(),
     );
-
+    await LocalStorage.saveUser(result['data']['user']);
+    print('User data saved: ${result['data']['user']}');
     await LocalStorage.saveToken(result['data']['token']);
-    print("has_loan: ${result['data']['hasLoan']}");
     await LocalStorage.setHasLoan(result['data']['hasLoan']);
     String resultMessage = result["message"] ?? "Login successful";
     _showSnackBar(resultMessage, isError: false);

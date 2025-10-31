@@ -106,33 +106,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
-  // Future<void> _loginUser() async {
-  //   if (!_formKey.currentState!.validate()) {
-  //     return;
-  //   }
-  //   setState(() {
-  //     isLoading = true;
-  //   });
-  //   try {
-  //     final result = await _authService.loginUser(
-  //       phone: _phoneController.text.trim(),
-  //       password: _passwordController.text.trim(),
-  //     );
-
-  //     await LocalStorage.saveToken(result['data']['token']);
-  //     String resultMessage = result["message"] ?? "Login successful";
-  //     _showSnackBar(resultMessage, isError: false);
-  //     context.go("/loan-redirect");
-  //   } catch (e) {
-  //     _showSnackBar(e.toString(), isError: true);
-  //   } finally {
-  //     if (mounted) {
-  //       setState(() {
-  //         isLoading = false;
-  //       });
-  //     }
-  //   }
-  // }
+  
 
 
   Future<void> _loginUser() async {

@@ -205,5 +205,30 @@ Future<Map<String, dynamic>> loginUser({
   } 
 
 
+  Future<Map<String, dynamic>> forgetPassword({
+    required String phone,
+  })async {
+    final url = Uri.parse("$baseUrl/auth/forgot-password");
+    final Map<String, dynamic> body = {
+      'phone': phone,
+    };
+
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(body),
+    );
+
+    final decoded = jsonDecode(response.body);
+
+    if (response.statusCode == 201 && decoded['status'] == 'success') {
+      return decoded;
+    } else {
+      throw Exception(decoded['message'] ?? 'Forget password failed');
+    }
+
+  }
+
+
 }
 

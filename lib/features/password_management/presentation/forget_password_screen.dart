@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pcsloan/common/widgets/custom_input_field.dart';
+import 'package:pcsloan/service/auth_service.dart';
 
 class ForgetPasswordScreen extends ConsumerStatefulWidget {
   const ForgetPasswordScreen({super.key});
@@ -12,7 +13,59 @@ class ForgetPasswordScreen extends ConsumerStatefulWidget {
 
 class _ForgetPasswordScreen extends ConsumerState<ForgetPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
-  String phoneNumber = '';
+
+  bool _sending = false;
+  String _phoneNumber = '';
+  final _authService = AuthService();
+
+  void _showSnackBar(String message, {bool isError = false}) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Colors.red : Colors.green,
+      ),
+    );
+  }
+
+  String _normalizePhoneNumber(String input) {
+    String phone = input.replaceAll(RegExp(r'\s+'), ''); // remove spaces
+
+    if (phone.startsWith('+234')) {
+      // ✅ Already correct
+      return phone;
+    } else if (phone.startsWith('234')) {
+      // ✅ Missing '+'
+      return phone;
+    } else if (phone.startsWith('0')) {
+      // ✅ Convert 080... → +23480...
+      return '234${phone.substring(1)}';
+    } else {
+      // ⚠️ Fallback (user just typed e.g. 8088993491)
+      return '234$phone';
+    }
+  }
+
+  Future<void> _submitPhoneNumber() async {
+    if (_sending) return; 
+    if (_phoneNumber == "") return;
+    String cleanPhoneNumber = _normalizePhoneNumber(_phoneNumber);
+    setState(() => _sending = true);
+
+    try {
+      final result = await _authService.forgetPassword(phone: cleanPhoneNumber);
+      String resultMessage = result['message'] ?? 'OTP sent successfully';
+      _showSnackBar(resultMessage, isError: false);
+      context.go('/verify-password-otp');
+    } catch (e) {
+      _showSnackBar(
+        e.toString().replaceFirst('Exception: ', ''),
+        isError: true,
+      );
+    } finally {
+      if (mounted) setState(() => _sending = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +107,7 @@ class _ForgetPasswordScreen extends ConsumerState<ForgetPasswordScreen> {
                       icon: Icons.phone,
                       label: "",
                       hintText: 'Enter your Phone Number',
-                      onChanged: (value) => phoneNumber = value,
+                      onChanged: (value) => _phoneNumber = value,
                       validator:
                           (value) =>
                               value != null && value.isNotEmpty
@@ -73,9 +126,7 @@ class _ForgetPasswordScreen extends ConsumerState<ForgetPasswordScreen> {
                     width: 342,
                     height: 52,
                     child: ElevatedButton(
-                      onPressed: () {
-                        context.go('/verify-password-otp');
-                      },
+                      onPressed: _submitPhoneNumber,
                       style: ElevatedButton.styleFrom(
                         padding: EdgeInsets.zero,
                         shape: RoundedRectangleBorder(
@@ -94,7 +145,9 @@ class _ForgetPasswordScreen extends ConsumerState<ForgetPasswordScreen> {
                         child: Container(
                           alignment: Alignment.center,
                           child: Text(
-                            "Send OTP",
+                            _sending
+                            ? "sending..."
+                            :"Send OTP",
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 16,

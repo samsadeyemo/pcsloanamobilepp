@@ -26,6 +26,7 @@ class _ApplyForLoan extends ConsumerState<ApplyForLoan> {
   List<String> availableTenures = [];
   String? selectedTenure;
   double loanAmount = 0;
+  String intrestRate = "";
 
   @override
   void initState() {
@@ -67,6 +68,7 @@ class _ApplyForLoan extends ConsumerState<ApplyForLoan> {
           minNorm = minAmount;
           minLimit = formatter.format(minAmount);
           maxLimit = formatter.format(maxAmount);
+          intrestRate = loan["interest_rate"];
 
           allowLoan = loan['allow_loan'] ?? false;
 

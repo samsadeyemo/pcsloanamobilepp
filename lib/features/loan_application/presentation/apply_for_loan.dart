@@ -8,7 +8,6 @@ import 'package:pcsloan/common/widgets/gradient_action_button.dart';
 import 'package:pcsloan/service/loan_service.dart';
 import 'package:intl/intl.dart';
 
-
 class ApplyForLoan extends ConsumerStatefulWidget {
   const ApplyForLoan({super.key});
 
@@ -21,9 +20,12 @@ class _ApplyForLoan extends ConsumerState<ApplyForLoan> {
   final _loanService = LoanService();
   String minLimit = '';
   String maxLimit = '';
+  double maxNorm = 0;
   bool allowLoan = false;
+  double minNorm = 0;
   List<String> availableTenures = [];
   String? selectedTenure;
+  double loanAmount = 0;
 
   @override
   void initState() {
@@ -41,8 +43,6 @@ class _ApplyForLoan extends ConsumerState<ApplyForLoan> {
     );
   }
 
- 
-
   Future<void> _loadLoanDetailsOnce() async {
     setState(() => _fetching = true);
 
@@ -52,43 +52,33 @@ class _ApplyForLoan extends ConsumerState<ApplyForLoan> {
       if (result.isNotEmpty) {
         final loan = result.first; // ✅ Get first loan offer
 
-        // setState(() {
-        //   minLimit = loan['min_amount']?.toString() ?? '0';
-        //   maxLimit = loan['max_amount']?.toString() ?? '0';
-        //   allowLoan = loan['allow_loan'] ?? false;
-
-        //   final tenuresList =
-        //       (loan['tenures'] as List<dynamic>?)
-        //           ?.map((t) => t['tenure'].toString())
-        //           .toSet() // remove duplicates
-        //           .toList();
-
-        //   availableTenures = tenuresList ?? [];
-        //   availableTenures.sort((a, b) => int.parse(a).compareTo(int.parse(b)));
-        // });
-
-
         setState(() {
-  final formatter = NumberFormat('#,##0.00', 'en_US'); // 👈 formats numbers like 50,000.00
+          final formatter = NumberFormat(
+            '#,##0.00',
+            'en_US',
+          ); // 👈 formats numbers like 50,000.00
 
-  // Parse and format the min and max values properly
-  final minAmount = double.tryParse(loan['min_amount']?.toString() ?? '0') ?? 0;
-  final maxAmount = double.tryParse(loan['max_amount']?.toString() ?? '0') ?? 0;
+          // Parse and format the min and max values properly
+          final minAmount =
+              double.tryParse(loan['min_amount']?.toString() ?? '0') ?? 0;
+          final maxAmount =
+              double.tryParse(loan['max_amount']?.toString() ?? '0') ?? 0;
+          maxNorm = maxAmount;
+          minNorm = minAmount;
+          minLimit = formatter.format(minAmount);
+          maxLimit = formatter.format(maxAmount);
 
-  minLimit = formatter.format(minAmount);
-  maxLimit = formatter.format(maxAmount);
+          allowLoan = loan['allow_loan'] ?? false;
 
-  allowLoan = loan['allow_loan'] ?? false;
+          final tenuresList =
+              (loan['tenures'] as List<dynamic>?)
+                  ?.map((t) => t['tenure'].toString())
+                  .toSet()
+                  .toList();
 
-  final tenuresList = (loan['tenures'] as List<dynamic>?)
-      ?.map((t) => t['tenure'].toString())
-      .toSet()
-      .toList();
-
-  availableTenures = tenuresList ?? [];
-  availableTenures.sort((a, b) => int.parse(a).compareTo(int.parse(b)));
-});
-
+          availableTenures = tenuresList ?? [];
+          availableTenures.sort((a, b) => int.parse(a).compareTo(int.parse(b)));
+        });
 
         print('Loan Data: $loan');
       } else {
@@ -106,9 +96,26 @@ class _ApplyForLoan extends ConsumerState<ApplyForLoan> {
     }
   }
 
+  Future<void> _applyForLoan() async {
+    print(loanAmount);
+    print(maxNorm);
+    print(minNorm);
+    if (loanAmount > maxNorm) {
+      _showSnackBar(
+        "The maximum amount you can borrow is ₦$maxLimit",
+        isError: true,
+      );
+    } else if (loanAmount < minNorm) {
+      _showSnackBar(
+        "The minimum amount you can borrow is ₦$minLimit",
+        isError: true,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    String loanAmount = '';
+    // double loanAmount = 0;
 
     final List<String> tenures = availableTenures;
     return Scaffold(
@@ -145,12 +152,22 @@ class _ApplyForLoan extends ConsumerState<ApplyForLoan> {
                       Expanded(
                         child: TextFormField(
                           keyboardType: TextInputType.number,
-                          onChanged: (value) => loanAmount = value,
-                          validator:
-                              (value) =>
-                                  value != null && value.length >= 6
-                                      ? null
-                                      : "The Minimum amount you can borrow is ₦10,000",
+                          onChanged: (value) {
+                            loanAmount =
+                                double.tryParse(value.replaceAll(',', '')) ??
+                                0.0;
+                          },
+                          validator: (value) {
+                            final amount = double.tryParse(value ?? '') ?? 0.0;
+
+                            if (amount < minNorm) {
+                              return "The minimum amount you can borrow is ₦$minLimit";
+                            } else if (amount > maxNorm) {
+                              return "The maximum amount you can borrow is ₦$maxLimit";
+                            }
+
+                            return null;
+                          },
                           decoration: InputDecoration(
                             hintStyle: TextStyle(
                               color: Color(0xFFADAEBC),
@@ -298,9 +315,7 @@ class _ApplyForLoan extends ConsumerState<ApplyForLoan> {
                     child: GradientActionButton(
                       text: "Continue",
                       size: 18,
-                      onPressed: () {
-                        context.go("/Loan-status-screen");
-                      },
+                      onPressed: _applyForLoan,
                     ),
                   ),
                 ),

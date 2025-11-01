@@ -109,41 +109,77 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   
 
 
-  Future<void> _loginUser() async {
-  if (!_formKey.currentState!.validate()) {
-    return;
-  }
+//   Future<void> _loginUser() async {
+//   if (!_formKey.currentState!.validate()) {
+//     return;
+//   }
 
-  setState(() {
-    isLoading = true;
-  });
+//   setState(() {
+//     isLoading = true;
+//   });
+
+//   try {
+//     String rawPhone = _phoneController.text.trim();
+//     print('Raw phone number: $rawPhone');
+//     String formattedPhone = _normalizePhoneNumber(rawPhone);
+//   print('Formatted phone number: $formattedPhone');
+//     final result = await _authService.loginUser(
+//       phone: formattedPhone,
+//       password: _passwordController.text.trim(),
+//     );
+//     await LocalStorage.saveUser(result['data']['user']);
+//     print('User data saved: ${result['data']['user']}');
+//     await LocalStorage.saveToken(result['data']['token']);
+//     await LocalStorage.setHasLoan(result['data']['hasLoan']);
+//     String resultMessage = result["message"] ?? "Login successful";
+//     _showSnackBar(resultMessage, isError: false);
+//     context.go("/loan-redirect");
+//   } catch (e) {
+//     _showSnackBar(e.toString(), isError: true);
+//   } finally {
+//     if (mounted) {
+//       setState(() {
+//         isLoading = false;
+//       });
+//     }
+//   }
+// }
+
+Future<void> _loginUser() async {
+  if (!_formKey.currentState!.validate()) return;
+
+  setState(() => isLoading = true);
 
   try {
     String rawPhone = _phoneController.text.trim();
-    print('Raw phone number: $rawPhone');
     String formattedPhone = _normalizePhoneNumber(rawPhone);
-  print('Formatted phone number: $formattedPhone');
+
     final result = await _authService.loginUser(
       phone: formattedPhone,
       password: _passwordController.text.trim(),
     );
+
     await LocalStorage.saveUser(result['data']['user']);
-    print('User data saved: ${result['data']['user']}');
     await LocalStorage.saveToken(result['data']['token']);
     await LocalStorage.setHasLoan(result['data']['hasLoan']);
+
+    // ✅ Widget might be gone by now, so guard before touching UI
+    if (!mounted) return;
+
     String resultMessage = result["message"] ?? "Login successful";
     _showSnackBar(resultMessage, isError: false);
     context.go("/loan-redirect");
   } catch (e) {
-    _showSnackBar(e.toString(), isError: true);
+    if (mounted) {
+      _showSnackBar(e.toString(), isError: true);
+    }
   } finally {
     if (mounted) {
-      setState(() {
-        isLoading = false;
-      });
+      setState(() => isLoading = false);
     }
   }
 }
+
 
 /// Normalizes Nigerian phone numbers into +234 format
 String _normalizePhoneNumber(String input) {

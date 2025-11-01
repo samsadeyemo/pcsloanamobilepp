@@ -24,7 +24,7 @@ class MonthButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(8),
         ),
         child: Text(
-          label,
+          '$label Months',
           style: TextStyle(
             color: isSelected ? Colors.white : Colors.black,
             fontWeight: FontWeight.w500,

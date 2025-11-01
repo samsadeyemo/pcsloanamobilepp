@@ -66,7 +66,8 @@ class _SignUpScreenState extends State<SignUpScreen>
         _firstNameController.text =
             data['first_name'] ?? data['firstname'] ?? '';
         _lastNameController.text = data['last_name'] ?? data['lastname'] ?? '';
-        _phoneController.text = data['phone_number'] ?? data['phone'] ?? '';
+        String phoneData = data['phone_number'] ?? data['phone'] ?? '';
+        _phoneController.text = '+$phoneData';
         _emailController.text = data['email'] ?? '';
         _bvnController.text = data['bvn'] ?? '';
       });
@@ -87,13 +88,16 @@ class _SignUpScreenState extends State<SignUpScreen>
 
     setState(() => _creating = true);
     try {
+      final rawPhone = _phoneController.text.trim();
+      final formattedPhone =
+          rawPhone.startsWith('+') ? rawPhone.substring(1) : rawPhone;
       final result = await _authService.registerUser(
-        email: _emailController.text,
-        firstName: _firstNameController.text,
-        lastName: _lastNameController.text,
-        phone: _phoneController.text,
-        bvn: _bvnController.text,
-        employeeId: _staffIdController.text,
+        email: _emailController.text.trim(),
+        firstName: _firstNameController.text.trim(),
+        lastName: _lastNameController.text.trim(),
+        phone: formattedPhone,
+        bvn: _bvnController.text.trim(),
+        employeeId: _staffIdController.text.trim(),
       );
 
       await LocalStorage.saveUser(result["data"]);
@@ -233,6 +237,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                                   label: 'Phone Number',
                                   hintText: '',
                                   controller: _phoneController,
+                                  isPhoneNumber: true,
                                   enabled: false,
                                 ),
                                 SignupInputField(

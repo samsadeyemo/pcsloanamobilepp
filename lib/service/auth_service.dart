@@ -1,4 +1,5 @@
 // lib/features/auth/services/auth_service.dart
+import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:pcsloan/config/app_config.dart';
@@ -7,21 +8,59 @@ class AuthService {
   final String baseUrl = appConfig.apiBaseUrl;
 
   /// Fetch employee details using staff ID
+  // Future<Map<String, dynamic>> fetchEmployee(String employeeNo) async {
+  //   final url = Uri.parse('$baseUrl/auth/$employeeNo');
+    
+
+  //   final response = await http.get(url);
+    
+
+  //   final body = jsonDecode(response.body);
+
+  //   if ((response.statusCode == 200 || response.statusCode == 201) && body['status'] == 'success') {
+  //     return body['data'] ?? {};
+  //   } else {
+  //     throw Exception(body['message'] ?? 'Employee not found');
+  //   }
+  // }
+
   Future<Map<String, dynamic>> fetchEmployee(String employeeNo) async {
-    final url = Uri.parse('$baseUrl/auth/$employeeNo');
-    
+  final url = Uri.parse('$baseUrl/auth/$employeeNo');
 
-    final response = await http.get(url);
-    
+  http.Response response;
 
-    final body = jsonDecode(response.body);
-
-    if (response.statusCode == 200 && body['status'] == 'success') {
-      return body['data'] ?? {};
-    } else {
-      throw Exception(body['message'] ?? 'Employee not found');
-    }
+  try {
+    response = await http
+        .get(
+          url,
+          headers: {'Content-Type': 'application/json'},
+        )
+        .timeout(const Duration(seconds: 15));
+  } on TimeoutException {
+    throw Exception('Connection timed out. Please try again.');
+  } catch (e) {
+    throw Exception('Network error: ${e.toString()}');
   }
+
+  Map<String, dynamic> body;
+  try {
+    body = jsonDecode(response.body);
+  } catch (_) {
+    throw Exception('Invalid response from server.');
+  }
+
+  if ((response.statusCode == 200 || response.statusCode == 201) &&
+      body['status'] == 'success') {
+    if (body['data'] is Map<String, dynamic>) {
+      return body['data'];
+    } else {
+      throw Exception('Unexpected data format from server.');
+    }
+  } else {
+    throw Exception(body['message'] ?? 'Employee not found.');
+  }
+}
+
 
   Future<Map<String, dynamic>> registerUser({
     required String email,
@@ -58,7 +97,7 @@ class AuthService {
 
     final decoded = jsonDecode(response.body);
 
-    if (response.statusCode == 201 && decoded['status'] == 'success') {
+    if ((response.statusCode == 200 || response.statusCode == 201) && decoded['status'] == 'success') {
       return decoded;
     } else {
       throw Exception(decoded['message'] ?? 'Registration failed');
@@ -84,7 +123,7 @@ class AuthService {
 
     final decoded = jsonDecode(response.body);
 
-    if (response.statusCode == 201 && decoded['status'] == 'success') {
+    if ((response.statusCode == 200 || response.statusCode == 201) && decoded['status'] == 'success') {
       return decoded;
     } else {
       throw Exception(decoded['message'] ?? 'OTP verification failed');
@@ -107,7 +146,7 @@ class AuthService {
 
     final decoded = jsonDecode(response.body);
 
-    if (response.statusCode == 201 && decoded['status'] == 'success') {
+    if ((response.statusCode == 200 || response.statusCode == 201) && decoded['status'] == 'success') {
       return decoded;
     } else {
       throw Exception(decoded['message'] ?? 'Resend OTP failed');
@@ -139,7 +178,7 @@ class AuthService {
 
     final decoded = jsonDecode(response.body);
 
-    if (response.statusCode == 201 && decoded['status'] == 'success') {
+    if ((response.statusCode == 200 || response.statusCode == 201) && decoded['status'] == 'success') {
       return decoded;
     } else {
       throw Exception(decoded['message'] ?? 'Password creation failed');
@@ -171,7 +210,7 @@ class AuthService {
 
     final decoded = jsonDecode(response.body);
 
-    if (response.statusCode == 201 && decoded['status'] == 'success') {
+    if ((response.statusCode == 200 || response.statusCode == 201) && decoded['status'] == 'success') {
       return decoded;
     } else {
       throw Exception(decoded['message'] ?? 'Pin creation failed');
@@ -179,30 +218,79 @@ class AuthService {
   }
 
   
+// Future<Map<String, dynamic>> loginUser({
+//     required String phone,
+//     required String password,
+//   }) async {
+//     final url = Uri.parse("$baseUrl/auth/login");
+//     final Map<String, dynamic> body = {
+//       'phone': phone,
+//       'password': password,
+//     };
+
+//     final response = await http.post(
+//       url,
+//       headers: {'Content-Type': 'application/json'},
+//       body: jsonEncode(body),
+//     ).timeout(const Duration(seconds: 15));
+
+//     // final decoded = jsonDecode(response.body);
+//     Map<String, dynamic> decoded;
+// try {
+//   decoded = jsonDecode(response.body);
+// } catch (_) {
+//   throw Exception('Invalid response from server');
+// }
+
+
+//     if ((response.statusCode == 200 || response.statusCode == 201) && decoded['status'] == 'success') {
+//       return decoded;
+//     } else {
+//       throw Exception(decoded['message'] ?? 'Login failed');
+//     }
+//   } 
+
+
 Future<Map<String, dynamic>> loginUser({
-    required String phone,
-    required String password,
-  }) async {
-    final url = Uri.parse("$baseUrl/auth/login");
-    final Map<String, dynamic> body = {
-      'phone': phone,
-      'password': password,
-    };
+  required String phone,
+  required String password,
+}) async {
+  final url = Uri.parse("$baseUrl/auth/login");
+  final Map<String, dynamic> body = {
+    'phone': phone,
+    'password': password,
+  };
 
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(body),
-    );
+  http.Response response;
 
-    final decoded = jsonDecode(response.body);
+  try {
+    response = await http
+        .post(
+          url,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode(body),
+        )
+        .timeout(const Duration(seconds: 15));
+  } on TimeoutException {
+    throw Exception('Connection timed out. Please try again.');
+  } catch (e) {
+    throw Exception('Network error: ${e.toString()}');
+  }
 
-    if (response.statusCode == 201 && decoded['status'] == 'success') {
-      return decoded;
-    } else {
-      throw Exception(decoded['message'] ?? 'Login failed');
-    }
-  } 
+  Map<String, dynamic> decoded;
+  try {
+    decoded = jsonDecode(response.body);
+  } catch (_) {
+    throw Exception('Invalid response from server.');
+  }
+
+  if ((response.statusCode == 200 || response.statusCode == 201) &&
+      decoded['status'] == 'success') {
+    return decoded;
+  } else {
+    throw Exception(decoded['message'] ?? 'Login failed.');
+  }
+}
 
 
   Future<Map<String, dynamic>> forgetPassword({
@@ -221,7 +309,7 @@ Future<Map<String, dynamic>> loginUser({
 
     final decoded = jsonDecode(response.body);
 
-    if (response.statusCode == 201 && decoded['status'] == 'success') {
+    if ((response.statusCode == 200 || response.statusCode == 201) && decoded['status'] == 'success') {
       return decoded;
     } else {
       throw Exception(decoded['message'] ?? 'Forget password failed');

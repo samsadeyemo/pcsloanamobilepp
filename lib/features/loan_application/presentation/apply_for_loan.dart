@@ -5,6 +5,9 @@ import 'package:pcsloan/common/widgets/custom_bottom_nav_bar.dart';
 import 'package:pcsloan/common/widgets/custom_loan_app_bar.dart';
 import 'package:pcsloan/common/widgets/custom_tenure_button.dart';
 import 'package:pcsloan/common/widgets/gradient_action_button.dart';
+import 'package:pcsloan/service/loan_service.dart';
+import 'package:intl/intl.dart';
+
 
 class ApplyForLoan extends ConsumerStatefulWidget {
   const ApplyForLoan({super.key});
@@ -14,22 +17,103 @@ class ApplyForLoan extends ConsumerStatefulWidget {
 }
 
 class _ApplyForLoan extends ConsumerState<ApplyForLoan> {
+  bool _fetching = false;
+  final _loanService = LoanService();
+  String minLimit = '';
+  String maxLimit = '';
+  bool allowLoan = false;
+  List<String> availableTenures = [];
   String? selectedTenure;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLoanDetailsOnce();
+  }
+
+  void _showSnackBar(String message, {bool isError = false}) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Colors.red : Colors.green,
+      ),
+    );
+  }
+
+ 
+
+  Future<void> _loadLoanDetailsOnce() async {
+    setState(() => _fetching = true);
+
+    try {
+      final result = await _loanService.fetchApplicationLoanData();
+
+      if (result.isNotEmpty) {
+        final loan = result.first; // ✅ Get first loan offer
+
+        // setState(() {
+        //   minLimit = loan['min_amount']?.toString() ?? '0';
+        //   maxLimit = loan['max_amount']?.toString() ?? '0';
+        //   allowLoan = loan['allow_loan'] ?? false;
+
+        //   final tenuresList =
+        //       (loan['tenures'] as List<dynamic>?)
+        //           ?.map((t) => t['tenure'].toString())
+        //           .toSet() // remove duplicates
+        //           .toList();
+
+        //   availableTenures = tenuresList ?? [];
+        //   availableTenures.sort((a, b) => int.parse(a).compareTo(int.parse(b)));
+        // });
+
+
+        setState(() {
+  final formatter = NumberFormat('#,##0.00', 'en_US'); // 👈 formats numbers like 50,000.00
+
+  // Parse and format the min and max values properly
+  final minAmount = double.tryParse(loan['min_amount']?.toString() ?? '0') ?? 0;
+  final maxAmount = double.tryParse(loan['max_amount']?.toString() ?? '0') ?? 0;
+
+  minLimit = formatter.format(minAmount);
+  maxLimit = formatter.format(maxAmount);
+
+  allowLoan = loan['allow_loan'] ?? false;
+
+  final tenuresList = (loan['tenures'] as List<dynamic>?)
+      ?.map((t) => t['tenure'].toString())
+      .toSet()
+      .toList();
+
+  availableTenures = tenuresList ?? [];
+  availableTenures.sort((a, b) => int.parse(a).compareTo(int.parse(b)));
+});
+
+
+        print('Loan Data: $loan');
+      } else {
+        _showSnackBar('No loan offers found', isError: true);
+      }
+    } catch (e) {
+      _showSnackBar(
+        e.toString().replaceFirst('Exception: ', ''),
+        isError: true,
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _fetching = false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     String loanAmount = '';
 
-    final List<String> tenures = [
-      '3 Months',
-      '6 Months',
-      '12 Months',
-      '18 Months',
-      '24 Months',
-      '36 Months',
-    ];
+    final List<String> tenures = availableTenures;
     return Scaffold(
       backgroundColor: Color(0xffFFFFFF),
-      appBar: CustomLoanAppBar(title: 'Apply for a Loan',),
+      appBar: CustomLoanAppBar(title: 'Apply for a Loan'),
       bottomNavigationBar: CustomBottomNavBar(currentIndex: 1),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -86,14 +170,32 @@ class _ApplyForLoan extends ConsumerState<ApplyForLoan> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      'Min: ₦10,000',
-                      style: TextStyle(fontSize: 12, color: Color(0xFF4B5563)),
-                    ),
-                    Text(
-                      'Max: ₦2,000,000',
-                      style: TextStyle(fontSize: 12, color: Color(0xFF4B5563)),
-                    ),
+                    _fetching
+                        ? const SizedBox(
+                          height: 7,
+                          width: 7,
+                          child: CircularProgressIndicator(strokeWidth: 1),
+                        )
+                        : Text(
+                          '₦$minLimit',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFF4B5563),
+                          ),
+                        ),
+                    _fetching
+                        ? const SizedBox(
+                          height: 7,
+                          width: 7,
+                          child: CircularProgressIndicator(strokeWidth: 1),
+                        )
+                        : Text(
+                          '₦$maxLimit',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFF4B5563),
+                          ),
+                        ),
                   ],
                 ),
                 SizedBox(height: 70),
@@ -143,38 +245,48 @@ class _ApplyForLoan extends ConsumerState<ApplyForLoan> {
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: Colors.transparent),
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.check_circle,
-                                size: 25,
-                                color: Color(0xff7C70DF),
-                              ),
-                              SizedBox(width: 10),
-                              Text(
-                                'You are eligible for this loan',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF1F2937),
-                                ),
-                              ),
-                            ],
-                          ),
+                      child:
+                          _fetching
+                              ? Text(
+                                "Fetching Available Plans...",
 
-                          SizedBox(height: 8),
-                          Text(
-                            'Based on your profile and employment status, you qualify for up to ₦2,000,000.',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Color(0xFF6B7280),
-                            ),
-                          ),
-                        ],
-                      ),
+                                style: TextStyle(
+                                  color: Color(0xff7C70DF),
+                                  fontSize: 16,
+                                ),
+                              )
+                              : Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.check_circle,
+                                        size: 25,
+                                        color: Color(0xff7C70DF),
+                                      ),
+                                      SizedBox(width: 10),
+                                      Text(
+                                        'You are eligible for this loan',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFF1F2937),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+
+                                  SizedBox(height: 8),
+                                  Text(
+                                    'Based on your profile and employment status, you qualify for up to ₦$maxLimit',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Color(0xFF6B7280),
+                                    ),
+                                  ),
+                                ],
+                              ),
                     ),
                   ),
                 ),

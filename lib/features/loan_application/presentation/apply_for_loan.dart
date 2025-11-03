@@ -24,9 +24,11 @@ class _ApplyForLoan extends ConsumerState<ApplyForLoan> {
   bool allowLoan = false;
   double minNorm = 0;
   List<String> availableTenures = [];
-  String? selectedTenure;
+  String selectedTenure = "";
   double loanAmount = 0;
   String intrestRate = "";
+  String loanName = "";
+  bool _applying = false;
 
   @override
   void initState() {
@@ -107,11 +109,39 @@ class _ApplyForLoan extends ConsumerState<ApplyForLoan> {
         "The maximum amount you can borrow is ₦$maxLimit",
         isError: true,
       );
+      return;
     } else if (loanAmount < minNorm) {
       _showSnackBar(
         "The minimum amount you can borrow is ₦$minLimit",
         isError: true,
       );
+      return;
+    } else if (loanName.length <= 1) {
+      _showSnackBar("The loan purpose must not be empty", isError: true);
+      return;
+    } else if (selectedTenure.isEmpty) {
+      _showSnackBar("You must select a tenure", isError: true);
+      return;
+    }
+
+    setState(() => _applying = true);
+    try {
+      final result = await _loanService.applyForLoan(
+        loanAmount: loanAmount,
+        loanName: loanName,
+        tenure: int.parse(selectedTenure),
+        intrestRate: double.parse(intrestRate),
+      );
+      print(result);
+      String resultMessage = result["message"] ?? "Loan Applied successfully";
+      _showSnackBar(resultMessage, isError: false);
+    } catch (e) {
+      _showSnackBar(
+        e.toString().replaceFirst('Exception: ', ''),
+        isError: true,
+      );
+    } finally {
+      if (mounted) setState(() => _applying = false);
     }
   }
 
@@ -217,6 +247,55 @@ class _ApplyForLoan extends ConsumerState<ApplyForLoan> {
                         ),
                   ],
                 ),
+                SizedBox(height: 20),
+                Text(
+                  "Loan Purpose",
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF0F2D62),
+                    fontFamily: "Inter",
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Color(0xFF7C70DF), width: 1.5),
+                    borderRadius: BorderRadius.circular(10),
+
+                    color: Colors.white,
+                  ),
+                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          keyboardType: TextInputType.name,
+                          onChanged: (value) {
+                            loanName = value.trim();
+                          },
+                          validator: (value) {
+                            if (loanName.length <= 1) {
+                              return "You need to provide what this loan is for!";
+                            }
+                            return null;
+                          },
+                          decoration: InputDecoration(
+                            hintStyle: TextStyle(
+                              color: Color(0xFFADAEBC),
+                              fontSize: 16,
+                              fontFamily: "Inter",
+                            ),
+                            border: InputBorder.none,
+                            isDense: true,
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                          style: TextStyle(fontSize: 16),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
                 SizedBox(height: 70),
                 Text(
                   'Select Tenure (Months)',
@@ -235,7 +314,6 @@ class _ApplyForLoan extends ConsumerState<ApplyForLoan> {
                   crossAxisSpacing: 12,
                   mainAxisSpacing: 12,
                   childAspectRatio: 2,
-                  // padding: const EdgeInsets.all(16),
                   children:
                       tenures.map((tenure) {
                         return MonthButton(
@@ -314,7 +392,10 @@ class _ApplyForLoan extends ConsumerState<ApplyForLoan> {
                   alignment: Alignment.center,
                   child: Padding(
                     padding: EdgeInsets.only(top: 100),
-                    child: GradientActionButton(
+                    child: 
+                    _applying 
+                    ? const CircularProgressIndicator()
+                    :GradientActionButton(
                       text: "Continue",
                       size: 18,
                       onPressed: _applyForLoan,

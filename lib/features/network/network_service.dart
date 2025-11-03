@@ -14,21 +14,6 @@ class NetworkService {
   }
 }
 
-
-  // Future<bool> _hasConnection() async {
-  //   final result = await _connectivity.checkConnectivity();
-  //   if (result == ConnectivityResult.none) return false;
-
-  //   // 🔥 Extra step: actually try to connect to internet
-  //   try {
-  //     final lookup = await InternetAddress.lookup('google.com')
-  //         .timeout(const Duration(seconds: 3));
-  //     return lookup.isNotEmpty && lookup[0].rawAddress.isNotEmpty;
-  //   } catch (_) {
-  //     return false;
-  //   }
-  // }
-
   Future<bool> _hasConnection() async {
   final result = await _connectivity.checkConnectivity();
   if (result == ConnectivityResult.none) return false;

@@ -6,65 +6,69 @@ import 'package:pcsloan/utils/local_storage.dart';
 class LoanService {
   final String baseUrl = appConfig.apiBaseUrl;
   final String xApiKey = appConfig.xApiKey;
-    
-
-  
-  
-
-  // Future<List<dynamic>> fetchApplicationLoanData() async {
-  //    final  userToken = await LocalStorage.getToken(); 
-
-  //   final url = Uri.parse('$baseUrl/loans/offers');
-  //   print('This is the XAPI - $xApiKey');
-  //   print('This is the user Token - $userToken');
-
-  //   final response = await http.get(
-  //   url,
-  //   headers: {
-  //     'Content-Type': 'application/json',
-  //     'x-api-key': xApiKey,
-  //     'Authorization': 'Bearer $userToken',
-  //   },
-  //   );
-  //   final body = jsonDecode(response.body);
-
-  //   if (response.statusCode == 200 && body['status'] == 'success') {
-  //     return body['data'] ?? {};
-  //   } else {
-  //     throw Exception(body['message'] ?? 'Loan data not found');
-  //   }
-  // }
 
   Future<List<dynamic>> fetchApplicationLoanData() async {
-  final userToken = await LocalStorage.getToken();
+    final userToken = await LocalStorage.getToken();
 
-  final url = Uri.parse('$baseUrl/loans/offers');
-  print('➡️ X-API-Key: $xApiKey');
-  print('➡️ Token: $userToken');
+    final url = Uri.parse('$baseUrl/loans/offers');
 
-  final response = await http.get(
-    url,
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': xApiKey,
-      'Authorization': 'Bearer $userToken',
-    },
-  );
+    final response = await http.get(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': xApiKey,
+        'Authorization': 'Bearer $userToken',
+      },
+    );
 
-  final body = jsonDecode(response.body);
+    final body = jsonDecode(response.body);
 
-  if (response.statusCode == 200 && body['status'] == 'success') {
-    // ✅ Ensure it's a List
-    if (body['data'] is List) {
-      return body['data'];
+    if ((response.statusCode == 200 || response.statusCode == 201) &&
+        body['status'] == 'success') {
+      // ✅ Ensure it's a List
+      if (body['data'] is List) {
+        return body['data'];
+      } else {
+        throw Exception('Unexpected data format');
+      }
     } else {
-      throw Exception('Unexpected data format');
+      throw Exception(body['message'] ?? 'Loan data not found');
     }
-  } else {
-    throw Exception(body['message'] ?? 'Loan data not found');
   }
-}
 
+  Future<Map<String, dynamic>> applyForLoan({
+    required double loanAmount,
+    required String loanName,
+    required double intrestRate,
+    required int tenure
 
+    }) async {
+    final userToken = await LocalStorage.getToken();
+    final url = Uri.parse('$baseUrl/loans');
+    final Map<String, dynamic> body = {
+      'name': loanName,
+      "amount": loanAmount,
+      "interest_rate": intrestRate,
+      "tenure": tenure
 
+      };
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': xApiKey,
+        'Authorization': 'Bearer $userToken',
+      },
+      body: jsonEncode(body)
+    );
+
+    final decoded = jsonDecode(response.body);
+
+    if ((response.statusCode == 200 || response.statusCode == 201) &&
+        decoded['status'] == 'success') {
+      return decoded;
+    } else {
+      throw Exception(decoded['message'] ?? 'Loan Application Failed');
+    }
+  }
 }

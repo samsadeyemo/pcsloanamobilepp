@@ -1,16 +1,51 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:pcsloan/common/widgets/gradient_action_button.dart';
 
 class LoanSummary extends ConsumerStatefulWidget {
-  const LoanSummary({super.key});
+  final Map<String, dynamic>? loanData;
+  const LoanSummary({super.key, this.loanData});
 
   @override
   ConsumerState<LoanSummary> createState() => _LoanSummary();
 }
 
 class _LoanSummary extends ConsumerState<LoanSummary> {
+  String tenure = "";
+  String amount = "";
+  String loanId = "";
+  String intrestRate = "";
+  @override
+  void initState() {
+    super.initState();
+    _start();
+  }
+
+  void _start() {
+    debugPrint("I collect am jare");
+    setState(() {
+      final formatter = NumberFormat('#,##0.00', 'en_US');
+      tenure = widget.loanData?['tenure'].toString() ?? "";
+      loanId = widget.loanData?['loan_id'] ?? "";
+      intrestRate = widget.loanData?['intrest_rate'].toString() ?? "";
+      final rawAmount = widget.loanData?['amount'];
+    double amountValue;
+
+    if (rawAmount is num) {
+      amountValue = rawAmount.toDouble();
+    } else if (rawAmount is String) {
+      amountValue = double.tryParse(rawAmount) ?? 0;
+    } else {
+      amountValue = 0;
+    }
+
+    amount = formatter.format(amountValue);
+    });
+    print(widget.loanData);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -26,7 +61,7 @@ class _LoanSummary extends ConsumerState<LoanSummary> {
               child: IconButton(
                 icon: const Icon(Icons.close, color: Colors.black54, size: 16),
                 onPressed: () {
-                  context.go('/no-loan');
+                  context.go('/loan-redirect');
                 }, // do something when pressed
               ),
             ),
@@ -64,11 +99,11 @@ class _LoanSummary extends ConsumerState<LoanSummary> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      InfoRow(label: 'Loan Amount', value: '₦500,000'),
+                      InfoRow(label: 'Loan Amount', value: '₦${amount}'),
                       SizedBox(height: 16),
-                      InfoRow(label: 'Tenor', value: '24 Months'),
+                      InfoRow(label: 'Tenor', value: '${tenure} Months'),
                       SizedBox(height: 16),
-                      InfoRow(label: 'Interest Rate', value: '12% p.a.'),
+                      InfoRow(label: 'Interest Rate', value: '${intrestRate}% p.a.'),
                     ],
                   ),
                 ),

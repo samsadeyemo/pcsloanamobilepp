@@ -26,10 +26,7 @@ import '../../features/onboarding/presentation/onboarding_screen.dart';
 final GoRouter router = GoRouter(
   initialLocation: '/',
   routes: [
-    GoRoute(
-      path: '/',
-      builder: (context, state) => const SplashScreen()
-    ),
+    GoRoute(path: '/', builder: (context, state) => const SplashScreen()),
     GoRoute(
       path: '/onboarding',
       builder: (context, state) => OnboardingScreen(),
@@ -38,15 +35,9 @@ final GoRouter router = GoRouter(
       path: '/getStartedScreen',
       builder: (context, state) => GetStartedScreen(),
     ),
+    GoRoute(path: "/signIn", builder: (context, state) => LoginScreen()),
+    GoRoute(path: "/signUp", builder: (context, state) => SignUpScreen()),
     GoRoute(
-      path: "/signIn",
-      builder: (context, state) => LoginScreen()
-    ),
-    GoRoute(
-      path: "/signUp",
-      builder: (context, state) => SignUpScreen()
-    ),
-      GoRoute(
       path: '/create-password',
       builder: (context, state) => const CreatePasswordScreen(),
     ),
@@ -66,20 +57,19 @@ final GoRouter router = GoRouter(
     GoRoute(
       path: '/forgot-password-screen',
       builder: (context, state) => const ForgetPasswordScreen(),
-
     ),
     GoRoute(
       path: '/verify-password-otp',
-      builder: (context, state) => const VerifyOtpScreen()
+      builder: (context, state) => const VerifyOtpScreen(),
     ),
     GoRoute(
       path: '/password-change-success',
-      builder: (context, state) => const PasswordChangedSuccessScreen()
-      ),
+      builder: (context, state) => const PasswordChangedSuccessScreen(),
+    ),
     GoRoute(
       path: '/loan-redirect',
-      builder: (context, state) => const LoanRedirectScreen()
-      ),
+      builder: (context, state) => const LoanRedirectScreen(),
+    ),
     GoRoute(
       path: '/active-loan',
       builder: (context, state) => const ActiveLoanScreen(),
@@ -90,39 +80,42 @@ final GoRouter router = GoRouter(
     ),
     GoRoute(
       path: '/loan_application',
-      builder:(context, state) => const ApplyForLoan(),
+      builder: (context, state) => const ApplyForLoan(),
     ),
     GoRoute(
       path: '/Loan-status-screen',
-      builder: (context, state) => const LoanStatusScreen(),
-      ),
-      GoRoute(
-        path: '/loan-summary',
-        builder: (context, state) => const LoanSummary(),
-        ),
-      GoRoute(
-        path: '/bvn-verification-screen',
-        builder: (context, state) => const BvnVerificationScreen(),
-        ),
-      GoRoute(
-        path: '/facial-verification-screen',
-        builder: (context, state) => const FacialVerificationScreen(),
-        ),
-      GoRoute(
-        path: '/debit-authorization-screen',
-        builder: (context, state) => const DebitAuthorizationScreen(),
-        ),
-      GoRoute(
-        path: '/loan-disbursed-screen',
-        builder: (context, state) => const LoanDisbursedScreen(),
-        ),
-        GoRoute(
-          path: '/activity-tab',
-          builder: (context, state) => const ActivityTab(),
-          )
-
-      
-
-
+      builder: (context, state) {
+        final data = state.extra as Map<String, dynamic>?;
+        return LoanStatusScreen(loanData: data);
+      },
+    ),
+    GoRoute(
+      path: '/loan-summary',
+      builder: (context, state) {
+        final data = state.extra as Map<String, dynamic>?;
+        return LoanSummary(loanData: data);
+      },
+      //  LoanSummary(),
+    ),
+    GoRoute(
+      path: '/bvn-verification-screen',
+      builder: (context, state) => const BvnVerificationScreen(),
+    ),
+    GoRoute(
+      path: '/facial-verification-screen',
+      builder: (context, state) => const FacialVerificationScreen(),
+    ),
+    GoRoute(
+      path: '/debit-authorization-screen',
+      builder: (context, state) => const DebitAuthorizationScreen(),
+    ),
+    GoRoute(
+      path: '/loan-disbursed-screen',
+      builder: (context, state) => const LoanDisbursedScreen(),
+    ),
+    GoRoute(
+      path: '/activity-tab',
+      builder: (context, state) => const ActivityTab(),
+    ),
   ],
 );

@@ -7,13 +7,15 @@ import 'package:pcsloan/common/widgets/loan_loading_indicator.dart';
 import 'package:go_router/go_router.dart';
 
 class LoanStatusScreen extends ConsumerStatefulWidget {
-  const LoanStatusScreen({super.key});
+  final Map<String, dynamic>? loanData;
+  const LoanStatusScreen({super.key, this.loanData});
 
   @override
   ConsumerState<LoanStatusScreen> createState() => _LoanStatusScreenState();
 }
 
 class _LoanStatusScreenState extends ConsumerState<LoanStatusScreen> {
+
   Timer? _timer;
 
   @override
@@ -27,7 +29,9 @@ class _LoanStatusScreenState extends ConsumerState<LoanStatusScreen> {
     _timer = Timer(const Duration(seconds: 4), () {
       if (mounted) {
         debugPrint('Timer fired - navigating to LoanSummary');
-        context.push('/loan-summary');
+        print("recieved and sending");
+        print(widget.loanData);
+        context.replace('/loan-summary', extra: widget.loanData);
       } else {
         debugPrint('Widget not mounted - skipping navigation');
       }
@@ -43,9 +47,8 @@ class _LoanStatusScreenState extends ConsumerState<LoanStatusScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomLoanAppBarFalse(title: 'We’re Reviewing Your Application',),
-     
-           
+      appBar: CustomLoanAppBarFalse(title: 'We’re Reviewing Your Application'),
+
       backgroundColor: const Color(0xffFFFFFF),
       body: Padding(
         padding: const EdgeInsets.all(20),

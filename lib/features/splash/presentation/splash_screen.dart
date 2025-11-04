@@ -55,6 +55,7 @@ class _SplashScreenState extends State<SplashScreen> {
     final phoneVerified = await LocalStorage.isPhoneVerified();
     final passwordCreated = await LocalStorage.isPasswordCreated();
     final pinCreated = await LocalStorage.isPinCreated();
+    final hasLogin = await LocalStorage.hasLoginBefore();
 
     if (!mounted) return; // ✅ Always guard before navigation
 
@@ -82,6 +83,10 @@ class _SplashScreenState extends State<SplashScreen> {
     if (passwordCreated && !pinCreated) {
       context.go('/transaction-screen');
       return;
+    }
+    if (hasLogin){
+          context.go('/signIn');
+
     }
 
     // ✅ All steps complete

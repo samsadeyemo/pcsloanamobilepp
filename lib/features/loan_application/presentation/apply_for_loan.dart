@@ -135,6 +135,17 @@ class _ApplyForLoan extends ConsumerState<ApplyForLoan> {
       print(result);
       String resultMessage = result["message"] ?? "Loan Applied successfully";
       _showSnackBar(resultMessage, isError: false);
+      String loanOfferId = result["data"]["loan_id"] ?? "";
+      print(loanOfferId);
+      context.go(
+        "/Loan-status-screen",
+        extra: {
+          'loan_id': loanOfferId,
+          'amount': loanAmount,
+          'tenure': int.parse(selectedTenure),
+          'intrest_rate': intrestRate,
+        },
+      );
     } catch (e) {
       _showSnackBar(
         e.toString().replaceFirst('Exception: ', ''),
@@ -392,14 +403,14 @@ class _ApplyForLoan extends ConsumerState<ApplyForLoan> {
                   alignment: Alignment.center,
                   child: Padding(
                     padding: EdgeInsets.only(top: 100),
-                    child: 
-                    _applying 
-                    ? const CircularProgressIndicator()
-                    :GradientActionButton(
-                      text: "Continue",
-                      size: 18,
-                      onPressed: _applyForLoan,
-                    ),
+                    child:
+                        _applying
+                            ? const CircularProgressIndicator()
+                            : GradientActionButton(
+                              text: "Continue",
+                              size: 18,
+                              onPressed: _applyForLoan,
+                            ),
                   ),
                 ),
               ],

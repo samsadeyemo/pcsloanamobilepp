@@ -106,108 +106,103 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
-  
+  //   Future<void> _loginUser() async {
+  //   if (!_formKey.currentState!.validate()) {
+  //     return;
+  //   }
 
+  //   setState(() {
+  //     isLoading = true;
+  //   });
 
-//   Future<void> _loginUser() async {
-//   if (!_formKey.currentState!.validate()) {
-//     return;
-//   }
+  //   try {
+  //     String rawPhone = _phoneController.text.trim();
+  //     print('Raw phone number: $rawPhone');
+  //     String formattedPhone = _normalizePhoneNumber(rawPhone);
+  //   print('Formatted phone number: $formattedPhone');
+  //     final result = await _authService.loginUser(
+  //       phone: formattedPhone,
+  //       password: _passwordController.text.trim(),
+  //     );
+  //     await LocalStorage.saveUser(result['data']['user']);
+  //     print('User data saved: ${result['data']['user']}');
+  //     await LocalStorage.saveToken(result['data']['token']);
+  //     await LocalStorage.setHasLoan(result['data']['hasLoan']);
+  //     String resultMessage = result["message"] ?? "Login successful";
+  //     _showSnackBar(resultMessage, isError: false);
+  //     context.go("/loan-redirect");
+  //   } catch (e) {
+  //     _showSnackBar(e.toString(), isError: true);
+  //   } finally {
+  //     if (mounted) {
+  //       setState(() {
+  //         isLoading = false;
+  //       });
+  //     }
+  //   }
+  // }
 
-//   setState(() {
-//     isLoading = true;
-//   });
+  Future<void> _loginUser() async {
+    if (!_formKey.currentState!.validate()) return;
 
-//   try {
-//     String rawPhone = _phoneController.text.trim();
-//     print('Raw phone number: $rawPhone');
-//     String formattedPhone = _normalizePhoneNumber(rawPhone);
-//   print('Formatted phone number: $formattedPhone');
-//     final result = await _authService.loginUser(
-//       phone: formattedPhone,
-//       password: _passwordController.text.trim(),
-//     );
-//     await LocalStorage.saveUser(result['data']['user']);
-//     print('User data saved: ${result['data']['user']}');
-//     await LocalStorage.saveToken(result['data']['token']);
-//     await LocalStorage.setHasLoan(result['data']['hasLoan']);
-//     String resultMessage = result["message"] ?? "Login successful";
-//     _showSnackBar(resultMessage, isError: false);
-//     context.go("/loan-redirect");
-//   } catch (e) {
-//     _showSnackBar(e.toString(), isError: true);
-//   } finally {
-//     if (mounted) {
-//       setState(() {
-//         isLoading = false;
-//       });
-//     }
-//   }
-// }
+    setState(() => isLoading = true);
 
-Future<void> _loginUser() async {
-  if (!_formKey.currentState!.validate()) return;
+    try {
+      String rawPhone = _phoneController.text.trim();
+      String formattedPhone = _normalizePhoneNumber(rawPhone);
 
-  setState(() => isLoading = true);
+      final result = await _authService.loginUser(
+        phone: formattedPhone,
+        password: _passwordController.text.trim(),
+      );
 
-  try {
-    String rawPhone = _phoneController.text.trim();
-    String formattedPhone = _normalizePhoneNumber(rawPhone);
+      await LocalStorage.saveUser(result['data']['user']);
+      await LocalStorage.saveToken(result['data']['token']);
+      await LocalStorage.setHasLoan(result['data']['hasLoan']);
+      await LocalStorage.setHasLoginBefore(true);
 
-    final result = await _authService.loginUser(
-      phone: formattedPhone,
-      password: _passwordController.text.trim(),
-    );
+      // ✅ Widget might be gone by now, so guard before touching UI
+      if (!mounted) return;
 
-    await LocalStorage.saveUser(result['data']['user']);
-    await LocalStorage.saveToken(result['data']['token']);
-    await LocalStorage.setHasLoan(result['data']['hasLoan']);
-
-    // ✅ Widget might be gone by now, so guard before touching UI
-    if (!mounted) return;
-
-    String resultMessage = result["message"] ?? "Login successful";
-    _showSnackBar(resultMessage, isError: false);
-    context.go("/loan-redirect");
-  } catch (e) {
-    if (mounted) {
-      _showSnackBar(e.toString(), isError: true);
-    }
-  } finally {
-    if (mounted) {
-      setState(() => isLoading = false);
+      String resultMessage = result["message"] ?? "Login successful";
+      _showSnackBar(resultMessage, isError: false);
+      context.go("/loan-redirect");
+    } catch (e) {
+      if (mounted) {
+        _showSnackBar(e.toString(), isError: true);
+      }
+    } finally {
+      if (mounted) {
+        setState(() => isLoading = false);
+      }
     }
   }
-}
 
+  /// Normalizes Nigerian phone numbers into +234 format
+  String _normalizePhoneNumber(String input) {
+    String phone = input.replaceAll(RegExp(r'\s+'), ''); // remove spaces
 
-/// Normalizes Nigerian phone numbers into +234 format
-String _normalizePhoneNumber(String input) {
-  String phone = input.replaceAll(RegExp(r'\s+'), ''); // remove spaces
-
-  if (phone.startsWith('+234')) {
-    // ✅ Already correct
-    return phone;
-  } else if (phone.startsWith('234')) {
-    // ✅ Missing '+'
-    return phone;
-  } else if (phone.startsWith('0')) {
-    // ✅ Convert 080... → +23480...
-    return '234${phone.substring(1)}';
-  } else {
-    // ⚠️ Fallback (user just typed e.g. 8088993491)
-    return '234$phone';
+    if (phone.startsWith('+234')) {
+      // ✅ Already correct
+      return phone;
+    } else if (phone.startsWith('234')) {
+      // ✅ Missing '+'
+      return phone;
+    } else if (phone.startsWith('0')) {
+      // ✅ Convert 080... → +23480...
+      return '234${phone.substring(1)}';
+    } else {
+      // ⚠️ Fallback (user just typed e.g. 8088993491)
+      return '234$phone';
+    }
   }
-}
-
 
   @override
-void dispose() {
-  _phoneController.dispose();
-  _passwordController.dispose();
-  super.dispose();
-}
-
+  void dispose() {
+    _phoneController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

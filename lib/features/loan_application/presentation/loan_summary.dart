@@ -46,6 +46,64 @@ class _LoanSummary extends ConsumerState<LoanSummary> {
     print(widget.loanData);
   }
 
+
+  
+  // Future<void> _applyForLoan() async {
+  //   print(loanAmount);
+  //   print(maxNorm);
+  //   print(minNorm);
+  //   if (loanAmount > maxNorm) {
+  //     _showSnackBar(
+  //       "The maximum amount you can borrow is ₦$maxLimit",
+  //       isError: true,
+  //     );
+  //     return;
+  //   } else if (loanAmount < minNorm) {
+  //     _showSnackBar(
+  //       "The minimum amount you can borrow is ₦$minLimit",
+  //       isError: true,
+  //     );
+  //     return;
+  //   } else if (loanName.length <= 1) {
+  //     _showSnackBar("The loan purpose must not be empty", isError: true);
+  //     return;
+  //   } else if (selectedTenure.isEmpty) {
+  //     _showSnackBar("You must select a tenure", isError: true);
+  //     return;
+  //   }
+
+  //   setState(() => _applying = true);
+  //   try {
+  //     final result = await _loanService.applyForLoan(
+  //       loanAmount: loanAmount,
+  //       loanName: loanName,
+  //       tenure: int.parse(selectedTenure),
+  //       intrestRate: double.parse(intrestRate),
+  //     );
+  //     print(result);
+  //     String resultMessage = result["message"] ?? "Loan Applied successfully";
+  //     _showSnackBar(resultMessage, isError: false);
+  //     String loanOfferId = result["data"]["loan_id"] ?? "";
+  //     print(loanOfferId);
+  //     context.go(
+  //       "/Loan-status-screen",
+  //       extra: {
+  //         'loan_id': loanOfferId,
+  //         'amount': loanAmount,
+  //         'tenure': int.parse(selectedTenure),
+  //         'intrest_rate': intrestRate,
+  //       },
+  //     );
+  //   } catch (e) {
+  //     _showSnackBar(
+  //       e.toString().replaceFirst('Exception: ', ''),
+  //       isError: true,
+  //     );
+  //   } finally {
+  //     if (mounted) setState(() => _applying = false);
+  //   }
+  // }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

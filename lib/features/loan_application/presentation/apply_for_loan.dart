@@ -29,6 +29,8 @@ class _ApplyForLoan extends ConsumerState<ApplyForLoan> {
   String intrestRate = "";
   String loanName = "";
   bool _applying = false;
+  List<dynamic> loans = [];
+  String originalLoanId = "";
 
   @override
   void initState() {
@@ -71,9 +73,9 @@ class _ApplyForLoan extends ConsumerState<ApplyForLoan> {
           minLimit = formatter.format(minAmount);
           maxLimit = formatter.format(maxAmount);
           intrestRate = loan["interest_rate"];
-
+          originalLoanId = loan["id"];
           allowLoan = loan['allow_loan'] ?? false;
-
+          loans = loan['tenures'];
           final tenuresList =
               (loan['tenures'] as List<dynamic>?)
                   ?.map((t) => t['tenure'].toString())
@@ -100,10 +102,7 @@ class _ApplyForLoan extends ConsumerState<ApplyForLoan> {
     }
   }
 
-  Future<void> _applyForLoan() async {
-    print(loanAmount);
-    print(maxNorm);
-    print(minNorm);
+  Future<void> _getLoanOverview() async {
     if (loanAmount > maxNorm) {
       _showSnackBar(
         "The maximum amount you can borrow is ₦$maxLimit",
@@ -123,25 +122,24 @@ class _ApplyForLoan extends ConsumerState<ApplyForLoan> {
       _showSnackBar("You must select a tenure", isError: true);
       return;
     }
-
     setState(() => _applying = true);
+    print("E don start");
+
     try {
-      final result = await _loanService.applyForLoan(
+      final result = await _loanService.getLoanOverView(
         loanAmount: loanAmount,
-        loanName: loanName,
+        loanOfferId: originalLoanId,
         tenure: int.parse(selectedTenure),
-        intrestRate: double.parse(intrestRate),
       );
       print(result);
-      String resultMessage = result["message"] ?? "Loan Applied successfully";
+      String resultMessage =
+          result["message"] ?? "Loan offer fetched successfully";
       _showSnackBar(resultMessage, isError: false);
-      String loanOfferId = result["data"]["loan_id"] ?? "";
-      print(loanOfferId);
       context.go(
         "/Loan-status-screen",
         extra: {
-          'loan_id': loanOfferId,
-          'amount': loanAmount,
+          "loanName": loanName,
+          'loanAmount': loanAmount,
           'tenure': int.parse(selectedTenure),
           'intrest_rate': intrestRate,
         },
@@ -409,7 +407,7 @@ class _ApplyForLoan extends ConsumerState<ApplyForLoan> {
                             : GradientActionButton(
                               text: "Continue",
                               size: 18,
-                              onPressed: _applyForLoan,
+                              onPressed: _getLoanOverview,
                             ),
                   ),
                 ),

@@ -40,18 +40,16 @@ class LoanService {
     required double loanAmount,
     required String loanName,
     required double intrestRate,
-    required int tenure
-
-    }) async {
+    required int tenure,
+  }) async {
     final userToken = await LocalStorage.getToken();
     final url = Uri.parse('$baseUrl/loans');
     final Map<String, dynamic> body = {
       'name': loanName,
       "amount": loanAmount,
       "interest_rate": intrestRate,
-      "tenure": tenure
-
-      };
+      "tenure": tenure,
+    };
     final response = await http.post(
       url,
       headers: {
@@ -59,7 +57,7 @@ class LoanService {
         'x-api-key': xApiKey,
         'Authorization': 'Bearer $userToken',
       },
-      body: jsonEncode(body)
+      body: jsonEncode(body),
     );
 
     final decoded = jsonDecode(response.body);
@@ -69,6 +67,38 @@ class LoanService {
       return decoded;
     } else {
       throw Exception(decoded['message'] ?? 'Loan Application Failed');
+    }
+  }
+
+  Future<Map<String, dynamic>> getLoanOverView({
+    required double loanAmount,
+    required String loanOfferId,
+    required int tenure,
+  }) async {
+    final userToken = await LocalStorage.getToken();
+    final url = Uri.parse('$baseUrl/loans/overview');
+    final Map<String, dynamic> body = {
+      "loan_offer_id": loanOfferId,
+      "amount": loanAmount,
+      "tenure": tenure,
+    };
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': xApiKey,
+        'Authorization': 'Bearer $userToken',
+      },
+      body: jsonEncode(body),
+    );
+
+    final decoded = jsonDecode(response.body);
+
+    if ((response.statusCode == 200 || response.statusCode == 201) &&
+        decoded['status'] == 'success') {
+      return decoded;
+    } else {
+      throw Exception(decoded['message'] ?? 'Could not get Loan offer');
     }
   }
 }

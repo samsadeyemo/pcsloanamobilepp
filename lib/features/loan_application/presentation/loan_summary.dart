@@ -1,8 +1,12 @@
+// ignore_for_file: curly_braces_in_flow_control_structures
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:pcsloan/common/custom_repayment_card.dart';
 import 'package:pcsloan/common/widgets/gradient_action_button.dart';
+import 'package:pcsloan/service/loan_service.dart';
 
 class LoanSummary extends ConsumerStatefulWidget {
   final Map<String, dynamic>? loanData;
@@ -17,6 +21,13 @@ class _LoanSummary extends ConsumerState<LoanSummary> {
   String amount = "";
   String loanId = "";
   String intrestRate = "";
+  String monthlyPayment = "";
+  String repaymentTotal = "";
+  // String dirbursmentDate = "";
+  List schedulePreview = [];
+  bool _applying = false;
+  final _loanService = LoanService();
+
   @override
   void initState() {
     super.initState();
@@ -30,79 +41,79 @@ class _LoanSummary extends ConsumerState<LoanSummary> {
       tenure = widget.loanData?['tenure'].toString() ?? "";
       loanId = widget.loanData?['loan_id'] ?? "";
       intrestRate = widget.loanData?['intrest_rate'].toString() ?? "";
-      final rawAmount = widget.loanData?['amount'];
-    double amountValue;
+      final rawAmount = widget.loanData?['loanAmount'];
+      final rawRepaymentTotal = widget.loanData?['repaymentTotal'];
+      final rawMonthlyPayment = widget.loanData?['monthlyPayment'];
+      // dirbursmentDate = widget.loanData?['dirbursmentDate'];
+      schedulePreview = widget.loanData?['schedulePreview'];
 
-    if (rawAmount is num) {
-      amountValue = rawAmount.toDouble();
-    } else if (rawAmount is String) {
-      amountValue = double.tryParse(rawAmount) ?? 0;
-    } else {
-      amountValue = 0;
-    }
+      double amountValue;
+      double repaymentValue;
+      double monthlyPaymentValue;
 
-    amount = formatter.format(amountValue);
+      if (rawAmount is num)
+        amountValue = rawAmount.toDouble();
+      else if (rawAmount is String)
+        amountValue = double.tryParse(rawAmount) ?? 0;
+      else
+        amountValue = 0;
+      amount = formatter.format(amountValue);
+
+      if (rawRepaymentTotal is num)
+        repaymentValue = rawRepaymentTotal.toDouble();
+      else if (rawRepaymentTotal is String)
+        repaymentValue = double.tryParse(rawRepaymentTotal) ?? 0;
+      else
+        repaymentValue = 0;
+      repaymentTotal = formatter.format(repaymentValue);
+
+      if (rawMonthlyPayment is num)
+        monthlyPaymentValue = rawMonthlyPayment.toDouble();
+      else if (rawMonthlyPayment is String)
+        monthlyPaymentValue = double.tryParse(rawMonthlyPayment) ?? 0;
+      else
+        monthlyPaymentValue = 0;
+      monthlyPayment = formatter.format(monthlyPaymentValue);
     });
     print(widget.loanData);
   }
 
+  void _showSnackBar(String message, {bool isError = false}) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Colors.red : Colors.green,
+      ),
+    );
+  }
 
-  
-  // Future<void> _applyForLoan() async {
-  //   print(loanAmount);
-  //   print(maxNorm);
-  //   print(minNorm);
-  //   if (loanAmount > maxNorm) {
-  //     _showSnackBar(
-  //       "The maximum amount you can borrow is ₦$maxLimit",
-  //       isError: true,
-  //     );
-  //     return;
-  //   } else if (loanAmount < minNorm) {
-  //     _showSnackBar(
-  //       "The minimum amount you can borrow is ₦$minLimit",
-  //       isError: true,
-  //     );
-  //     return;
-  //   } else if (loanName.length <= 1) {
-  //     _showSnackBar("The loan purpose must not be empty", isError: true);
-  //     return;
-  //   } else if (selectedTenure.isEmpty) {
-  //     _showSnackBar("You must select a tenure", isError: true);
-  //     return;
-  //   }
-
-  //   setState(() => _applying = true);
-  //   try {
-  //     final result = await _loanService.applyForLoan(
-  //       loanAmount: loanAmount,
-  //       loanName: loanName,
-  //       tenure: int.parse(selectedTenure),
-  //       intrestRate: double.parse(intrestRate),
-  //     );
-  //     print(result);
-  //     String resultMessage = result["message"] ?? "Loan Applied successfully";
-  //     _showSnackBar(resultMessage, isError: false);
-  //     String loanOfferId = result["data"]["loan_id"] ?? "";
-  //     print(loanOfferId);
-  //     context.go(
-  //       "/Loan-status-screen",
-  //       extra: {
-  //         'loan_id': loanOfferId,
-  //         'amount': loanAmount,
-  //         'tenure': int.parse(selectedTenure),
-  //         'intrest_rate': intrestRate,
-  //       },
-  //     );
-  //   } catch (e) {
-  //     _showSnackBar(
-  //       e.toString().replaceFirst('Exception: ', ''),
-  //       isError: true,
-  //     );
-  //   } finally {
-  //     if (mounted) setState(() => _applying = false);
-  //   }
-  // }
+  Future<void> _applyForLoan() async {
+    setState(() => _applying = true);
+    final loanAmount = (widget.loanData?['loanAmount'] as int).toDouble();
+    final intrestRate = double.parse(widget.loanData?['intrest_rate'] ?? '0');
+    try {
+      final result = await _loanService.applyForLoan(
+        loanAmount:loanAmount,
+        loanName: widget.loanData?['loanName'],
+        tenure: widget.loanData?['tenure'],
+        intrestRate: intrestRate,
+      );
+      print(result);
+      String resultMessage = result["message"] ?? "Loan Applied successfully";
+      _showSnackBar(resultMessage, isError: false);
+      String loanOfferId = result["data"]["loan_id"] ?? "";
+      print(loanOfferId);
+      context.go("/bvn-verification-screen");
+    } catch (e) {
+      _showSnackBar(
+        e.toString().replaceFirst('Exception: ', ''),
+        isError: true,
+      );
+    } finally {
+      if (mounted) setState(() => _applying = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -119,7 +130,7 @@ class _LoanSummary extends ConsumerState<LoanSummary> {
               child: IconButton(
                 icon: const Icon(Icons.close, color: Colors.black54, size: 16),
                 onPressed: () {
-                  context.go('/loan-redirect');
+                  context.push('/loan-redirect');
                 }, // do something when pressed
               ),
             ),
@@ -161,7 +172,10 @@ class _LoanSummary extends ConsumerState<LoanSummary> {
                       SizedBox(height: 16),
                       InfoRow(label: 'Tenor', value: '${tenure} Months'),
                       SizedBox(height: 16),
-                      InfoRow(label: 'Interest Rate', value: '${intrestRate}% p.a.'),
+                      InfoRow(
+                        label: 'Interest Rate',
+                        value: '${intrestRate}% p.a.',
+                      ),
                     ],
                   ),
                 ),
@@ -174,7 +188,7 @@ class _LoanSummary extends ConsumerState<LoanSummary> {
                       style: TextStyle(fontSize: 14, color: Color(0xff4B5563)),
                     ),
                     Text(
-                      '₦600,000',
+                      "₦$repaymentTotal",
                       style: TextStyle(fontSize: 16, color: Color(0xff4B5563)),
                     ),
                   ],
@@ -192,29 +206,7 @@ class _LoanSummary extends ConsumerState<LoanSummary> {
                       ),
                     ),
                     Text(
-                      '₦25,000',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Color(0xff4B5563),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 30),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Anticipated Disbursement',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Color(0xff4B5563),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    Text(
-                      'Jan 20, 2025',
+                      "₦$monthlyPayment",
                       style: TextStyle(
                         fontSize: 16,
                         color: Color(0xff4B5563),
@@ -225,103 +217,9 @@ class _LoanSummary extends ConsumerState<LoanSummary> {
                 ),
                 SizedBox(height: 30),
 
-                Text(
-                  'Repayment Schedule Preview',
-                  style: TextStyle(
-                    color: Color(0xff0F2D62),
-                    fontSize: 18,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                SizedBox(height: 10),
+                SizedBox(height: 20),
 
-                Card(
-                  elevation: 0,
-                  color: Color(0xffF9FAFB),
-
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  margin: EdgeInsets.symmetric(vertical: 12),
-                  child: Padding(
-                    padding: EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              '1st Repayment',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Color(0xff4B5563),
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            Text(
-                              'Feb 20, 2025 - ₦25,000',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Color(0xff1F2937),
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 10),
-
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              '1st Repayment',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Color(0xff4B5563),
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            Text(
-                              'Feb 20, 2025 - ₦25,000',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Color(0xff1F2937),
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 10),
-
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              '1st Repayment',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Color(0xff4B5563),
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            Text(
-                              'Feb 20, 2025 - ₦25,000',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Color(0xff1F2937),
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 15),
-
-                        Divider(thickness: 2, color: Color(0xFFE5E7EB)),
-                      ],
-                    ),
-                  ),
-                ),
+                RepaymentScheduleCard(schedulePreview: schedulePreview),
                 Align(
                   alignment: Alignment.center,
                   child: Padding(
@@ -409,13 +307,14 @@ class _LoanSummary extends ConsumerState<LoanSummary> {
                 ),
                 SizedBox(height: 20),
 
-                GradientActionButton(
-                  text: "Accept Offer",
-                  size: 18,
-                  onPressed: () {
-                    context.push("/bvn-verification-screen");
-                  },
-                ),
+                _applying
+                    ? const Center(
+                      child: CircularProgressIndicator())
+                    : GradientActionButton(
+                      text: "Accept Offer",
+                      size: 18,
+                      onPressed: _applyForLoan,
+                    ),
               ],
             ),
           ),

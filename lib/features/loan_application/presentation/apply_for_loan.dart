@@ -138,10 +138,14 @@ class _ApplyForLoan extends ConsumerState<ApplyForLoan> {
       context.go(
         "/Loan-status-screen",
         extra: {
+          "repaymentTotal": result["data"]["repaymentTotal"],
+          "monthlyPayment": result["data"]["monthlyPayment"],
           "loanName": loanName,
-          'loanAmount': loanAmount,
-          'tenure': int.parse(selectedTenure),
-          'intrest_rate': intrestRate,
+          'loanAmount':  result["data"]["loanAmount"],
+          'tenure': result["data"]["tenure"],
+          'intrest_rate':  result["data"]["interest"],
+          'dirbursmentDate':  result["data"]["paymentDate"],
+          'schedulePreview':  result["data"]["overview"]
         },
       );
     } catch (e) {

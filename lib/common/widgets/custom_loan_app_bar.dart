@@ -21,15 +21,11 @@ class CustomLoanAppBar extends StatelessWidget implements PreferredSizeWidget {
               height: 30,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xffF3F4F6),
+                color:  Colors.transparent,
               ),
               child: Center(
                 child: FittedBox(
-                  child: Icon(
-                    Icons.arrow_back_sharp,
-                    size: 20,
-                    color: Color(0xff4B5563),
-                  ),
+                  child: SizedBox()
                 ),
               ),
             ),
@@ -38,7 +34,7 @@ class CustomLoanAppBar extends StatelessWidget implements PreferredSizeWidget {
       ),
       surfaceTintColor: Colors.transparent,
       scrolledUnderElevation: 0,
-      backgroundColor: const Color(0xffFFFFFF),
+      backgroundColor: Colors.transparent,
       title: Text(
         title,
         style: const TextStyle(

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:pcsloan/config/app_config.dart';
+import 'package:pcsloan/service/api_exception.dart';
 import 'package:pcsloan/utils/local_storage.dart';
 
 class LoanService {
@@ -29,10 +30,10 @@ class LoanService {
       if (body['data'] is List) {
         return body['data'];
       } else {
-        throw Exception('Unexpected data format');
+        throw ApiException('Unexpected data format');
       }
     } else {
-      throw Exception(body['message'] ?? 'Loan data not found');
+      throw ApiException(body['message'] ?? 'Loan data not found');
     }
   }
 
@@ -66,7 +67,7 @@ class LoanService {
         decoded['status'] == 'success') {
       return decoded;
     } else {
-      throw Exception(decoded['message'] ?? 'Loan Application Failed');
+      throw ApiException(decoded['message'] ?? 'Loan Application Failed');
     }
   }
 
@@ -98,7 +99,7 @@ class LoanService {
         decoded['status'] == 'success') {
       return decoded;
     } else {
-      throw Exception(decoded['message'] ?? 'Could not get Loan offer');
+      throw ApiException(decoded['message'] ?? 'Could not get Loan offer');
     }
   }
 }

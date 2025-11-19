@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:pcsloan/common/widgets/custom_bottom_nav_bar.dart';
 import 'package:pcsloan/common/widgets/custom_loan_app_bar.dart';
 import 'package:pcsloan/common/widgets/custom_tenure_button.dart';
+import 'package:pcsloan/common/widgets/custom_thousands_formatter.dart';
 import 'package:pcsloan/common/widgets/gradient_action_button.dart';
 import 'package:pcsloan/service/loan_service.dart';
 import 'package:intl/intl.dart';
@@ -141,11 +142,11 @@ class _ApplyForLoan extends ConsumerState<ApplyForLoan> {
           "repaymentTotal": result["data"]["repaymentTotal"],
           "monthlyPayment": result["data"]["monthlyPayment"],
           "loanName": loanName,
-          'loanAmount':  result["data"]["loanAmount"],
+          'loanAmount': result["data"]["loanAmount"],
           'tenure': result["data"]["tenure"],
-          'intrest_rate':  result["data"]["interest"],
-          'dirbursmentDate':  result["data"]["paymentDate"],
-          'schedulePreview':  result["data"]["overview"]
+          'intrest_rate': result["data"]["interest"],
+          'dirbursmentDate': result["data"]["paymentDate"],
+          'schedulePreview': result["data"]["overview"],
         },
       );
     } catch (e) {
@@ -197,6 +198,7 @@ class _ApplyForLoan extends ConsumerState<ApplyForLoan> {
                       Expanded(
                         child: TextFormField(
                           keyboardType: TextInputType.number,
+                          inputFormatters: [ThousandsFormatter()],
                           onChanged: (value) {
                             loanAmount =
                                 double.tryParse(value.replaceAll(',', '')) ??

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:pcsloan/config/app_config.dart';
+import 'package:pcsloan/service/api_exception.dart';
 
 class AuthService {
   final String baseUrl = appConfig.apiBaseUrl;
@@ -37,16 +38,16 @@ class AuthService {
         )
         .timeout(const Duration(seconds: 15));
   } on TimeoutException {
-    throw Exception('Connection timed out. Please try again.');
+    throw ApiException('Connection timed out. Please try again.');
   } catch (e) {
-    throw Exception('Network error: ${e.toString()}');
+    throw ApiException('Network error: ${e.toString()}');
   }
 
   Map<String, dynamic> body;
   try {
     body = jsonDecode(response.body);
   } catch (_) {
-    throw Exception('Invalid response from server.');
+    throw ApiException('Invalid response from server.');
   }
 
   if ((response.statusCode == 200 || response.statusCode == 201) &&
@@ -54,10 +55,10 @@ class AuthService {
     if (body['data'] is Map<String, dynamic>) {
       return body['data'];
     } else {
-      throw Exception('Unexpected data format from server.');
+      throw ApiException('Unexpected data format from server.');
     }
   } else {
-    throw Exception(body['message'] ?? 'Employee not found.');
+    throw ApiException(body['message'] ?? 'Employee not found.');
   }
 }
 
@@ -100,7 +101,7 @@ class AuthService {
     if ((response.statusCode == 200 || response.statusCode == 201) && decoded['status'] == 'success') {
       return decoded;
     } else {
-      throw Exception(decoded['message'] ?? 'Registration failed');
+      throw ApiException(decoded['message'] ?? 'Registration failed');
     }
   }
 
@@ -126,7 +127,7 @@ class AuthService {
     if ((response.statusCode == 200 || response.statusCode == 201) && decoded['status'] == 'success') {
       return decoded;
     } else {
-      throw Exception(decoded['message'] ?? 'OTP verification failed');
+      throw ApiException(decoded['message'] ?? 'OTP verification failed');
     }
   }
 
@@ -135,7 +136,7 @@ class AuthService {
     final Map<String, dynamic> body = {'employee_id': employeeNo};
 
     if (employeeNo.isEmpty) {
-      throw Exception('Employee ID cannot be empty');
+      throw ApiException('Employee ID cannot be empty');
     }
 
     final response = await http.post(
@@ -149,7 +150,7 @@ class AuthService {
     if ((response.statusCode == 200 || response.statusCode == 201) && decoded['status'] == 'success') {
       return decoded;
     } else {
-      throw Exception(decoded['message'] ?? 'Resend OTP failed');
+      throw ApiException(decoded['message'] ?? 'Resend OTP failed');
     }
   }
 
@@ -167,7 +168,7 @@ class AuthService {
     };
 
     if (password != confirmPassword) {
-      throw Exception('Passwords do not match');
+      throw ApiException('Passwords do not match');
     }
 
     final response = await http.post(
@@ -181,7 +182,7 @@ class AuthService {
     if ((response.statusCode == 200 || response.statusCode == 201) && decoded['status'] == 'success') {
       return decoded;
     } else {
-      throw Exception(decoded['message'] ?? 'Password creation failed');
+      throw ApiException(decoded['message'] ?? 'Password creation failed');
     }
   }
 
@@ -199,7 +200,7 @@ class AuthService {
     };
 
     if (pin != confirmPin) {
-      throw Exception('Pin do not match');
+      throw ApiException('Pin do not match');
     }
 
     final response = await http.post(
@@ -213,7 +214,7 @@ class AuthService {
     if ((response.statusCode == 200 || response.statusCode == 201) && decoded['status'] == 'success') {
       return decoded;
     } else {
-      throw Exception(decoded['message'] ?? 'Pin creation failed');
+      throw ApiException(decoded['message'] ?? 'Pin creation failed');
     }
   }
 
@@ -240,23 +241,23 @@ Future<Map<String, dynamic>> loginUser({
         )
         .timeout(const Duration(seconds: 15));
   } on TimeoutException {
-    throw Exception('Connection timed out. Please try again.');
+    throw ApiException('Connection timed out. Please try again.');
   } catch (e) {
-    throw Exception('Network error: ${e.toString()}');
+    throw ApiException('Network error: ${e.toString()}');
   }
 
   Map<String, dynamic> decoded;
   try {
     decoded = jsonDecode(response.body);
   } catch (_) {
-    throw Exception('Invalid response from server.');
+    throw ApiException('Invalid response from server.');
   }
 
   if ((response.statusCode == 200 || response.statusCode == 201) &&
       decoded['status'] == 'success') {
     return decoded;
   } else {
-    throw Exception(decoded['message'] ?? 'Login failed.');
+    throw ApiException(decoded['message'] ?? 'Login failed.');
   }
 }
 
@@ -280,7 +281,7 @@ Future<Map<String, dynamic>> loginUser({
     if ((response.statusCode == 200 || response.statusCode == 201) && decoded['status'] == 'success') {
       return decoded;
     } else {
-      throw Exception(decoded['message'] ?? 'Forget password failed');
+      throw ApiException(decoded['message'] ?? 'Forget password failed');
     }
 
   }

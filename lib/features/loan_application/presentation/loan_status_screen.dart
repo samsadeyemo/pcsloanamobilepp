@@ -26,7 +26,7 @@ class _LoanStatusScreenState extends ConsumerState<LoanStatusScreen> {
 
   void _startAutoNavigate() {
     debugPrint('Timer started for auto-navigation');
-    _timer = Timer(const Duration(seconds: 4), () {
+    _timer = Timer(const Duration(seconds: 2), () {
       if (mounted) {
         debugPrint('Timer fired - navigating to LoanSummary');
         print("recieved and sending");
@@ -37,6 +37,7 @@ class _LoanStatusScreenState extends ConsumerState<LoanStatusScreen> {
       }
     });
   }
+  
 
   @override
   void dispose() {

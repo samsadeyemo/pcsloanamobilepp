@@ -60,16 +60,16 @@ class _SignUpScreenState extends State<SignUpScreen>
     setState(() => _fetching = true);
     try {
       final data = await _authService.fetchEmployee(_staffIdController.text);
-
+      print('Fetched employee data: $data');
       setState(() {
-        _employeeData = data;
+        _employeeData = data['data'];
         _firstNameController.text =
-            data['first_name'] ?? data['firstname'] ?? '';
-        _lastNameController.text = data['last_name'] ?? data['lastname'] ?? '';
-        String phoneData = data['phone_number'] ?? data['phone'] ?? '';
+            data['data']['first_name'] ?? data['data']['firstname'] ?? '';
+        _lastNameController.text = data['data']['last_name'] ?? data['data']['lastname'] ?? '';
+        String phoneData = data['data']['phone_number'] ?? data['data']['phone'] ?? '';
         _phoneController.text = '+$phoneData';
-        _emailController.text = data['email'] ?? '';
-        _bvnController.text = data['bvn'] ?? '';
+        _emailController.text = data['data']['email'] ?? '';
+        _bvnController.text = data['data']['bvn'] ?? '';
       });
 
       _showSnackBar("Employee found successfully");

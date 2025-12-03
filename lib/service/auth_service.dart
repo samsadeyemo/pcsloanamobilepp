@@ -3,64 +3,16 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:pcsloan/config/app_config.dart';
+import 'package:pcsloan/main.dart';
 import 'package:pcsloan/service/api_exception.dart';
 
 class AuthService {
   final String baseUrl = appConfig.apiBaseUrl;
 
-  /// Fetch employee details using staff ID
-  // Future<Map<String, dynamic>> fetchEmployee(String employeeNo) async {
-  //   final url = Uri.parse('$baseUrl/auth/$employeeNo');
-    
-
-  //   final response = await http.get(url);
-    
-
-  //   final body = jsonDecode(response.body);
-
-  //   if ((response.statusCode == 200 || response.statusCode == 201) && body['status'] == 'success') {
-  //     return body['data'] ?? {};
-  //   } else {
-  //     throw Exception(body['message'] ?? 'Employee not found');
-  //   }
-  // }
 
   Future<Map<String, dynamic>> fetchEmployee(String employeeNo) async {
-  final url = Uri.parse('$baseUrl/auth/$employeeNo');
-
-  http.Response response;
-
-  try {
-    response = await http
-        .get(
-          url,
-          headers: {'Content-Type': 'application/json'},
-        )
-        .timeout(const Duration(seconds: 15));
-  } on TimeoutException {
-    throw ApiException('Connection timed out. Please try again.');
-  } catch (e) {
-    throw ApiException('Network error: ${e.toString()}');
+    return await apiClient.get('/auth/$employeeNo');
   }
-
-  Map<String, dynamic> body;
-  try {
-    body = jsonDecode(response.body);
-  } catch (_) {
-    throw ApiException('Invalid response from server.');
-  }
-
-  if ((response.statusCode == 200 || response.statusCode == 201) &&
-      body['status'] == 'success') {
-    if (body['data'] is Map<String, dynamic>) {
-      return body['data'];
-    } else {
-      throw ApiException('Unexpected data format from server.');
-    }
-  } else {
-    throw ApiException(body['message'] ?? 'Employee not found.');
-  }
-}
 
 
   Future<Map<String, dynamic>> registerUser({
@@ -71,87 +23,31 @@ class AuthService {
     required String bvn,
     required String employeeId,
   }) async {
-    final url = Uri.parse('$baseUrl/auth/register');
 
-    // Build the request body dynamically
-    final Map<String, dynamic> body = {
-      "first_name": firstName,
-      "last_name": lastName,
-      "phone": phone,
-      "bvn": bvn,
-      "employee_id": employeeId,
-    };
-
-    // Only include email if it is not empty
-    if (email.isNotEmpty) {
-      body["email"] = email;
-    }
-
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(body),
-    );
-
-    print("➡️ POST $url");
-    print("⬅️ ${response.body}");
-
-    final decoded = jsonDecode(response.body);
-
-    if ((response.statusCode == 200 || response.statusCode == 201) && decoded['status'] == 'success') {
-      return decoded;
-    } else {
-      throw ApiException(decoded['message'] ?? 'Registration failed');
-    }
+    return await apiClient.post('/auth/register', body: {
+      'email': email,
+      'first_name': firstName,
+      'last_name': lastName,
+      'phone_number': phone,
+      'bvn': bvn,
+      'employee_id': employeeId,
+    });
   }
 
   Future<Map<String, dynamic>> verifyOtp({
     required String otp,
     required String phone,
   }) async {
-    final url = Uri.parse('$baseUrl/auth/verify');
-
-    final Map<String, dynamic> body = {'otp': otp, 'phone': phone};
-
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(body),
-    );
-
-    print("➡️ POST $url");
-    print("⬅️ ${response.body}");
-
-    final decoded = jsonDecode(response.body);
-
-    if ((response.statusCode == 200 || response.statusCode == 201) && decoded['status'] == 'success') {
-      return decoded;
-    } else {
-      throw ApiException(decoded['message'] ?? 'OTP verification failed');
-    }
+    return await apiClient.post('/auth/verify', body: {
+      'otp': otp,
+      'phone': phone,
+    });
   }
 
   Future<Map<String, dynamic>> resendVerificationCode(String employeeNo) async {
-    final url = Uri.parse('$baseUrl/auth/resend');
-    final Map<String, dynamic> body = {'employee_id': employeeNo};
-
-    if (employeeNo.isEmpty) {
-      throw ApiException('Employee ID cannot be empty');
-    }
-
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(body),
-    );
-
-    final decoded = jsonDecode(response.body);
-
-    if ((response.statusCode == 200 || response.statusCode == 201) && decoded['status'] == 'success') {
-      return decoded;
-    } else {
-      throw ApiException(decoded['message'] ?? 'Resend OTP failed');
-    }
+    return await apiClient.post('/auth/resend', body: {
+      'employee_id': employeeNo,
+    });
   }
 
   Future<Map<String, dynamic>> createPassword({
@@ -159,130 +55,47 @@ class AuthService {
     required String password,
     required String confirmPassword,
   }) async {
-    final url = Uri.parse("$baseUrl/auth/password");
-
-    final Map<String, dynamic> body = {
+    return await apiClient.post('/auth/password', body: {
       'employee_id': employeeId,
       'password': password,
       'confirm_password': confirmPassword,
-    };
-
-    if (password != confirmPassword) {
-      throw ApiException('Passwords do not match');
-    }
-
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(body),
-    );
-
-    final decoded = jsonDecode(response.body);
-
-    if ((response.statusCode == 200 || response.statusCode == 201) && decoded['status'] == 'success') {
-      return decoded;
-    } else {
-      throw ApiException(decoded['message'] ?? 'Password creation failed');
-    }
+    });
   }
 
-  Future<Map<String, dynamic>> createTransactionPin({
+Future<Map<String, dynamic>> createTransactionPin({
     required String employeeId,
     required String pin,
     required String confirmPin,
   }) async {
-    final url = Uri.parse("$baseUrl/auth/pin");
-
-    final Map<String, dynamic> body = {
+    return await apiClient.post('/auth/pin', body: {
       'employee_id': employeeId,
       'pin': pin,
       'confirm_pin': confirmPin,
-    };
-
-    if (pin != confirmPin) {
-      throw ApiException('Pin do not match');
-    }
-
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(body),
-    );
-
-    final decoded = jsonDecode(response.body);
-
-    if ((response.statusCode == 200 || response.statusCode == 201) && decoded['status'] == 'success') {
-      return decoded;
-    } else {
-      throw ApiException(decoded['message'] ?? 'Pin creation failed');
-    }
+    });
   }
 
   
+
+
 
 Future<Map<String, dynamic>> loginUser({
   required String phone,
   required String password,
 }) async {
-  final url = Uri.parse("$baseUrl/auth/login");
-  final Map<String, dynamic> body = {
+  return await apiClient.post('/auth/login', body: {
     'phone': phone,
     'password': password,
-  };
-
-  http.Response response;
-
-  try {
-    response = await http
-        .post(
-          url,
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode(body),
-        )
-        .timeout(const Duration(seconds: 15));
-  } on TimeoutException {
-    throw ApiException('Connection timed out. Please try again.');
-  } catch (e) {
-    throw ApiException('Network error: ${e.toString()}');
-  }
-
-  Map<String, dynamic> decoded;
-  try {
-    decoded = jsonDecode(response.body);
-  } catch (_) {
-    throw ApiException('Invalid response from server.');
-  }
-
-  if ((response.statusCode == 200 || response.statusCode == 201) &&
-      decoded['status'] == 'success') {
-    return decoded;
-  } else {
-    throw ApiException(decoded['message'] ?? 'Login failed.');
-  }
+  });
 }
 
+//includeXApiKey: true,
 
   Future<Map<String, dynamic>> forgetPassword({
     required String phone,
   })async {
-    final url = Uri.parse("$baseUrl/auth/forgot-password");
-    final Map<String, dynamic> body = {
+    return await apiClient.post('/auth/forget-password', body: {
       'phone': phone,
-    };
-
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(body),
-    );
-
-    final decoded = jsonDecode(response.body);
-
-    if ((response.statusCode == 200 || response.statusCode == 201) && decoded['status'] == 'success') {
-      return decoded;
-    } else {
-      throw ApiException(decoded['message'] ?? 'Forget password failed');
-    }
+    });
 
   }
 

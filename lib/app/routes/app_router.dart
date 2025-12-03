@@ -20,11 +20,13 @@ import 'package:pcsloan/features/loan_application/presentation/loan_summary.dart
 import 'package:pcsloan/features/password_management/presentation/forget_password_screen.dart';
 import 'package:pcsloan/features/password_management/presentation/password_changed_success_screen.dart';
 import 'package:pcsloan/features/password_management/presentation/verify_otp_screen.dart';
+import 'package:pcsloan/main.dart';
 import '../../features/splash/presentation/splash_screen.dart';
 import '../../features/onboarding/presentation/onboarding_screen.dart';
 
 final GoRouter router = GoRouter(
   initialLocation: '/',
+  navigatorKey: rootNavigatorKey,
   routes: [
     GoRoute(path: '/', builder: (context, state) => const SplashScreen()),
     GoRoute(

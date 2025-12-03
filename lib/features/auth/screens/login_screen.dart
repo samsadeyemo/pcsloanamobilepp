@@ -157,7 +157,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       );
 
       await LocalStorage.saveUser(result['data']['user']);
-      await LocalStorage.saveToken(result['data']['token']);
+      await LocalStorage.saveToken(result['data']['accessToken']);
       await LocalStorage.setHasLoan(result['data']['hasLoan']);
       await LocalStorage.setHasLoginBefore(true);
 

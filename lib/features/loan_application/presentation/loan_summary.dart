@@ -94,7 +94,7 @@ class _LoanSummary extends ConsumerState<LoanSummary> {
     final intrestRate = double.parse(widget.loanData?['intrest_rate'] ?? '0');
     try {
       final result = await _loanService.applyForLoan(
-        loanAmount:loanAmount,
+        loanAmount: loanAmount,
         loanName: widget.loanData?['loanName'],
         tenure: widget.loanData?['tenure'],
         intrestRate: intrestRate,
@@ -104,7 +104,7 @@ class _LoanSummary extends ConsumerState<LoanSummary> {
       _showSnackBar(resultMessage, isError: false);
       String loanOfferId = result["data"]["loan_id"] ?? "";
       print(loanOfferId);
-      context.go("/bvn-verification-screen");
+      context.go("/loan-redirect");
     } catch (e) {
       _showSnackBar(
         e.toString().replaceFirst('Exception: ', ''),
@@ -124,14 +124,22 @@ class _LoanSummary extends ConsumerState<LoanSummary> {
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 12),
-            child: CircleAvatar(
-              backgroundColor: Colors.grey.shade200,
-              radius: 16,
-              child: IconButton(
-                icon: const Icon(Icons.close, color: Colors.black54, size: 16),
-                onPressed: () {
-                  context.push('/loan-redirect');
-                }, // do something when pressed
+            child: TextButton(
+              onPressed: () {
+                context.go('/loan_application');
+              },
+              style: TextButton.styleFrom(
+                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                minimumSize: Size(0, 0), // removes extra Material padding
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: const Text(
+                "Edit",
+                style: TextStyle(
+                  color: Colors.black87,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
           ),
@@ -308,8 +316,7 @@ class _LoanSummary extends ConsumerState<LoanSummary> {
                 SizedBox(height: 20),
 
                 _applying
-                    ? const Center(
-                      child: CircularProgressIndicator())
+                    ? const Center(child: CircularProgressIndicator())
                     : GradientActionButton(
                       text: "Accept Offer",
                       size: 18,

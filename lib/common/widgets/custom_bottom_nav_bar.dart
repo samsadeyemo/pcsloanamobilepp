@@ -120,10 +120,10 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
       case 1:
         context.go('/loan_application');
         break;
+      // case 2:
+      //   context.go('/activity-tab');
+      //   break;
       case 2:
-        context.go('/activity-tab');
-        break;
-      case 3:
         context.go('/loan-redirect');
         break;
     }
@@ -154,7 +154,7 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
       items: const [
         BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
         BottomNavigationBarItem(icon: Icon(Icons.money), label: 'Loan'),
-        BottomNavigationBarItem(icon: Icon(Icons.show_chart), label: 'Activity'),
+        // BottomNavigationBarItem(icon: Icon(Icons.show_chart), label: 'Activity'),
         BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
       ],
     );

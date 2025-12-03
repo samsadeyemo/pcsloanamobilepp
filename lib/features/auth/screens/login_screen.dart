@@ -155,6 +155,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         phone: formattedPhone,
         password: _passwordController.text.trim(),
       );
+      print('User data: ${result}');
 
       await LocalStorage.saveUser(result['data']['user']);
       await LocalStorage.saveToken(result['data']['accessToken']);
@@ -295,7 +296,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         alignment: Alignment.centerRight,
                         child: TextButton(
                           onPressed: () {
-                            context.go('/forgot-password-screen');
+                            context.push('/forgot-password-screen');
                           },
                           child: const Text(
                             'Forgot Password?',

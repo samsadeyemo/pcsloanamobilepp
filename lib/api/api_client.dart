@@ -1,65 +1,3 @@
-// import 'dart:convert';
-// import 'dart:async';
-// import 'package:http/http.dart' as http;
-// import 'package:pcsloan/auth_storage/token_storage.dart';
-// import 'package:pcsloan/config/app_config.dart';
-
-// class ApiClient {
-//   final AppConfig appConfig;
-//   final TokenStorage tokenStorage;
-
-//   ApiClient({
-//     required this.appConfig,
-//     required this.tokenStorage,
-//   });
-
-//   Uri _buildUrl(String path) {
-//     return Uri.parse('${appConfig.apiBaseUrl}$path');
-//   }
-
-//   Future<http.Response> get(String path) async {
-//     final token = await tokenStorage.getToken();
-//     final url = _buildUrl(path);
-
-//     final headers = <String, String>{
-//       'Content-Type': 'application/json',
-//       if (token != null) 'Authorization': 'Bearer $token',
-//     };
-
-//     try {
-//       final response = await http.get(url, headers: headers)
-//           .timeout(const Duration(seconds: 15));
-//       return response;
-//     } on TimeoutException {
-//       throw Exception('Request timed out');
-//     } catch (e) {
-//       throw Exception('Network error: $e');
-//     }
-//   }
-
-//   Future<http.Response> post(String path, {Map<String, dynamic>? body}) async {
-//     final token = await tokenStorage.getToken();
-//     final url = _buildUrl(path);
-
-//     final headers = <String, String>{
-//       'Content-Type': 'application/json',
-//       if (token != null) 'Authorization': 'Bearer $token',
-//     };
-
-//     try {
-//       final response = await http
-//           .post(url, headers: headers, body: jsonEncode(body ?? {}))
-//           .timeout(const Duration(seconds: 15));
-//       return response;
-//     } on TimeoutException {
-//       throw Exception('Request timed out');
-//     } catch (e) {
-//       throw Exception('Network error: $e');
-//     }
-//   }
-// }
-
-
 import 'dart:convert';
 import 'dart:async';
 import 'package:http/http.dart' as http;
@@ -70,73 +8,199 @@ import 'package:pcsloan/service/api_exception.dart';
 class ApiClient {
   final AppConfig appConfig;
   final TokenStorage tokenStorage;
+  final void Function() onAuthenticationFailed;
+
+  // Track refresh state
+  bool _isRefreshing = false;
+  final List<Completer<void>> _failedQueue = [];
 
   ApiClient({
     required this.appConfig,
     required this.tokenStorage,
+    required this.onAuthenticationFailed,
   });
 
   Uri _buildUrl(String path) {
     return Uri.parse('${appConfig.apiBaseUrl}$path');
   }
 
-  Future<Map<String, dynamic>> get(String path) async {
-    final token = await tokenStorage.getToken();
-    final url = _buildUrl(path);
-
+  Map<String, String> _buildHeaders({String? token, bool includeXApiKey = false}) {
     final headers = <String, String>{
       'Content-Type': 'application/json',
       if (token != null) 'Authorization': 'Bearer $token',
+      if (includeXApiKey && appConfig.xApiKey.isNotEmpty) 
+        'x-api-key': appConfig.xApiKey,
     };
+    return headers;
+  }
 
-    try {
-      final response = await http.get(url, headers: headers)
-          .timeout(const Duration(seconds: 15));
-      
-      final decoded = jsonDecode(response.body);
-
-      if ((response.statusCode == 200 || response.statusCode == 201) && 
-          decoded['status'] == 'success') {
-        return decoded;
+  void _processQueue({dynamic error}) {
+    for (var completer in _failedQueue) {
+      if (error != null) {
+        completer.completeError(error);
       } else {
-        throw ApiException(decoded['message'] ?? 'Request failed');
+        completer.complete();
       }
-    } on TimeoutException {
-      throw ApiException('Request timed out');
-    } catch (e) {
-      if (e is ApiException) rethrow;
-      throw ApiException('Network error: $e');
+    }
+    _failedQueue.clear();
+  }
+
+  Future<void> _refreshToken() async {
+    final refreshToken = await tokenStorage.getRefreshToken();
+    
+    if (refreshToken == null) {
+      throw ApiException('No refresh token available');
+    }
+
+    final url = _buildUrl('/auth/refresh-token');
+    final body = {'refresh_token': refreshToken};
+
+    final response = await http.post(
+      url,
+      headers: _buildHeaders(includeXApiKey: true), // Include X-API-Key for refresh
+      body: jsonEncode(body),
+    ).timeout(const Duration(seconds: 15));
+
+    final decoded = jsonDecode(response.body);
+
+    if ((response.statusCode == 200 || response.statusCode == 201) && 
+        decoded['status'] == 'success') {
+      // Save new tokens if present
+      await _saveTokensIfPresent(decoded);
+    } else {
+      throw ApiException(decoded['message'] ?? 'Token refresh failed');
     }
   }
 
-  Future<Map<String, dynamic>> post(String path, {Map<String, dynamic>? body}) async {
-    final token = await tokenStorage.getToken();
-    final url = _buildUrl(path);
+  // Future<void> _saveTokensIfPresent(Map<String, dynamic> responseData) async {
+  //   final data = responseData['data'];
+  //   if (data != null) {
+  //     final accessToken = data['access_token'] ?? data['accessToken'];
+  //     final refreshToken = data['refresh_token'] ?? data['refreshToken'];
 
-    final headers = <String, String>{
-      'Content-Type': 'application/json',
-      if (token != null) 'Authorization': 'Bearer $token',
-    };
+  //     if (accessToken != null && refreshToken != null) {
+  //       await tokenStorage.saveTokens(
+  //         accessToken: accessToken,
+  //         refreshToken: refreshToken,
+  //       );
+  //     } else if (accessToken != null) {
+  //       await tokenStorage.saveAccessToken(accessToken);
+  //     } else if (refreshToken != null) {
+  //       await tokenStorage.saveRefreshToken(refreshToken);
+  //     }
+  //   }
+  // }
 
-    try {
-      final response = await http
-          .post(url, headers: headers, body: jsonEncode(body ?? {}))
-          .timeout(const Duration(seconds: 15));
-      
-      final decoded = jsonDecode(response.body);
+  Future<void> _saveTokensIfPresent(Map<String, dynamic> responseData) async {
+  final data = responseData['data'];
+  
+  // Only process if data is a Map (not a List or other type)
+  if (data != null && data is Map<String, dynamic>) {
+    final accessToken = data['access_token'] ?? data['accessToken'];
+    final refreshToken = data['refresh_token'] ?? data['refreshToken'];
 
-      if ((response.statusCode == 200 || response.statusCode == 201) && 
-          decoded['status'] == 'success') {
-        return decoded;
-      } else {
-        throw ApiException(decoded['message'] ?? 'Request failed');
-      }
-    } on TimeoutException {
-      throw ApiException('Request timed out');
-    } catch (e) {
-      if (e is ApiException) rethrow;
-      throw ApiException('Network error: $e');
+    if (accessToken != null && refreshToken != null) {
+      await tokenStorage.saveTokens(
+        accessToken: accessToken,
+        refreshToken: refreshToken,
+      );
+    } else if (accessToken != null) {
+      await tokenStorage.saveAccessToken(accessToken);
+    } else if (refreshToken != null) {
+      await tokenStorage.saveRefreshToken(refreshToken);
     }
   }
+  // If data is a List or any other type, just skip token saving
 }
 
+  Future<Map<String, dynamic>> _handleRequest(
+    Future<http.Response> Function() request,
+    String path,
+  ) async {
+    try {
+      final response = await request();
+      final decoded = jsonDecode(response.body);
+
+      // Check if it's a 401 Unauthorized
+      if (response.statusCode == 401 && !path.contains('/auth/refresh-token')) {
+        // If already refreshing, queue this request
+        if (_isRefreshing) {
+          final completer = Completer<void>();
+          _failedQueue.add(completer);
+          
+          try {
+            await completer.future;
+            // Retry the request after refresh completes
+            return await _handleRequest(request, path);
+          } catch (e) {
+            onAuthenticationFailed();
+            rethrow;
+          }
+        }
+
+        // Start refresh process
+        _isRefreshing = true;
+
+        try {
+          await _refreshToken();
+          _processQueue();
+          
+          // Retry the original request
+          return await _handleRequest(request, path);
+        } catch (refreshError) {
+          _processQueue(error: refreshError);
+          await tokenStorage.clearTokens();
+          onAuthenticationFailed();
+          throw ApiException('Session expired. Please login again.');
+        } finally {
+          _isRefreshing = false;
+        }
+      }
+
+      // Check for successful response
+      if ((response.statusCode == 200 || response.statusCode == 201) && 
+          decoded['status'] == 'success') {
+        // Save tokens if present in response
+        await _saveTokensIfPresent(decoded);
+        return decoded;
+      } else {
+        print(decoded);
+        throw ApiException(decoded['message'] ?? 'Request failed');
+      }
+    } on TimeoutException {
+      throw ApiException('Request timed out');
+    } catch (e) {
+      if (e is ApiException) rethrow;
+      throw ApiException('Network error: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>> get(String path, {bool includeXApiKey = false}) async {
+    return _handleRequest(() async {
+      final token = await tokenStorage.getAccessToken();
+      final url = _buildUrl(path);
+      final headers = _buildHeaders(token: token, includeXApiKey: includeXApiKey);
+
+      return await http.get(url, headers: headers)
+          .timeout(const Duration(seconds: 15));
+    }, path);
+  }
+
+  Future<Map<String, dynamic>> post(
+    String path, {
+    Map<String, dynamic>? body,
+    bool includeXApiKey = false,
+  }) async {
+    return _handleRequest(() async {
+      final token = await tokenStorage.getAccessToken();
+      final url = _buildUrl(path);
+      final headers = _buildHeaders(token: token, includeXApiKey: includeXApiKey);
+
+      return await http.post(
+        url,
+        headers: headers,
+        body: jsonEncode(body ?? {}),
+      ).timeout(const Duration(seconds: 15));
+    }, path);
+  }
+}

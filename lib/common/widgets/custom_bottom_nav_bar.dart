@@ -124,7 +124,7 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
       //   context.go('/activity-tab');
       //   break;
       case 2:
-        context.go('/loan-redirect');
+        context.go('/user-profile');
         break;
     }
   });

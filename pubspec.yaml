@@ -77,6 +77,7 @@ flutter:
    - assets/icons/
    - assets/images/onboarding/
    - assets/fonts/
+   - assets/images/profile/
 
   fonts:
     - family: Inter

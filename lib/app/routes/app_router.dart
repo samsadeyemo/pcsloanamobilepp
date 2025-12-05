@@ -20,6 +20,7 @@ import 'package:pcsloan/features/loan_application/presentation/loan_summary.dart
 import 'package:pcsloan/features/password_management/presentation/forget_password_screen.dart';
 import 'package:pcsloan/features/password_management/presentation/password_changed_success_screen.dart';
 import 'package:pcsloan/features/password_management/presentation/verify_otp_screen.dart';
+import 'package:pcsloan/features/profile/presentation/profile_screen.dart';
 import 'package:pcsloan/main.dart';
 import '../../features/splash/presentation/splash_screen.dart';
 import '../../features/onboarding/presentation/onboarding_screen.dart';
@@ -118,6 +119,10 @@ final GoRouter router = GoRouter(
     GoRoute(
       path: '/activity-tab',
       builder: (context, state) => const ActivityTab(),
+    ),
+    GoRoute(
+      path: '/user-profile',
+      builder: (context, state) => ProfileScreen(),
     ),
   ],
 );

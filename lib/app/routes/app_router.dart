@@ -1,5 +1,6 @@
 import 'package:go_router/go_router.dart';
 import 'package:pcsloan/features/activity/presentation/activity_tab.dart';
+import 'package:pcsloan/features/activity/presentation/recent_transactions_screen.dart';
 import 'package:pcsloan/features/auth/screens/account_created_screen.dart';
 import 'package:pcsloan/features/auth/screens/create_password.dart';
 import 'package:pcsloan/features/auth/screens/get_started_screen.dart';
@@ -127,5 +128,9 @@ final GoRouter router = GoRouter(
       path: '/user-profile',
       builder: (context, state) => ProfileScreen(),
     ),
+    GoRoute(
+      path: "/transactions-history",
+      builder: (context, state) => RecentTransactionsPage(),)
+      
   ],
 );

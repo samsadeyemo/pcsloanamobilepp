@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pcsloan/common/widgets/custom_activity_bottom_nav_bar.dart';
 import 'package:pcsloan/common/widgets/custom_activity_finance_card.dart';
 import 'package:pcsloan/common/widgets/custom_activity_finance_summary_card.dart';
 import 'package:pcsloan/common/widgets/custom_bottom_nav_bar.dart';
@@ -16,6 +15,8 @@ class ActivityTab extends ConsumerStatefulWidget {
 }
 
 class _ActivityTabState extends ConsumerState<ActivityTab> {
+
+  
   final List<Transaction> transactions = [
     Transaction(
       title: 'Loan Disbursement',

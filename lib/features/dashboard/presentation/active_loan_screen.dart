@@ -19,6 +19,7 @@ class ActiveLoanScreen extends ConsumerStatefulWidget {
 
 class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
   String? _userName;
+  String? _imageUrl;
   String loanStatus = "";
   double amountRequested = 0;
   double totalToRepay = 0;
@@ -28,7 +29,6 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
   double repaymentProgress = 0.0;
   Map<String, dynamic>? recentTransactions;
   String nextRepaymentDate = "";
-  
 
   @override
   void initState() {
@@ -61,9 +61,11 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
       final data = await LocalStorage.getUser();
       print("object data: $data");
       final name = data?['first_name']?.toString().trim();
+      final profileUrl = data?['image_url'];
       if (!mounted) return;
 
       setState(() {
+        _imageUrl = (profileUrl?.isNotEmpty ?? false) ? profileUrl : null;
         _userName = (name?.isNotEmpty ?? false) ? name : null;
       });
     } catch (e, st) {
@@ -76,6 +78,7 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
   @override
   Widget build(BuildContext context) {
     final userName = _userName ?? "User";
+    final userImage = _imageUrl ?? null;
     final loanState = ref.watch(loanProvider);
 
     if (loanState.isLoading) {
@@ -86,13 +89,12 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
       return Scaffold(body: Center(child: Text('Error: ${loanState.error}')));
     }
     final loan = loanState.loan!;
-    final String profileImageUrl =
-        "https://fareedtijani.vercel.app/assets/FareedTijani-BrMuVf91.jpg";
+    final String? profileImageUrl =  userImage;
 
     return Scaffold(
       appBar: CustomAppBar(
         userName: userName,
-        profileImageUrl: profileImageUrl,
+        profileImageUrl: profileImageUrl ?? "",
         onProfileTap: () {
           Navigator.push(
             context,
@@ -193,7 +195,7 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
                               ),
                               SizedBox(height: 7),
                               LinearProgressIndicator(
-                                value: repaymentProgress ,
+                                value: repaymentProgress,
                                 minHeight: 8,
                                 backgroundColor: Colors.white.withOpacity(0.2),
                                 valueColor: AlwaysStoppedAnimation<Color>(
@@ -288,8 +290,8 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
                         alignment: Alignment.topRight,
                         child: TextButton(
                           onPressed:
-                              () => context.go(
-                                '/all-transactions',
+                              () => context.push(
+                                '/transactions-history',
                               ), // Route to new screen
                           child: const Text(
                             'View All',
@@ -303,74 +305,75 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
                               (recentTransactions?['transactions'] ?? [])
                                   .isEmpty
                           ? const Padding(
-                              padding: EdgeInsets.all(16.0),
-                              child: Text(
-                                'No recent transactions available.',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            )
-                          :
-                      ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: 3, // Limit to 3 for this card
-                          
-                        itemBuilder: (context, index) {
-                          final tx = (recentTransactions?['transactions'] ?? [])[index];
-                          return ListTile(
-                            leading: Container(
-                              width: 40,
-                              height: 40,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color:
-                                    tx['isCredit']
-                                        ? Colors.deepPurple[100]
-                                        : Colors.pink[50],
-                              ),
-                              child: Icon(
-                                tx['isCredit']
-                                    ? Icons.arrow_downward
-                                    : Icons.arrow_upward,
-                                color:
-                                    tx['isCredit']
-                                        ? Color(0xff7C70DF)
-                                        : Colors.red,
-                              ),
-                            ),
-                            title: Text(
-                              tx['type'],
-                              style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                overflow: TextOverflow.visible,
-                              ),
-                            ),
-                            subtitle: Text(
-                              tx['date'],
-                              style: const TextStyle(
-                                fontSize: 12,
+                            padding: EdgeInsets.all(16.0),
+                            child: Text(
+                              'No recent transactions available.',
+                              style: TextStyle(
+                                fontSize: 14,
                                 color: Colors.grey,
                               ),
                             ),
-                            trailing: Text(
-                              tx['isCredit']
-                                  ? '+ ${formatCurrency(tx['amount'])}'
-                                  : '- ${formatCurrency(tx['amount'])}',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color:
+                          )
+                          : ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: 3, // Limit to 3 for this card
+
+                            itemBuilder: (context, index) {
+                              final tx =
+                                  (recentTransactions?['transactions'] ??
+                                      [])[index];
+                              return ListTile(
+                                leading: Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color:
+                                        tx['isCredit']
+                                            ? Colors.deepPurple[100]
+                                            : Colors.pink[50],
+                                  ),
+                                  child: Icon(
                                     tx['isCredit']
-                                        ? Color(0xff7C70DF)
-                                        : Colors.red,
-                              ),
-                            ),
-                          );
-                        },
-                      ),
+                                        ? Icons.arrow_downward
+                                        : Icons.arrow_upward,
+                                    color:
+                                        tx['isCredit']
+                                            ? Color(0xff7C70DF)
+                                            : Colors.red,
+                                  ),
+                                ),
+                                title: Text(
+                                  tx['type'],
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                    overflow: TextOverflow.visible,
+                                  ),
+                                ),
+                                subtitle: Text(
+                                  tx['date'],
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                                trailing: Text(
+                                  tx['isCredit']
+                                      ? '+ ${formatCurrency(tx['amount'])}'
+                                      : '- ${formatCurrency(tx['amount'])}',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color:
+                                        tx['isCredit']
+                                            ? Color(0xff7C70DF)
+                                            : Colors.red,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
                     ],
                   ),
                 ),

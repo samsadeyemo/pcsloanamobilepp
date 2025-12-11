@@ -33,32 +33,7 @@ class LoanService {
     required double intrestRate,
     required int tenure,
   }) async {
-    // final userToken = await LocalStorage.getToken();
-    // final url = Uri.parse('$baseUrl/loans');
-    // final Map<String, dynamic> body = {
-    //   'name': loanName,
-    //   "amount": loanAmount,
-    //   "interest_rate": intrestRate,
-    //   "tenure": tenure,
-    // };
-    // final response = await http.post(
-    //   url,
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //     'x-api-key': xApiKey,
-    //     'Authorization': 'Bearer $userToken',
-    //   },
-    //   body: jsonEncode(body),
-    // );
-
-    // final decoded = jsonDecode(response.body);
-
-    // if ((response.statusCode == 200 || response.statusCode == 201) &&
-    //     decoded['status'] == 'success') {
-    //   return decoded;
-    // } else {
-    //   throw ApiException(decoded['message'] ?? 'Loan Application Failed');
-    // }
+   
 
     return await apiClient.post(
       '/loans',

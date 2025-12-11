@@ -72,24 +72,6 @@ class ApiClient {
     }
   }
 
-  // Future<void> _saveTokensIfPresent(Map<String, dynamic> responseData) async {
-  //   final data = responseData['data'];
-  //   if (data != null) {
-  //     final accessToken = data['access_token'] ?? data['accessToken'];
-  //     final refreshToken = data['refresh_token'] ?? data['refreshToken'];
-
-  //     if (accessToken != null && refreshToken != null) {
-  //       await tokenStorage.saveTokens(
-  //         accessToken: accessToken,
-  //         refreshToken: refreshToken,
-  //       );
-  //     } else if (accessToken != null) {
-  //       await tokenStorage.saveAccessToken(accessToken);
-  //     } else if (refreshToken != null) {
-  //       await tokenStorage.saveRefreshToken(refreshToken);
-  //     }
-  //   }
-  // }
 
   Future<void> _saveTokensIfPresent(Map<String, dynamic> responseData) async {
   final data = responseData['data'];

@@ -10,7 +10,8 @@ import 'package:intl/intl.dart';
 import 'package:pcsloan/utils/local_storage.dart';
 
 class ActiveLoanScreen extends ConsumerStatefulWidget {
-  const ActiveLoanScreen({super.key});
+  final Map<String, dynamic>? dashData;
+  const ActiveLoanScreen({super.key, this.dashData});
 
   @override
   ConsumerState<ActiveLoanScreen> createState() => _ActiveLoanScreen();
@@ -18,11 +19,41 @@ class ActiveLoanScreen extends ConsumerStatefulWidget {
 
 class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
   String? _userName;
+  String loanStatus = "";
+  double amountRequested = 0;
+  double totalToRepay = 0;
+  double amountRepaid = 0;
+  double balanceLeft = 0;
+  String tenure = "";
+  double repaymentProgress = 0.0;
+  Map<String, dynamic>? recentTransactions;
+  String nextRepaymentDate = "";
+  
 
   @override
   void initState() {
     super.initState();
     _loadUserNameOnce();
+    _loadDash();
+  }
+
+  void _loadDash() {
+    final data = widget.dashData;
+    if (data != null) {
+      setState(() {
+        loanStatus = data['loanStatus'] ?? "";
+        String amountDouble = data['amountRequested'];
+        amountRequested = double.tryParse(amountDouble) ?? 0.0;
+        totalToRepay = data['totalToRepay']?.toDouble() ?? 0.0;
+        amountRepaid = data['amountRepaid']?.toDouble() ?? 0.0;
+        balanceLeft = data['balanceLeft']?.toDouble() ?? 0.0;
+        tenure = data['tenure'].toString();
+
+        repaymentProgress = data['repaymentProgress']?.toDouble() ?? 0.0;
+        recentTransactions = data['recentTransactions'] ?? [];
+        nextRepaymentDate = data['nextRepaymentDate'] ?? "";
+      });
+    }
   }
 
   Future<void> _loadUserNameOnce() async {
@@ -41,13 +72,10 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
       setState(() => _userName = null);
     }
   }
-  
-
-
 
   @override
   Widget build(BuildContext context) {
-     final userName = _userName ?? "User";
+    final userName = _userName ?? "User";
     final loanState = ref.watch(loanProvider);
 
     if (loanState.isLoading) {
@@ -99,7 +127,7 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
 
                           children: [
                             Text(
-                              'Active Loan',
+                              loanStatus,
                               style: TextStyle(
                                 fontSize: 14,
                                 color: Color(0xffFFFFFF),
@@ -109,7 +137,7 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
                           ],
                         ),
                         Text(
-                          formatCurrency(loan['amount']),
+                          formatCurrency(amountRequested),
                           style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
@@ -119,14 +147,14 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
                         SizedBox(height: 12),
                         _buildRow(
                           'Total to Repay:',
-                          formatCurrency(loan['totalToRepay']),
+                          formatCurrency(totalToRepay),
                         ),
                         _buildRow(
                           'Amount Repaid:',
-                          formatCurrency(loan['amountRepaid']),
+                          formatCurrency(amountRepaid),
                         ),
-                        _buildRow('Balance:', formatCurrency(loan['balance'])),
-                        _buildRow('Tenure:', '${loan['tenureMonths']} Months'),
+                        _buildRow('Balance:', formatCurrency(balanceLeft)),
+                        _buildRow('Tenure:', '${tenure} Months'),
                         SizedBox(height: 16),
                         Container(
                           padding: EdgeInsets.all(12),
@@ -155,7 +183,7 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
                                     ),
                                   ),
                                   Text(
-                                    '33.3%',
+                                    '${repaymentProgress}%',
                                     style: TextStyle(
                                       color: Colors.white,
                                       fontSize: 12,
@@ -165,7 +193,7 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
                               ),
                               SizedBox(height: 7),
                               LinearProgressIndicator(
-                                value: loan['repaymentProgress'] / 100,
+                                value: repaymentProgress ,
                                 minHeight: 8,
                                 backgroundColor: Colors.white.withOpacity(0.2),
                                 valueColor: AlwaysStoppedAnimation<Color>(
@@ -210,7 +238,7 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
                     ),
                   ),
                 ),
-                  SizedBox(height: 20,),
+                SizedBox(height: 20),
                 Text(
                   "Quick Actions",
                   style: TextStyle(
@@ -271,12 +299,27 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
                       ),
 
                       const SizedBox(height: 6),
+                      recentTransactions == null ||
+                              (recentTransactions?['transactions'] ?? [])
+                                  .isEmpty
+                          ? const Padding(
+                              padding: EdgeInsets.all(16.0),
+                              child: Text(
+                                'No recent transactions available.',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            )
+                          :
                       ListView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
                         itemCount: 3, // Limit to 3 for this card
+                          
                         itemBuilder: (context, index) {
-                          final tx = loan['transactions'][index];
+                          final tx = (recentTransactions?['transactions'] ?? [])[index];
                           return ListTile(
                             leading: Container(
                               width: 40,
@@ -303,7 +346,7 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
                               style: const TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.bold,
-                                overflow: TextOverflow.visible
+                                overflow: TextOverflow.visible,
                               ),
                             ),
                             subtitle: Text(
@@ -349,33 +392,33 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: const [
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.notifications,
-                                size: 22,
-                                color: Color(0xff0F2D62),
-                              ),
-                              SizedBox(width: 10),
-                              Text(
-                                'Next Repayment Due',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF1F2937),
-                                ),
-                              ),
-                            ],
-                          ),
+                          // Row(
+                          //   children: [
+                          //     Icon(
+                          //       Icons.notifications,
+                          //       size: 22,
+                          //       color: Color(0xff0F2D62),
+                          //     ),
+                          //     SizedBox(width: 10),
+                          //     Text(
+                          //       'Next Repayment Due',
+                          //       style: TextStyle(
+                          //         fontSize: 18,
+                          //         fontWeight: FontWeight.bold,
+                          //         color: Color(0xFF1F2937),
+                          //       ),
+                          //     ),
+                          //   ],
+                          // ),
 
-                          SizedBox(height: 8),
-                          Text(
-                            'Your next repayment of ₦25,000.00 is due on April 15, 2025.',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Color(0xFF6B7280),
-                            ),
-                          ),
+                          // SizedBox(height: 8),
+                          // Text(
+                          //   'Your next repayment of ₦25,000.00 is due on April 15, 2025.',
+                          //   style: TextStyle(
+                          //     fontSize: 14,
+                          //     color: Color(0xFF6B7280),
+                          //   ),
+                          // ),
                         ],
                       ),
                     ),

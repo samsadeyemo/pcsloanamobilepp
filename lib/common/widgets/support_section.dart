@@ -46,11 +46,11 @@ class SupportMenu extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        _buildBoxedMenuItem(
-          icon: Icons.help_outline,
-          label: 'Help Center',
-          onTap: onHelpCenterTap,
-        ),
+        // _buildBoxedMenuItem(
+        //   icon: Icons.help_outline,
+        //   label: 'Help Center',
+        //   onTap: onHelpCenterTap,
+        // ),
         _buildBoxedMenuItem(
           icon: Icons.headset_mic,
           label: 'Contact Support',

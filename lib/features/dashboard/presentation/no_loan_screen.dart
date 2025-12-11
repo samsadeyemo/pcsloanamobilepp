@@ -16,6 +16,8 @@ class NoLoanScreen extends ConsumerStatefulWidget {
 
 class _NoLoanScreen extends ConsumerState<NoLoanScreen> {
   String? _userName;
+  String? _imageUrl;
+
 
   @override
   void initState() {
@@ -28,9 +30,11 @@ class _NoLoanScreen extends ConsumerState<NoLoanScreen> {
       final data = await LocalStorage.getUser();
       print("object data: $data");
       final name = data?['first_name']?.toString().trim();
+      final profileUrl = data?['image_url'];
       if (!mounted) return;
 
       setState(() {
+        _imageUrl = (profileUrl?.isNotEmpty ?? false) ? profileUrl : null;
         _userName = (name?.isNotEmpty ?? false) ? name : null;
       });
     } catch (e, st) {
@@ -44,15 +48,15 @@ class _NoLoanScreen extends ConsumerState<NoLoanScreen> {
   @override
   Widget build(BuildContext context) {
     
-      final String profileImageUrl =
-          "https://hirejourney.xyz/default_profile.png";
+      
       final userName = _userName ?? "User";
+      final userImage = _imageUrl ?? null;
       return Scaffold(
         
         backgroundColor: Color(0xffFFFFFF),
         appBar: CustomAppBar(
           userName: userName,
-          profileImageUrl: profileImageUrl,
+          profileImageUrl: userImage ?? "",
           onProfileTap: () {
             Navigator.push(
               context,

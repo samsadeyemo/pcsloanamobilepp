@@ -29,10 +29,17 @@ class ProfileCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           CircleAvatar(
-            radius: 40,
+            radius: 35,
+            backgroundColor: Colors.grey[200],
+
             backgroundImage: imageUrl != null
                 ? NetworkImage(imageUrl!)
-                : const AssetImage('assets/images/profile/default_profile.png') as ImageProvider,
+                : null,
+            child: 
+            imageUrl == null
+              ? const Icon(Icons.person, color: Colors.grey, size: 30,)
+              : null, 
+
           ),
           const SizedBox(width: 16),
           Expanded( // 👈 ensures text takes available space without overflow

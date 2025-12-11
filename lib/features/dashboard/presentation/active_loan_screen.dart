@@ -88,13 +88,12 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
     if (loanState.error != null) {
       return Scaffold(body: Center(child: Text('Error: ${loanState.error}')));
     }
-    final loan = loanState.loan!;
-    final String? profileImageUrl =  userImage;
+    
 
     return Scaffold(
       appBar: CustomAppBar(
         userName: userName,
-        profileImageUrl: profileImageUrl ?? "",
+        profileImageUrl: userImage ?? "",
         onProfileTap: () {
           Navigator.push(
             context,

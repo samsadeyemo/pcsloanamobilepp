@@ -75,7 +75,10 @@ final GoRouter router = GoRouter(
     ),
     GoRoute(
       path: '/active-loan',
-      builder: (context, state) => const ActiveLoanScreen(),
+      builder: (context, state) {
+        final data = state.extra as Map<String, dynamic>?;
+        return ActiveLoanScreen(dashData: data);
+      },
     ),
     GoRoute(
       path: '/no-loan',

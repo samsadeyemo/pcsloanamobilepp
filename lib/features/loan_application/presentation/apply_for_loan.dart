@@ -124,7 +124,6 @@ class _ApplyForLoan extends ConsumerState<ApplyForLoan> {
       return;
     }
     setState(() => _applying = true);
-    print("E don start");
 
     try {
       final result = await _loanService.getLoanOverView(
@@ -132,7 +131,6 @@ class _ApplyForLoan extends ConsumerState<ApplyForLoan> {
         loanOfferId: originalLoanId,
         tenure: int.parse(selectedTenure),
       );
-      print(result);
       String resultMessage =
           result["message"] ?? "Loan offer fetched successfully";
       _showSnackBar(resultMessage, isError: false);

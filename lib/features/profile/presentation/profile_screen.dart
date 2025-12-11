@@ -80,8 +80,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ),
                 SizedBox(height: 30),
                 SupportMenu (
-                  onHelpCenterTap:
-                      () => Navigator.pushNamed(context, '/help-center'),
+                  // onHelpCenterTap:
+                  //     () => Navigator.pushNamed(context, '/help-center'),
                   onContactSupportTap:
                       () => Navigator.pushNamed(context, '/contact-support'),
                 ),

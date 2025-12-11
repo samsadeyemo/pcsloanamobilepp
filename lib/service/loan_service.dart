@@ -88,4 +88,13 @@ class LoanService {
       includeXApiKey: true,
     );
   }
+
+  
+Future<Map<String, dynamic>> getUserDashboard()async {
+  return await apiClient.get(
+    '/users/dashboard',
+    includeXApiKey: true,
+  );
 }
+}
+

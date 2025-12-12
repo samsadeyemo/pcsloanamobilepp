@@ -78,18 +78,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   onPersonalInfoTap:
                       () => context.push('/personal-information'),
                   onChangePinTap:
-                      () => Navigator.pushNamed(context, '/change-pin'),
+                      () => context.push('/change-password'),
                   onNotificationsTap:
-                      () => Navigator.pushNamed(context, '/notifications'),
+                      () => context.push('/notification-prefrence'),
                   onSecuritySettingsTap:
-                      () => Navigator.pushNamed(context, '/security-settings'),
+                      () => context.push('/security-settings'),
                 ),
                 SizedBox(height: 30),
                 SupportMenu(
                   // onHelpCenterTap:
                   //     () => Navigator.pushNamed(context, '/help-center'),
                   onContactSupportTap:
-                      () => Navigator.pushNamed(context, '/contact-support'),
+                      () => context.push('/support-page'),
                 ),
                 SizedBox(height: 30),
 

@@ -27,7 +27,12 @@ class SupportMenu extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Icon(icon, color: const Color(0xff7C70DF)),
+            CircleAvatar(
+                child: Icon(icon, color: const Color(0xff7C70DF)),
+                radius: 20,
+                backgroundColor: Color(0xffE5E7EB),
+            ),
+            
             const SizedBox(width: 16),
             Expanded(
               child: Text(

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:pcsloan/common/widgets/custom_bottom_nav_bar.dart';
 import 'package:pcsloan/common/widgets/custom_loan_app_bar.dart';
+import 'package:pcsloan/common/widgets/gradient_actions_icon_button.dart';
 import 'package:pcsloan/common/widgets/reuseable_profile_card.dart';
 import 'package:pcsloan/common/widgets/settings_menu.dart';
 import 'package:pcsloan/common/widgets/support_section.dart';
@@ -18,6 +20,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   String? _userName;
   String? _userLastName;
   String? _userEmail;
+  String? _image_url;
 
   @override
   void initState() {
@@ -32,12 +35,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       final name = data?['first_name']?.toString().trim();
       final lastName = data?['last_name']?.toString().trim();
       final email = data?['email']?.toString().trim();
+      final image_url = data?['profile_picture'];
       if (!mounted) return;
 
       setState(() {
         _userEmail = (email?.isNotEmpty ?? false) ? email : null;
         _userName = (name?.isNotEmpty ?? false) ? name : null;
         _userLastName = (lastName?.isNotEmpty ?? false) ? lastName : null;
+        _image_url = (image_url?.isNotEmpty ?? false) ? image_url : null;
       });
     } catch (e, st) {
       debugPrint('❌ Failed to load username: $e\n$st');
@@ -51,6 +56,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final userName = _userName ?? "User";
     final userLastName = _userLastName ?? "";
     final email = _userEmail ?? "";
+    final imageUrl = _image_url ?? "";
     return Scaffold(
       backgroundColor: Color(0xffFFFFFF),
       appBar: CustomLoanAppBar(title: 'Profile Settings'),
@@ -65,12 +71,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   firstName: userName,
                   lastName: userLastName,
                   email: email,
-                  imageUrl: null, // or provide a URL for the profile photo
+                  imageUrl: imageUrl, // or provide a URL for the profile photo
                 ),
                 SizedBox(height: 20),
                 SettingsMenu(
                   onPersonalInfoTap:
-                      () => Navigator.pushNamed(context, '/personal-info'),
+                      () => context.push('/personal-information'),
                   onChangePinTap:
                       () => Navigator.pushNamed(context, '/change-pin'),
                   onNotificationsTap:
@@ -79,11 +85,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       () => Navigator.pushNamed(context, '/security-settings'),
                 ),
                 SizedBox(height: 30),
-                SupportMenu (
+                SupportMenu(
                   // onHelpCenterTap:
                   //     () => Navigator.pushNamed(context, '/help-center'),
                   onContactSupportTap:
                       () => Navigator.pushNamed(context, '/contact-support'),
+                ),
+                SizedBox(height: 30),
+
+                GradientIconActionButton(
+                  icon: Icons.exit_to_app,
+                  text: "Logout",
+                  onPressed: () => context.go("/signin"),
+                  size: 16,
                 ),
               ],
             ),

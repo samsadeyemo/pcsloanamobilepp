@@ -2,6 +2,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:pcsloan/auth_storage/token_storage.dart';
 import 'package:pcsloan/config/app_config.dart';
 import 'package:pcsloan/main.dart';
 import 'package:pcsloan/service/api_exception.dart';
@@ -99,6 +100,29 @@ Future<Map<String, dynamic>> loginUser({
 
   }
 
+Future<Map<String, dynamic>> refreshToken() async {
+    try {
+      final tokenStorage = TokenStorage();
+      final refreshToken = await tokenStorage.getRefreshToken();
+      
+      if (refreshToken == null) {
+        throw Exception('No refresh token available. Please login again.');
+      }
+
+      // Call your refresh token endpoint
+      final response = await apiClient.post(
+        '/auth/refresh-token',
+        body: {
+          'refresh_token': refreshToken,
+        },
+        includeXApiKey: true, // Include API key if required
+      );
+
+      return response;
+    } catch (e) {
+      throw Exception('Failed to refresh token: $e');
+    }
+  }
 
 }
 

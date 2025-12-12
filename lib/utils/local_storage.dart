@@ -95,4 +95,14 @@ class LocalStorage {
    final prefs = await SharedPreferences.getInstance();
     return prefs.getBool('has_login_before') ?? false; 
   }
+
+  static Future<void> setBiometricEnabled(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('biometric_enabled', value);
+  }
+
+  static Future<bool> isBiometricEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('biometric_enabled') ?? false;
+  }
 }

@@ -250,7 +250,7 @@ class _VerifyOtpScreen extends ConsumerState<VerifyOtpScreen> {
                   alignment: Alignment.center,
                   child: TextButton(
                     onPressed: () {
-                      context.go('/forgot-password-screen');
+                      context.go('/signin');
                     },
                     child: const Text(
                       'Back to Login',

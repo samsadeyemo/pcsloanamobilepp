@@ -32,11 +32,11 @@ class ProfileCard extends StatelessWidget {
             radius: 35,
             backgroundColor: Colors.grey[200],
 
-            backgroundImage: imageUrl != null
+            backgroundImage: imageUrl != null || imageUrl != ""
                 ? NetworkImage(imageUrl!)
                 : null,
             child: 
-            imageUrl == null
+            imageUrl == null || imageUrl == ""
               ? const Icon(Icons.person, color: Colors.grey, size: 30,)
               : null, 
 

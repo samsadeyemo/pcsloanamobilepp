@@ -93,7 +93,7 @@ Future<Map<String, dynamic>> loginUser({
   Future<Map<String, dynamic>> forgetPassword({
     required String phone,
   })async {
-    return await apiClient.post('/auth/forget-password', body: {
+    return await apiClient.post('/auth/forgot-password', body: {
       'phone': phone,
     });
 

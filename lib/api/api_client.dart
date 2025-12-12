@@ -168,8 +168,7 @@ class ApiClient {
     }, path);
   }
 
-  Future<Map<String, dynamic>> post(
-    String path, {
+  Future<Map<String, dynamic>> post( String path, {
     Map<String, dynamic>? body,
     bool includeXApiKey = false,
   }) async {
@@ -185,4 +184,28 @@ class ApiClient {
       ).timeout(const Duration(seconds: 15));
     }, path);
   }
+
+  Future<Map<String, dynamic>> put(
+  String path, {
+  Map<String, dynamic>? body,
+  bool includeXApiKey = false,
+}) async {
+  return _handleRequest(() async {
+    // 1. Retrieve the access token
+    final token = await tokenStorage.getAccessToken();
+    
+    // 2. Build the full URL from the path
+    final url = _buildUrl(path);
+    
+    // 3. Build the necessary headers (including Content-Type, Authorization, etc.)
+    final headers = _buildHeaders(token: token, includeXApiKey: includeXApiKey);
+
+    // 4. Execute the HTTP PUT request
+    return await http.put(
+      url,
+      headers: headers,
+      body: jsonEncode(body ?? {}), // Encode the request body as JSON
+    ).timeout(const Duration(seconds: 15)); // Apply a 15-second timeout
+  }, path);
+}
 }

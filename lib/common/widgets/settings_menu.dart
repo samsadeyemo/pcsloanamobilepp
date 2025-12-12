@@ -31,7 +31,11 @@ class SettingsMenu extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Icon(icon, color: Color(0xff7C70DF)),
+            CircleAvatar(
+              radius: 20,
+              backgroundColor: Color(0xffE5E7EB),
+            child: Icon(icon, color: Color(0xff7C70DF)),
+            ),
             const SizedBox(width: 16),
             Expanded(
               child: Text(

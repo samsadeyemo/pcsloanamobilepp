@@ -8,6 +8,7 @@ import 'package:pcsloan/common/widgets/custom_loan_app_bar.dart';
 import 'package:pcsloan/common/widgets/custom_profile_app_bar.dart';
 import 'package:pcsloan/service/cloudinary_service.dart';
 import 'package:pcsloan/service/profile_sevice.dart';
+import 'package:pcsloan/utils/local_storage.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class PersonalInformationScreen extends ConsumerStatefulWidget {
@@ -228,6 +229,9 @@ class _personalInformationScreenState
 
       if (result['status'] == 'success') {
         // Step 9: Update UI
+        await LocalStorage.clearUser();
+
+        await LocalStorage.saveUser(result['data']);
         setState(() {
           profilePicture = imageUrl;
         });
@@ -250,200 +254,237 @@ class _personalInformationScreenState
     }
   }
 
+  void _showEditEmailDialog() {
+    final TextEditingController emailController = TextEditingController(
+      text: email,
+    );
+    bool isLoading = false;
 
-void _showEditEmailDialog() {
-  final TextEditingController emailController =
-      TextEditingController(text: email);
-  bool isLoading = false;
+    showDialog(
+      context: context,
+      builder:
+          (context) => StatefulBuilder(
+            builder:
+                (context, setDialogState) => AlertDialog(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  title: const Text('Edit Email'),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextField(
+                        controller: emailController,
+                        enabled: !isLoading,
+                        decoration: InputDecoration(
+                          labelText: 'Email Address',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(
+                              color: Color(0xff7C70DF),
+                              width: 2,
+                            ),
+                          ),
+                        ),
+                        keyboardType: TextInputType.emailAddress,
+                      ),
+                      if (isLoading) ...[
+                        const SizedBox(height: 16),
+                        const CircularProgressIndicator(
+                          color: Color(0xff7C70DF),
+                          strokeWidth: 3,
+                        ),
+                      ],
+                    ],
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed:
+                          isLoading ? null : () => Navigator.pop(context),
+                      child: Text(
+                        'Cancel',
+                        style: TextStyle(
+                          color:
+                              isLoading ? Colors.grey : const Color(0xff7C70DF),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors:
+                              isLoading
+                                  ? [Colors.grey, Colors.grey]
+                                  : [
+                                    const Color(0xff7C70DF),
+                                    const Color(0xffA198FF),
+                                  ],
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: TextButton(
+                        onPressed:
+                            isLoading
+                                ? null
+                                : () async {
+                                  final newEmail = emailController.text.trim();
 
-  showDialog(
-    context: context,
-    builder: (context) => StatefulBuilder(
-      builder: (context, setDialogState) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Edit Email'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: emailController,
-              enabled: !isLoading,
-              decoration: InputDecoration(
-                labelText: 'Email Address',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                                  // Basic email validation
+                                  if (newEmail.isEmpty) {
+                                    _showSnackBar(
+                                      'Please enter an email address',
+                                      isError: true,
+                                    );
+                                    return;
+                                  }
+
+                                  if (!newEmail.contains('@') ||
+                                      !newEmail.contains('.')) {
+                                    _showSnackBar(
+                                      'Please enter a valid email address',
+                                      isError: true,
+                                    );
+                                    return;
+                                  }
+
+                                  if (newEmail == email) {
+                                    Navigator.pop(context);
+                                    _showSnackBar(
+                                      'Email is already up to date',
+                                    );
+                                    return;
+                                  }
+
+                                  // Show loading
+                                  setDialogState(() {
+                                    isLoading = true;
+                                  });
+
+                                  try {
+                                    // Call API to update email
+                                    final result = await _profileService
+                                        .editUserEmail(emailAddress: newEmail);
+                                    print(result);
+                                    if (result['status'] == 'success') {
+                                      setState(() {
+                                        email = newEmail;
+                                      });
+                                      await LocalStorage.clearUser();
+
+                                      await LocalStorage.saveUser(
+                                        result['data'],
+                                      );
+                                      Navigator.pop(context);
+                                      _showSnackBar(
+                                        'Email updated successfully',
+                                      );
+                                    } else {
+                                      throw Exception(
+                                        result['message'] ??
+                                            'Failed to update email',
+                                      );
+                                    }
+                                  } catch (e) {
+                                    _showSnackBar(
+                                      e.toString().replaceFirst(
+                                        'Exception: ',
+                                        '',
+                                      ),
+                                      isError: true,
+                                    );
+                                  } finally {
+                                    if (context.mounted) {
+                                      setDialogState(() {
+                                        isLoading = false;
+                                      });
+                                    }
+                                  }
+                                },
+                        child: const Text(
+                          'Save',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Color(0xff7C70DF), width: 2),
-                ),
-              ),
-              keyboardType: TextInputType.emailAddress,
-            ),
-            if (isLoading) ...[
-              const SizedBox(height: 16),
-              const CircularProgressIndicator(
-                color: Color(0xff7C70DF),
-                strokeWidth: 3,
-              ),
-            ],
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: isLoading ? null : () => Navigator.pop(context),
-            child: Text(
-              'Cancel',
-              style: TextStyle(
-                color: isLoading ? Colors.grey : const Color(0xff7C70DF),
-              ),
-            ),
           ),
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: isLoading
-                    ? [Colors.grey, Colors.grey]
-                    : [const Color(0xff7C70DF), const Color(0xffA198FF)],
-              ),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: TextButton(
-              onPressed: isLoading
-                  ? null
-                  : () async {
-                      final newEmail = emailController.text.trim();
-                      
-                      // Basic email validation
-                      if (newEmail.isEmpty) {
-                        _showSnackBar('Please enter an email address', isError: true);
-                        return;
-                      }
-                      
-                      if (!newEmail.contains('@') || !newEmail.contains('.')) {
-                        _showSnackBar('Please enter a valid email address', isError: true);
-                        return;
-                      }
+    );
+  }
 
-                      if (newEmail == email) {
-                        Navigator.pop(context);
-                        _showSnackBar('Email is already up to date');
-                        return;
-                      }
-
-                      // Show loading
-                      setDialogState(() {
-                        isLoading = true;
-                      });
-
-                      try {
-                        // Call API to update email
-                        final result = await _profileService.editUserEmail(
-                          emailAddress: newEmail,
-                        );
-                        print(result);
-                        if (result['status'] == 'success') {
-                          setState(() {
-                            email = newEmail;
-                          });
-                          Navigator.pop(context);
-                          _showSnackBar('Email updated successfully');
-                        } else {
-                          throw Exception(result['message'] ?? 'Failed to update email');
-                        }
-                      } catch (e) {
-                        _showSnackBar(
-                          e.toString().replaceFirst('Exception: ', ''),
-                          isError: true,
-                        );
-                      } finally {
-                        if (context.mounted) {
-                          setDialogState(() {
-                            isLoading = false;
-                          });
-                        }
-                      }
-                    },
-              child: const Text('Save', style: TextStyle(color: Colors.white)),
-            ),
+  Widget _buildInfoCard({
+    required String label,
+    required String value,
+    bool isEditable = false,
+    bool isMasked = false, // Add this parameter
+    VoidCallback? onEdit,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
-    ),
-  );
-}
-  Widget _buildInfoCard({
-  required String label,
-  required String value,
-  bool isEditable = false,
-  bool isMasked = false, // Add this parameter
-  VoidCallback? onEdit,
-}) {
-  return Container(
-    margin: const EdgeInsets.only(bottom: 16),
-    padding: const EdgeInsets.all(16),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(12),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withOpacity(0.05),
-          blurRadius: 10,
-          offset: const Offset(0, 2),
-        ),
-      ],
-    ),
-    child: Row(
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[600],
-                  fontWeight: FontWeight.w500,
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                value.isEmpty ? 'Not provided' : value,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: value.isEmpty ? Colors.grey[400] : Colors.black87,
-                  fontWeight: FontWeight.w600,
-                  fontFamily: isMasked ? 'monospace' : null, // Use monospace for masked values
-                  letterSpacing: isMasked ? 1.5 : null, // Add letter spacing
+                const SizedBox(height: 8),
+                Text(
+                  value.isEmpty ? 'Not provided' : value,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: value.isEmpty ? Colors.grey[400] : Colors.black87,
+                    fontWeight: FontWeight.w600,
+                    fontFamily:
+                        isMasked
+                            ? 'monospace'
+                            : null, // Use monospace for masked values
+                    letterSpacing: isMasked ? 1.5 : null, // Add letter spacing
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ),
-        if (isEditable)
-          InkWell(
-            onTap: onEdit,
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xff7C70DF), Color(0xffA198FF)],
-                ),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(
-                Icons.edit,
-                color: Colors.white,
-                size: 20,
-              ),
+              ],
             ),
           ),
-      ],
-    ),
-  );
-}
-
+          if (isEditable)
+            InkWell(
+              onTap: onEdit,
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xff7C70DF), Color(0xffA198FF)],
+                  ),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.edit, color: Colors.white, size: 20),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -486,7 +527,6 @@ void _showEditEmailDialog() {
                         children: [
                           const SizedBox(height: 20),
 
-          
                           Stack(
                             children: [
                               Container(
@@ -630,9 +670,13 @@ void _showEditEmailDialog() {
                           _buildInfoCard(
                             label: 'Account Number',
                             value: _maskString(accountNumber),
-                            isMasked: true, 
+                            isMasked: true,
                           ),
-                          _buildInfoCard(label: 'BVN', value: _maskString(bvn), isMasked: true, ),
+                          _buildInfoCard(
+                            label: 'BVN',
+                            value: _maskString(bvn),
+                            isMasked: true,
+                          ),
                         ],
                       ),
                     ),

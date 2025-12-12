@@ -6,6 +6,7 @@ import 'package:pcsloan/common/widgets/signup_input_field.dart';
 import 'package:pcsloan/common/widgets/signup_password_field.dart';
 import 'package:pcsloan/service/auth_service.dart';
 import 'package:pcsloan/utils/local_storage.dart';
+import 'package:pcsloan/auth_storage/token_storage.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -26,11 +27,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _passwordController = TextEditingController();
 
   bool _biometricAvailable = false;
+  bool _biometricEnabled = false;
+  bool _hasLoggedInBefore = false;
 
   @override
   void initState() {
     super.initState();
-    _checkBiometricAvailability();
+    _initializeBiometric();
   }
 
   void _showSnackBar(String message, {bool isError = false}) {
@@ -42,105 +45,175 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
-  Future<void> _checkBiometricAvailability() async {
+  Future<void> _initializeBiometric() async {
     try {
+      // Check device biometric support
       final isSupported = await _auth.isDeviceSupported();
       final canCheck = await _auth.canCheckBiometrics;
       final types = await _auth.getAvailableBiometrics();
-      debugPrint('isSupported: $isSupported');
-      debugPrint('canCheck: $canCheck');
-      debugPrint('available types: $types');
+
+      // Check if user has enabled biometric in settings
+      final isEnabled = await LocalStorage.isBiometricEnabled();
+      
+      // Check if user has logged in before
+      final hasLoginBefore = await LocalStorage.hasLoginBefore();
 
       final available = isSupported && canCheck && types.isNotEmpty;
+      
       if (mounted) {
         setState(() {
           _biometricAvailable = available;
-          _authMessage =
-              available
-                  ? 'Use fingerprint to log in'
-                  : 'Biometric login not available on this device';
+          _biometricEnabled = isEnabled;
+          _hasLoggedInBefore = hasLoginBefore;
+          
+          // Update message based on availability
+          if (!available) {
+            _authMessage = 'Biometric not available on this device';
+          } else if (!isEnabled) {
+            _authMessage = 'Enable biometric in security settings';
+          } else if (!hasLoginBefore) {
+            _authMessage = 'Login once to enable biometric';
+          } else {
+            _authMessage = 'Use fingerprint to log in';
+          }
         });
       }
     } catch (e) {
-      debugPrint('Biometric check error: $e');
-      if (!mounted) return;
-      setState(() => _authMessage = 'Biometric check error: $e');
+      debugPrint('Biometric initialization error: $e');
+      if (mounted) {
+        setState(() {
+          _biometricAvailable = false;
+          _biometricEnabled = false;
+          _authMessage = 'Biometric check error';
+        });
+      }
     }
   }
 
+  // Check if biometric button should be enabled
+  bool get _canUseBiometric =>
+      _biometricAvailable && _biometricEnabled && _hasLoggedInBefore;
+
   Future<void> _authenticateWithFingerprint() async {
-    // Guard: bail out early if not available
-    if (!_biometricAvailable) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Biometric authentication not available')),
-      );
+    if (!_canUseBiometric) {
+      String message;
+      if (!_biometricAvailable) {
+        message = 'Biometric authentication not available on this device';
+      } else if (!_biometricEnabled) {
+        message = 'Please enable biometric in security settings first';
+      } else if (!_hasLoggedInBefore) {
+        message = 'Please login with password first';
+      } else {
+        message = 'Biometric authentication not available';
+      }
+      
+      _showSnackBar(message, isError: true);
       return;
     }
 
     setState(() => _authMessage = 'Authenticating...');
 
     try {
+      // Step 1: Authenticate with biometric
       final authenticated = await _auth.authenticate(
         localizedReason: 'Please verify your identity to log in',
         options: const AuthenticationOptions(
           biometricOnly: true,
           useErrorDialogs: true,
-          stickyAuth: true, // keeps prompt alive across app switches
+          stickyAuth: true,
         ),
       );
 
       if (!mounted) return;
 
-      if (authenticated) {
-        setState(() => _authMessage = 'Login successful!');
-        // brief feedback (optional)
-        await Future.delayed(const Duration(milliseconds: 350));
-        context.go('/loan-redirect'); // your route
-      } else {
-        setState(() => _authMessage = 'Authentication failed or canceled.');
+      if (!authenticated) {
+        setState(() => _authMessage = 'Authentication failed or canceled');
+        _showSnackBar('Biometric authentication failed', isError: true);
+        return;
       }
+
+      // Step 2: Biometric successful - now refresh tokens
+      setState(() {
+        _authMessage = 'Refreshing session...';
+        isLoading = true;
+      });
+
+      try {
+        // Call the refresh token endpoint via AuthService
+        final result = await _authService.refreshToken();
+        
+        if (!mounted) return;
+
+        // Save the new tokens and user data
+        if (result['data'] != null) {
+          final data = result['data'];
+          
+          // Save tokens using TokenStorage (which your ApiClient uses)
+          final tokenStorage = TokenStorage();
+          if (data['accessToken'] != null) {
+            await tokenStorage.saveAccessToken(data['accessToken']);
+          }
+          if (data['refreshToken'] != null) {
+            await tokenStorage.saveRefreshToken(data['refreshToken']);
+          }
+          
+          // Also save to LocalStorage for compatibility
+          if (data['accessToken'] != null) {
+            await LocalStorage.saveToken(data['accessToken']);
+          }
+          
+          // Update user data if present
+          if (data['user'] != null) {
+            await LocalStorage.saveUser(data['user']);
+          }
+          
+          // Update loan status if present
+          if (data['hasLoan'] != null) {
+            await LocalStorage.setHasLoan(data['hasLoan']);
+          }
+        }
+
+        setState(() => _authMessage = 'Login successful!');
+        _showSnackBar('Login successful!');
+        
+        // Brief feedback before navigation
+        await Future.delayed(const Duration(milliseconds: 350));
+        
+        if (!mounted) return;
+        context.go('/loan-redirect');
+        
+      } catch (refreshError) {
+        debugPrint('Token refresh error: $refreshError');
+        
+        if (!mounted) return;
+        
+        setState(() {
+          _authMessage = 'Session expired. Please login with password';
+          isLoading = false;
+        });
+        
+        _showSnackBar(
+          'Session expired. Please login with your password',
+          isError: true,
+        );
+      }
+      
     } catch (e) {
+      debugPrint('Biometric auth error: $e');
       if (!mounted) return;
-      setState(() => _authMessage = 'Error: $e');
+      
+      setState(() {
+        _authMessage = 'Authentication error';
+        isLoading = false;
+      });
+      
+      _showSnackBar('Authentication failed: $e', isError: true);
+    } finally {
+      if (mounted) {
+        setState(() => isLoading = false);
+      }
     }
   }
-
-  //   Future<void> _loginUser() async {
-  //   if (!_formKey.currentState!.validate()) {
-  //     return;
-  //   }
-
-  //   setState(() {
-  //     isLoading = true;
-  //   });
-
-  //   try {
-  //     String rawPhone = _phoneController.text.trim();
-  //     print('Raw phone number: $rawPhone');
-  //     String formattedPhone = _normalizePhoneNumber(rawPhone);
-  //   print('Formatted phone number: $formattedPhone');
-  //     final result = await _authService.loginUser(
-  //       phone: formattedPhone,
-  //       password: _passwordController.text.trim(),
-  //     );
-  //     await LocalStorage.saveUser(result['data']['user']);
-  //     print('User data saved: ${result['data']['user']}');
-  //     await LocalStorage.saveToken(result['data']['token']);
-  //     await LocalStorage.setHasLoan(result['data']['hasLoan']);
-  //     String resultMessage = result["message"] ?? "Login successful";
-  //     _showSnackBar(resultMessage, isError: false);
-  //     context.go("/loan-redirect");
-  //   } catch (e) {
-  //     _showSnackBar(e.toString(), isError: true);
-  //   } finally {
-  //     if (mounted) {
-  //       setState(() {
-  //         isLoading = false;
-  //       });
-  //     }
-  //   }
-  // }
 
   Future<void> _loginUser() async {
     if (!_formKey.currentState!.validate()) return;
@@ -155,14 +228,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         phone: formattedPhone,
         password: _passwordController.text.trim(),
       );
-      print('User data: ${result}');
 
       await LocalStorage.saveUser(result['data']['user']);
       await LocalStorage.saveToken(result['data']['accessToken']);
       await LocalStorage.setHasLoan(result['data']['hasLoan']);
       await LocalStorage.setHasLoginBefore(true);
 
-      // ✅ Widget might be gone by now, so guard before touching UI
       if (!mounted) return;
 
       String resultMessage = result["message"] ?? "Login successful";
@@ -179,21 +250,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
-  /// Normalizes Nigerian phone numbers into +234 format
   String _normalizePhoneNumber(String input) {
-    String phone = input.replaceAll(RegExp(r'\s+'), ''); // remove spaces
+    String phone = input.replaceAll(RegExp(r'\s+'), '');
 
     if (phone.startsWith('+234')) {
-      // ✅ Already correct
       return phone;
     } else if (phone.startsWith('234')) {
-      // ✅ Missing '+'
       return phone;
     } else if (phone.startsWith('0')) {
-      // ✅ Convert 080... → +23480...
       return '234${phone.substring(1)}';
     } else {
-      // ⚠️ Fallback (user just typed e.g. 8088993491)
       return '234$phone';
     }
   }
@@ -207,8 +273,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // final authState = ref.watch(authProvider);
-    // final authNotifier = ref.read(authProvider.notifier);
     return Scaffold(
       backgroundColor: Color(0xffFFFFFF),
       body: SafeArea(
@@ -291,7 +355,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           return null;
                         },
                       ),
-
                       Align(
                         alignment: Alignment.centerRight,
                         child: TextButton(
@@ -353,81 +416,105 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                     ),
 
-                SizedBox(height: 15),
-                Row(
-                  children: [
-                    const Expanded(
-                      child: Divider(thickness: 2, color: Color(0xFFE5E7EB)),
-                    ),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 12),
-                      child: Text(
-                        'or',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Color(0xFF6B7280),
-                          fontWeight: FontWeight.w500,
-                          fontFamily: "Inter",
-                        ),
+                // Only show biometric button if conditions are met
+                if (_biometricAvailable) ...[
+                  SizedBox(height: 15),
+                  Row(
+                    children: [
+                      const Expanded(
+                        child: Divider(thickness: 2, color: Color(0xFFE5E7EB)),
                       ),
-                    ),
-                    const Expanded(
-                      child: Divider(thickness: 2, color: Color(0xFFE5E7EB)),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 15),
-                Padding(
-                  padding: const EdgeInsets.only(top: 0),
-                  child: SizedBox(
-                    width: 342,
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: _authenticateWithFingerprint,
-
-                      style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.zero,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(25),
-                        ),
-                        backgroundColor: Colors.transparent,
-                        shadowColor: Colors.transparent,
-                      ),
-                      child: Ink(
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xffE5E7EB), Color(0xffA198FF)],
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 12),
+                        child: Text(
+                          'or',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Color(0xFF6B7280),
+                            fontWeight: FontWeight.w500,
+                            fontFamily: "Inter",
                           ),
-                          borderRadius: BorderRadius.circular(25),
                         ),
-                        child: Container(
-                          alignment: Alignment.center,
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Image.asset(
-                                'assets/icons/fingerprint.png',
-                                height: 20,
-                                width: 20,
+                      ),
+                      const Expanded(
+                        child: Divider(thickness: 2, color: Color(0xFFE5E7EB)),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 15),
+                  Opacity(
+                    opacity: _canUseBiometric ? 1.0 : 0.5,
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 0),
+                      child: SizedBox(
+                        width: 342,
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: _canUseBiometric && !isLoading
+                              ? _authenticateWithFingerprint
+                              : null,
+                          style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(25),
+                            ),
+                            backgroundColor: Colors.transparent,
+                            shadowColor: Colors.transparent,
+                            disabledBackgroundColor: Colors.transparent,
+                          ),
+                          child: Ink(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: _canUseBiometric
+                                    ? [Color(0xffE5E7EB), Color(0xffA198FF)]
+                                    : [Colors.grey.shade300, Colors.grey.shade400],
                               ),
-                              const SizedBox(width: 8),
-                              const Text(
-                                "Use Biometric Login",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  fontFamily: 'Inter',
-                                ),
+                              borderRadius: BorderRadius.circular(25),
+                            ),
+                            child: Container(
+                              alignment: Alignment.center,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Image.asset(
+                                    'assets/icons/fingerprint.png',
+                                    height: 20,
+                                    width: 20,
+                                    color: _canUseBiometric ? null : Colors.grey.shade600,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    "Use Biometric Login",
+                                    style: TextStyle(
+                                      color: _canUseBiometric ? Colors.white : Colors.grey.shade600,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      fontFamily: 'Inter',
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
+                            ),
                           ),
                         ),
                       ),
                     ),
                   ),
-                ),
+                  if (!_canUseBiometric)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Text(
+                        _authMessage,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[600],
+                          fontFamily: 'Inter',
+                        ),
+                      ),
+                    ),
+                ],
 
                 SizedBox(height: 20),
 
@@ -446,7 +533,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             fontSize: 14,
                           ),
                         ),
-
                         TextButton(
                           onPressed: () {
                             context.go('/signUp');

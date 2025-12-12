@@ -61,7 +61,7 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
       final data = await LocalStorage.getUser();
       print("object data: $data");
       final name = data?['first_name']?.toString().trim();
-      final profileUrl = data?['image_url'];
+      final profileUrl = data?['profile_picture'];
       if (!mounted) return;
 
       setState(() {
@@ -78,7 +78,7 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
   @override
   Widget build(BuildContext context) {
     final userName = _userName ?? "User";
-    final userImage = _imageUrl ?? null;
+    final userImage = _imageUrl ?? "";
     final loanState = ref.watch(loanProvider);
 
     if (loanState.isLoading) {
@@ -93,7 +93,7 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
     return Scaffold(
       appBar: CustomAppBar(
         userName: userName,
-        profileImageUrl: userImage ?? "",
+        profileImageUrl: userImage,
         onProfileTap: () {
           Navigator.push(
             context,

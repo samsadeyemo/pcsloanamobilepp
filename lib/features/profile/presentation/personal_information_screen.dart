@@ -5,6 +5,7 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pcsloan/common/widgets/custom_loan_app_bar.dart';
+import 'package:pcsloan/common/widgets/custom_profile_app_bar.dart';
 import 'package:pcsloan/service/cloudinary_service.dart';
 import 'package:pcsloan/service/profile_sevice.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -371,77 +372,84 @@ void _showEditEmailDialog() {
     ),
   );
 }
-
   Widget _buildInfoCard({
-    required String label,
-    required String value,
-    bool isEditable = false,
-    VoidCallback? onEdit,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
+  required String label,
+  required String value,
+  bool isEditable = false,
+  bool isMasked = false, // Add this parameter
+  VoidCallback? onEdit,
+}) {
+  return Container(
+    margin: const EdgeInsets.only(bottom: 16),
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(12),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.05),
+          blurRadius: 10,
+          offset: const Offset(0, 2),
+        ),
+      ],
+    ),
+    child: Row(
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[600],
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                value.isEmpty ? 'Not provided' : value,
+                style: TextStyle(
+                  fontSize: 16,
+                  color: value.isEmpty ? Colors.grey[400] : Colors.black87,
+                  fontWeight: FontWeight.w600,
+                  fontFamily: isMasked ? 'monospace' : null, // Use monospace for masked values
+                  letterSpacing: isMasked ? 1.5 : null, // Add letter spacing
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                    fontWeight: FontWeight.w500,
-                  ),
+        ),
+        if (isEditable)
+          InkWell(
+            onTap: onEdit,
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xff7C70DF), Color(0xffA198FF)],
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  value.isEmpty ? 'Not provided' : value,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: value.isEmpty ? Colors.grey[400] : Colors.black87,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (isEditable)
-            InkWell(
-              onTap: onEdit,
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xff7C70DF), Color(0xffA198FF)],
-                  ),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(Icons.edit, color: Colors.white, size: 20),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                Icons.edit,
+                color: Colors.white,
+                size: 20,
               ),
             ),
-        ],
-      ),
-    );
-  }
+          ),
+      ],
+    ),
+  );
+}
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xffF5F5F5),
-      appBar: CustomLoanAppBar(title: "Personal Information"),
+      appBar: CustomProfileAppBar(title: "Personal Information"),
       body:
           _fetching
               ? Center(
@@ -622,8 +630,9 @@ void _showEditEmailDialog() {
                           _buildInfoCard(
                             label: 'Account Number',
                             value: _maskString(accountNumber),
+                            isMasked: true, 
                           ),
-                          _buildInfoCard(label: 'BVN', value: _maskString(bvn)),
+                          _buildInfoCard(label: 'BVN', value: _maskString(bvn), isMasked: true, ),
                         ],
                       ),
                     ),

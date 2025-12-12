@@ -80,9 +80,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   onChangePinTap:
                       () => Navigator.pushNamed(context, '/change-pin'),
                   onNotificationsTap:
-                      () => Navigator.pushNamed(context, '/notifications'),
+                      () => context.push('/notification-prefrence'),
                   onSecuritySettingsTap:
-                      () => Navigator.pushNamed(context, '/security-settings'),
+                      () => context.push('/security-settings'),
                 ),
                 SizedBox(height: 30),
                 SupportMenu(

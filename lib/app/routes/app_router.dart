@@ -21,8 +21,10 @@ import 'package:pcsloan/features/loan_application/presentation/loan_summary.dart
 import 'package:pcsloan/features/password_management/presentation/forget_password_screen.dart';
 import 'package:pcsloan/features/password_management/presentation/password_changed_success_screen.dart';
 import 'package:pcsloan/features/password_management/presentation/verify_otp_screen.dart';
+import 'package:pcsloan/features/profile/presentation/notifications_screen.dart';
 import 'package:pcsloan/features/profile/presentation/personal_information_screen.dart';
 import 'package:pcsloan/features/profile/presentation/profile_screen.dart';
+import 'package:pcsloan/features/profile/presentation/security_settings.dart';
 import 'package:pcsloan/main.dart';
 import '../../features/splash/presentation/splash_screen.dart';
 import '../../features/onboarding/presentation/onboarding_screen.dart';
@@ -135,6 +137,15 @@ final GoRouter router = GoRouter(
     GoRoute(
       path: "/personal-information",
       builder: (context, state) => PersonalInformationScreen()
-      )  
+      ),
+    GoRoute(
+      path: "/security-settings",
+      builder: (context, state) => SecuritySettings()
+      ),
+    GoRoute(
+      path: '/notification-prefrence',
+      builder: (context, state) => NotificationPreferences()
+      )
+    
   ],
 );

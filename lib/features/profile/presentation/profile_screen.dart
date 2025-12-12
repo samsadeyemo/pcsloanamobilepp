@@ -78,7 +78,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   onPersonalInfoTap:
                       () => context.push('/personal-information'),
                   onChangePinTap:
-                      () => Navigator.pushNamed(context, '/change-pin'),
+                      () => context.push('/change-password'),
                   onNotificationsTap:
                       () => context.push('/notification-prefrence'),
                   onSecuritySettingsTap:
@@ -89,7 +89,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   // onHelpCenterTap:
                   //     () => Navigator.pushNamed(context, '/help-center'),
                   onContactSupportTap:
-                      () => Navigator.pushNamed(context, '/contact-support'),
+                      () => context.push('/support-page'),
                 ),
                 SizedBox(height: 30),
 

@@ -11,7 +11,20 @@ class ProfileService {
   Future<Map<String, dynamic>> editUserProfilePicture({
     required String imageUrl,
   }) async {
-    return await apiClient.put('/users', body: {'profile_picture': imageUrl}, includeXApiKey:true);
-    
+    return await apiClient.put(
+      '/users',
+      body: {'profile_picture': imageUrl},
+      includeXApiKey: true,
+    );
+  }
+
+  Future<Map<String, dynamic>> editUserEmail({
+    required String emailAddress,
+  }) async {
+    return await apiClient.put(
+      '/users',
+      body: {'email': emailAddress},
+      includeXApiKey: true,
+    );
   }
 }

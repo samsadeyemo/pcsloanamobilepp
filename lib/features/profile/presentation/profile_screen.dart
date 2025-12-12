@@ -35,7 +35,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       final name = data?['first_name']?.toString().trim();
       final lastName = data?['last_name']?.toString().trim();
       final email = data?['email']?.toString().trim();
-      final image_url = data?['image_url'];
+      final image_url = data?['profile_picture'];
       if (!mounted) return;
 
       setState(() {

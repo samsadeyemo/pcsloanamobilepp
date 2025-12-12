@@ -13,9 +13,21 @@ class TokenStorage {
     await _storage.write(key: _refreshTokenKey, value: token);
   }
 
-  Future<void> saveTokens({required String accessToken, required String refreshToken}) async {
-    await saveAccessToken(accessToken);
-    await saveRefreshToken(refreshToken);
+  // Future<void> saveTokens({required String accessToken, required String refreshToken}) async {
+
+  //   await saveAccessToken(accessToken);
+  //   await saveRefreshToken(refreshToken);
+  // }
+
+  Future<void> saveTokens({
+    required String accessToken,
+    required String refreshToken,
+  }) async {
+    await Future.wait([
+      saveAccessToken(accessToken),
+      saveRefreshToken(refreshToken),
+    ]);
+    print("another refresh or login was called");
   }
 
   Future<String?> getAccessToken() async {
@@ -27,7 +39,9 @@ class TokenStorage {
   }
 
   Future<void> clearTokens() async {
-    await _storage.delete(key: _accessTokenKey);
-    await _storage.delete(key: _refreshTokenKey);
+    await Future.wait([
+      _storage.delete(key: _accessTokenKey),
+      _storage.delete(key: _refreshTokenKey),
+    ]);
   }
 }

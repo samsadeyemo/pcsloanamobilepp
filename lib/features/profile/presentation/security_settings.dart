@@ -314,14 +314,14 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
     }
 
     // Check if user has logged in before
-    final hasLoginBefore = await LocalStorage.hasLoginBefore();
-    if (!hasLoginBefore) {
-      _showSnackBar(
-        'Please login at least once before enabling biometric authentication',
-        isError: true,
-      );
-      return;
-    }
+    // final hasLoginBefore = await LocalStorage.hasLoginBefore();
+    // if (!hasLoginBefore) {
+    //   _showSnackBar(
+    //     'Please login at least once before enabling biometric authentication',
+    //     isError: true,
+    //   );
+    //   return;
+    // }
 
     if (value) {
       // User wants to ENABLE biometric - verify it works first
@@ -341,7 +341,7 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
           // Save the preference
           await LocalStorage.setBiometricEnabled(true);
           setState(() => _isBiometricEnabled = true);
-          _showSnackBar('Biometric login enabled successfully');
+          _showSnackBar('Biometric login enabled successfully',isError: false);
         } else {
           _showSnackBar('Authentication failed. Biometric not enabled', isError: true);
         }
@@ -363,7 +363,7 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: isError ? Colors.red : const Color(0xFF7C70DF),
+        backgroundColor: isError ? Colors.red : Colors.green,
         duration: const Duration(seconds: 2),
       ),
     );

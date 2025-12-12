@@ -58,13 +58,13 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
               radius: 20,
               backgroundColor: Colors.grey[200],
               backgroundImage:
-                  profileImageUrl.isNotEmpty
-                      ? NetworkImage(profileImageUrl)
-                      : null,
-              child:
-                  profileImageUrl.isEmpty
-                      ? const Icon(Icons.person, color: Colors.grey)
-                      : null,
+    profileImageUrl.isNotEmpty
+        ? NetworkImage(profileImageUrl)
+        : null,
+child:
+    profileImageUrl.isEmpty
+        ? const Icon(Icons.person, color: Colors.grey)
+        : null,
             ),
           ),
         ),

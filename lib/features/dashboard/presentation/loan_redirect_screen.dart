@@ -30,20 +30,21 @@ class _LoanRedirectScreenState extends ConsumerState<LoanRedirectScreen> {
       if (!mounted) return;
 
       if (hasActiveLoan) {
+        // print(dashboardData);
         context.go(
           "/active-loan",
-          extra:{
-              "loanStatus": dashboardData['data']['activeLoan']['status'],
-              "amountRequested": dashboardData['data']['activeLoan']['amount'],
-              "totalToRepay": dashboardData['data']['totalToRepay'],
-              "amountRepaid": dashboardData['data']['amountRepaid'],
-              "balanceLeft": dashboardData['data']['balance'],
-              "tenure": dashboardData['data']['tenure'],
-              "repaymentProgress": dashboardData['data']['repaymentProgress'],
-              "recentTransactions": dashboardData['data']['transactions'],
-              "nextRepaymentDate": dashboardData['data']['nextPaymentDueDate'],
-          } ,
-          );
+          extra: {
+            "loanStatus": dashboardData['data']['activeLoan']['status'],
+            "amountRequested": dashboardData['data']['activeLoan']['amount'],
+            "totalToRepay": dashboardData['data']['totalToRepay'],
+            "amountRepaid": dashboardData['data']['amountRepaid'],
+            "balanceLeft": dashboardData['data']['balance'],
+            "tenure": dashboardData['data']['tenure'],
+            "repaymentProgress": dashboardData['data']['repaymentProgress'],
+            "recentTransactions": dashboardData['data']['transactions'],
+            "nextRepaymentDate": dashboardData['data']['nextPaymentDueDate'],
+          },
+        );
       } else {
         context.go("/no-loan");
       }

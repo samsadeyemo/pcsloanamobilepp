@@ -30,7 +30,7 @@ class _NoLoanScreen extends ConsumerState<NoLoanScreen> {
       final data = await LocalStorage.getUser();
       print("object data: $data");
       final name = data?['first_name']?.toString().trim();
-      final profileUrl = data?['image_url'];
+      final profileUrl = data?['profile_picture'];
       if (!mounted) return;
 
       setState(() {
@@ -50,13 +50,13 @@ class _NoLoanScreen extends ConsumerState<NoLoanScreen> {
     
       
       final userName = _userName ?? "User";
-      final userImage = _imageUrl ?? null;
+      final userImage = _imageUrl ?? '';
       return Scaffold(
         
         backgroundColor: Color(0xffFFFFFF),
         appBar: CustomAppBar(
           userName: userName,
-          profileImageUrl: userImage ?? "",
+          profileImageUrl: userImage,
           onProfileTap: () {
             Navigator.push(
               context,

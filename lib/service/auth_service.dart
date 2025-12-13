@@ -124,5 +124,37 @@ Future<Map<String, dynamic>> refreshToken() async {
     }
   }
 
+  Future<Map<String, dynamic>> editUserPin({
+    required String oldPin,
+    required String newPin,
+    required String confirmNewPin
+  }) async {
+    return await apiClient.post(
+      '/auth/update/pin',
+      body: {
+        'old_pin': oldPin,
+        "new_pin": newPin,
+        "confirm_new_pin": confirmNewPin
+        },
+      includeXApiKey: true,
+    );
+  }
+
+  Future<Map<String, dynamic>> editUserPassword({
+    required String oldPassword,
+    required String newPassword,
+    required String confirmNewpassword
+  }) async {
+    return await apiClient.post(
+      '/auth/update/password',
+      body: {
+        'old_password': oldPassword,
+        "new_password": newPassword,
+        "confirm_new_password": confirmNewpassword
+        },
+      includeXApiKey: true,
+    );
+  }
+
 }
 

@@ -56,6 +56,9 @@ class _personalInformationScreenState
       final result = await _profileService.fetchUserProfile();
 
       if (result.isNotEmpty) {
+        await LocalStorage.clearUser();
+
+        await LocalStorage.saveUser(result['data']);
         setState(() {
           userName =
               "${result['data']['first_name']} ${result['data']['last_name']}";

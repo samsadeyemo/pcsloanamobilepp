@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pcsloan/auth_storage/token_storage.dart';
 import 'package:pcsloan/common/widgets/custom_bottom_nav_bar.dart';
 import 'package:pcsloan/common/widgets/custom_loan_app_bar.dart';
 import 'package:pcsloan/common/widgets/gradient_actions_icon_button.dart';
@@ -21,6 +22,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   String? _userLastName;
   String? _userEmail;
   String? _image_url;
+  final tokenStorage = TokenStorage();
 
   @override
   void initState() {
@@ -77,8 +79,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 SettingsMenu(
                   onPersonalInfoTap:
                       () => context.push('/personal-information'),
-                  onChangePinTap:
-                      () => context.push('/change-password'),
+                  onChangePinTap: () => context.push('/edit/credentials'),
                   onNotificationsTap:
                       () => context.push('/notification-prefrence'),
                   onSecuritySettingsTap:
@@ -88,15 +89,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 SupportMenu(
                   // onHelpCenterTap:
                   //     () => Navigator.pushNamed(context, '/help-center'),
-                  onContactSupportTap:
-                      () => context.push('/support-page'),
+                  onContactSupportTap: () => context.push('/support-page'),
                 ),
                 SizedBox(height: 30),
 
                 GradientIconActionButton(
                   icon: Icons.exit_to_app,
                   text: "Logout",
-                  onPressed: () => context.go("/signin"),
+                  onPressed: () {
+                    LocalStorage.setBiometricEnabled(false);
+                    tokenStorage.clearTokens();
+                    context.go("/signin");
+                  },
                   size: 16,
                 ),
               ],

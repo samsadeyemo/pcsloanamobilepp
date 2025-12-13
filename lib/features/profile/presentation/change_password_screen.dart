@@ -75,27 +75,24 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
 
     try {
       // Simulate API call delay
-      await Future.delayed(const Duration(seconds: 2));
-      
-      // TODO: Implement actual API call when endpoint is ready
-      // final result = await _authService.changePassword(
-      //   oldPassword: oldPassword,
-      //   newPassword: newPassword,
-      //   confirmPassword: confirmPassword,
-      // );
+      print(oldPassword);
+      print(newPassword);
+      print(confirmPassword);
+      final result = await _authService.editUserPassword(
+        oldPassword: oldPassword,
+        newPassword: newPassword,
+        confirmNewpassword: confirmPassword,
+      );
+      context.push('/user-profile');
 
-      _showSnackBar("Password changed successfully");
-      
-      // Clear form
-      setState(() {
-        oldPassword = "";
-        newPassword = "";
-        confirmPassword = "";
-      });
+      _showSnackBar(result["message"], isError: false);
+
       _formKey.currentState?.reset();
-      
     } catch (e) {
-      _showSnackBar(e.toString().replaceFirst('Exception: ', ''), isError: true);
+      _showSnackBar(
+        e.toString().replaceFirst('Exception: ', ''),
+        isError: true,
+      );
     } finally {
       if (mounted) setState(() => _verifying = false);
     }
@@ -116,7 +113,6 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  
                   const Text(
                     'Update your password to keep your account secure',
                     style: TextStyle(
@@ -145,7 +141,9 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                     validator: _oldPasswordValidator,
                     hintText: 'Enter your old password',
                     onToggleVisibility: () {
-                      setState(() => _obscureOldPassword = !_obscureOldPassword);
+                      setState(
+                        () => _obscureOldPassword = !_obscureOldPassword,
+                      );
                     },
                   ),
                   const SizedBox(height: 30),
@@ -167,7 +165,9 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                     validator: _newPasswordValidator,
                     hintText: 'Create a strong password',
                     onToggleVisibility: () {
-                      setState(() => _obscureNewPassword = !_obscureNewPassword);
+                      setState(
+                        () => _obscureNewPassword = !_obscureNewPassword,
+                      );
                     },
                   ),
                   const SizedBox(height: 8),
@@ -185,7 +185,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                             color: Color(0xff4B5563),
                           ),
                         ),
-                      )
+                      ),
                     ],
                   ),
                   const SizedBox(height: 30),
@@ -207,7 +207,10 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                     validator: _confirmPasswordValidator,
                     hintText: 'Confirm your new password',
                     onToggleVisibility: () {
-                      setState(() => _obscureConfirmPassword = !_obscureConfirmPassword);
+                      setState(
+                        () =>
+                            _obscureConfirmPassword = !_obscureConfirmPassword,
+                      );
                     },
                   ),
                   const SizedBox(height: 30),
@@ -309,24 +312,25 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
         child: Container(
           alignment: Alignment.center,
           padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
-          child: loading
-              ? const SizedBox(
-                  height: 20,
-                  width: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation(Colors.white),
+          child:
+              loading
+                  ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation(Colors.white),
+                    ),
+                  )
+                  : Text(
+                    label ?? '',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      fontFamily: 'Inter',
+                    ),
                   ),
-                )
-              : Text(
-                  label ?? '',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    fontFamily: 'Inter',
-                  ),
-                ),
         ),
       ),
     );

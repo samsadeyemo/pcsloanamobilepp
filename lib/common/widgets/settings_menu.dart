@@ -61,7 +61,7 @@ class SettingsMenu extends StatelessWidget {
         ),
         _buildBoxedMenuItem(
           icon: Icons.lock,
-          label: 'Change PIN',
+          label: 'Manage Credentials',
           onTap: onChangePinTap,
         ),
         _buildBoxedMenuItem(

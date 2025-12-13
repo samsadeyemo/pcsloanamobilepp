@@ -21,7 +21,9 @@ import 'package:pcsloan/features/loan_application/presentation/loan_summary.dart
 import 'package:pcsloan/features/password_management/presentation/forget_password_screen.dart';
 import 'package:pcsloan/features/password_management/presentation/password_changed_success_screen.dart';
 import 'package:pcsloan/features/password_management/presentation/verify_otp_screen.dart';
+import 'package:pcsloan/features/profile/change_pin_screen.dart';
 import 'package:pcsloan/features/profile/presentation/change_password_screen.dart';
+import 'package:pcsloan/features/profile/presentation/credentials_routing.dart';
 import 'package:pcsloan/features/profile/presentation/notifications_screen.dart';
 import 'package:pcsloan/features/profile/presentation/personal_information_screen.dart';
 import 'package:pcsloan/features/profile/presentation/profile_screen.dart';
@@ -155,6 +157,14 @@ final GoRouter router = GoRouter(
     GoRoute(
       path: "/support-page",
       builder: (context,state) => SupportScreen()
+    ),
+    GoRoute(
+      path: "/edit/credentials",
+      builder: (contect, state) => EditCredentials()
+      ),
+    GoRoute(
+      path: "/change-pin",
+      builder: (content, state) => ChangePinScreen()
     )  
     
   ],

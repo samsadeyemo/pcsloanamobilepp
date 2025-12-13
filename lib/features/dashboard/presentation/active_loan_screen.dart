@@ -40,6 +40,7 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
   void _loadDash() {
     final data = widget.dashData;
     if (data != null) {
+      print(data);
       setState(() {
         loanStatus = data['loanStatus'] ?? "";
         String amountDouble = data['amountRequested'];
@@ -59,9 +60,9 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
   Future<void> _loadUserNameOnce() async {
     try {
       final data = await LocalStorage.getUser();
-      print("object data: $data");
       final name = data?['first_name']?.toString().trim();
       final profileUrl = data?['profile_picture'];
+
       if (!mounted) return;
 
       setState(() {
@@ -88,7 +89,6 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
     if (loanState.error != null) {
       return Scaffold(body: Center(child: Text('Error: ${loanState.error}')));
     }
-    
 
     return Scaffold(
       appBar: CustomAppBar(

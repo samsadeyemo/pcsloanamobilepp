@@ -5,6 +5,7 @@ import 'package:pcsloan/common/widgets/custom_app_bar.dart';
 import 'package:pcsloan/common/widgets/custom_bottom_nav_bar.dart';
 import 'package:pcsloan/common/widgets/custom_circle_text_badge.dart';
 import 'package:pcsloan/common/widgets/gradient_action_button.dart';
+import 'package:pcsloan/features/profile/presentation/profile_screen.dart';
 import 'package:pcsloan/utils/local_storage.dart';
 
 class NoLoanScreen extends ConsumerStatefulWidget {
@@ -60,7 +61,7 @@ class _NoLoanScreen extends ConsumerState<NoLoanScreen> {
           onProfileTap: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => NoLoanScreen()),
+              MaterialPageRoute(builder: (context) => ProfileScreen()),
             );
           },
         ),

@@ -34,7 +34,51 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   void initState() {
     super.initState();
     _initializeBiometric();
+    _loadSavedPhoneNumber();
   }
+
+  // Future<void> _loadSavedPhoneNumber() async {
+  //   final data = await LocalStorage.getUser();
+  //   final raw = data?['phone:'];
+    
+  // }
+
+
+  Future<void> _loadSavedPhoneNumber() async {
+  try {
+    final data = await LocalStorage.getUser();
+    final rawPhone = data?['phone'];
+    
+    if (rawPhone != null && rawPhone.isNotEmpty) {
+      String formattedPhone = _formatPhoneForDisplay(rawPhone);
+      
+      if (mounted) {
+        setState(() {
+          _phoneController.text = formattedPhone;
+        });
+      }
+    }
+  } catch (e) {
+    debugPrint('Error loading phone number: $e');
+  }
+}
+
+// Add this new method to format the phone number for display
+String _formatPhoneForDisplay(String phone) {
+  // Remove any whitespace
+  String cleanPhone = phone.replaceAll(RegExp(r'\s+'), '');
+  
+  // Remove country code (234 or +234) to show local format
+  if (cleanPhone.startsWith('+234')) {
+    return cleanPhone.substring(4);
+  } else if (cleanPhone.startsWith('234')) {
+    return cleanPhone.substring(3);
+  } else if (cleanPhone.startsWith('0')) {
+    return cleanPhone; // Already in local format
+  } else {
+    return cleanPhone; // Add leading 0
+  }
+}
 
   void _showSnackBar(String message, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -54,18 +98,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
       // Check if user has enabled biometric in settings
       final isEnabled = await LocalStorage.isBiometricEnabled();
-      
+
       // Check if user has logged in before
       final hasLoginBefore = await LocalStorage.hasLoginBefore();
 
       final available = isSupported && canCheck && types.isNotEmpty;
-      
+
       if (mounted) {
         setState(() {
           _biometricAvailable = available;
           _biometricEnabled = isEnabled;
           _hasLoggedInBefore = hasLoginBefore;
-          
+
           // Update message based on availability
           if (!available) {
             _authMessage = 'Biometric not available on this device';
@@ -106,7 +150,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       } else {
         message = 'Biometric authentication not available';
       }
-      
+
       _showSnackBar(message, isError: true);
       return;
     }
@@ -141,13 +185,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       try {
         // Call the refresh token endpoint via AuthService
         final result = await _authService.refreshToken();
-        
+
         if (!mounted) return;
 
         // Save the new tokens and user data
         if (result['data'] != null) {
           final data = result['data'];
-          
+
           // Save tokens using TokenStorage (which your ApiClient uses)
           final tokenStorage = TokenStorage();
           if (data['accessToken'] != null) {
@@ -156,17 +200,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           if (data['refreshToken'] != null) {
             await tokenStorage.saveRefreshToken(data['refreshToken']);
           }
-          
+
           // Also save to LocalStorage for compatibility
           if (data['accessToken'] != null) {
             await LocalStorage.saveToken(data['accessToken']);
           }
-          
+
           // Update user data if present
           if (data['user'] != null) {
             await LocalStorage.saveUser(data['user']);
           }
-          
+
           // Update loan status if present
           if (data['hasLoan'] != null) {
             await LocalStorage.setHasLoan(data['hasLoan']);
@@ -175,38 +219,36 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
         setState(() => _authMessage = 'Login successful!');
         _showSnackBar('Login successful!');
-        
+
         // Brief feedback before navigation
         await Future.delayed(const Duration(milliseconds: 350));
-        
+
         if (!mounted) return;
         context.go('/loan-redirect');
-        
       } catch (refreshError) {
         debugPrint('Token refresh error: $refreshError');
-        
+
         if (!mounted) return;
-        
+
         setState(() {
           _authMessage = 'Session expired. Please login with password';
           isLoading = false;
         });
-        
+
         _showSnackBar(
           'Session expired. Please login with your password',
           isError: true,
         );
       }
-      
     } catch (e) {
       debugPrint('Biometric auth error: $e');
       if (!mounted) return;
-      
+
       setState(() {
         _authMessage = 'Authentication error';
         isLoading = false;
       });
-      
+
       _showSnackBar('Authentication failed: $e', isError: true);
     } finally {
       if (mounted) {
@@ -450,9 +492,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         width: 342,
                         height: 50,
                         child: ElevatedButton(
-                          onPressed: _canUseBiometric && !isLoading
-                              ? _authenticateWithFingerprint
-                              : null,
+                          onPressed:
+                              _canUseBiometric && !isLoading
+                                  ? _authenticateWithFingerprint
+                                  : null,
                           style: ElevatedButton.styleFrom(
                             padding: EdgeInsets.zero,
                             shape: RoundedRectangleBorder(
@@ -465,9 +508,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           child: Ink(
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
-                                colors: _canUseBiometric
-                                    ? [Color(0xffE5E7EB), Color(0xffA198FF)]
-                                    : [Colors.grey.shade300, Colors.grey.shade400],
+                                colors:
+                                    _canUseBiometric
+                                        ? [Color(0xffE5E7EB), Color(0xffA198FF)]
+                                        : [
+                                          Colors.grey.shade300,
+                                          Colors.grey.shade400,
+                                        ],
                               ),
                               borderRadius: BorderRadius.circular(25),
                             ),
@@ -481,13 +528,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                     'assets/icons/fingerprint.png',
                                     height: 20,
                                     width: 20,
-                                    color: _canUseBiometric ? null : Colors.grey.shade600,
+                                    color:
+                                        _canUseBiometric
+                                            ? null
+                                            : Colors.grey.shade600,
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
                                     "Use Biometric Login",
                                     style: TextStyle(
-                                      color: _canUseBiometric ? Colors.white : Colors.grey.shade600,
+                                      color:
+                                          _canUseBiometric
+                                              ? Colors.white
+                                              : Colors.grey.shade600,
                                       fontSize: 16,
                                       fontWeight: FontWeight.w600,
                                       fontFamily: 'Inter',

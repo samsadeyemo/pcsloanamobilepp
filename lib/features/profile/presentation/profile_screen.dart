@@ -84,6 +84,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       () => context.push('/notification-prefrence'),
                   onSecuritySettingsTap:
                       () => context.push('/security-settings'),
+                  onTransactionHistoryTap:
+                      () => context.push('/transactions-history'),    
                 ),
                 SizedBox(height: 30),
                 SupportMenu(

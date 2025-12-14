@@ -5,6 +5,7 @@ class SettingsMenu extends StatelessWidget {
   final void Function()? onChangePinTap;
   final void Function()? onNotificationsTap;
   final void Function()? onSecuritySettingsTap;
+  final void Function()? onTransactionHistoryTap;
 
   const SettingsMenu({
     Key? key,
@@ -12,6 +13,7 @@ class SettingsMenu extends StatelessWidget {
     this.onChangePinTap,
     this.onNotificationsTap,
     this.onSecuritySettingsTap,
+    this.onTransactionHistoryTap,
   }) : super(key: key);
 
   Widget _buildBoxedMenuItem({
@@ -34,7 +36,7 @@ class SettingsMenu extends StatelessWidget {
             CircleAvatar(
               radius: 20,
               backgroundColor: Color(0xffE5E7EB),
-            child: Icon(icon, color: Color(0xff7C70DF)),
+              child: Icon(icon, color: Color(0xff7C70DF)),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -59,6 +61,11 @@ class SettingsMenu extends StatelessWidget {
           label: 'Personal Information',
           onTap: onPersonalInfoTap,
         ),
+         _buildBoxedMenuItem(
+          icon: Icons.history,
+          label: 'Transaction History',
+          onTap: onTransactionHistoryTap,
+        ),
         _buildBoxedMenuItem(
           icon: Icons.lock,
           label: 'Manage Credentials',
@@ -74,6 +81,7 @@ class SettingsMenu extends StatelessWidget {
           label: 'Security Settings',
           onTap: onSecuritySettingsTap,
         ),
+        
       ],
     );
   }

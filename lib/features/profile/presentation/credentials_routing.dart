@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pcsloan/common/widgets/custom_profile_app_bar.dart';
-import 'package:pcsloan/features/profile/change_pin_screen.dart';
+import 'package:pcsloan/features/profile/presentation/change_pin_screen.dart';
 import 'package:pcsloan/features/profile/presentation/change_password_screen.dart';
 
 class EditCredentials extends ConsumerStatefulWidget {

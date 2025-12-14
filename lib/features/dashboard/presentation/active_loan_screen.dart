@@ -53,7 +53,6 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
         amountRepaid = data['amountRepaid']?.toDouble() ?? 0.0;
         balanceLeft = data['balanceLeft']?.toDouble() ?? 0.0;
         tenure = data['tenure'].toString();
-
         repaymentProgress = data['repaymentProgress']?.toDouble() ?? 0.0;
         recentTransactions = data['recentTransactions'] ?? [];
         nextRepaymentDate = data['nextRepaymentDate'] ?? "";

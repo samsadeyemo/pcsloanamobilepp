@@ -100,29 +100,60 @@ Future<Map<String, dynamic>> loginUser({
 
   }
 
-Future<Map<String, dynamic>> refreshToken() async {
-    try {
-      final tokenStorage = TokenStorage();
-      final refreshToken = await tokenStorage.getRefreshToken();
+// Future<Map<String, dynamic>> refreshToken() async {
+//     try {
+//       final tokenStorage = TokenStorage();
+//       final refreshToken = await tokenStorage.getRefreshToken();
       
-      if (refreshToken == null) {
-        throw Exception('No refresh token available. Please login again.');
-      }
+//       if (refreshToken == null) {
+//         throw Exception('No refresh token available. Please login again.');
+//       }
 
-      // Call your refresh token endpoint
-      final response = await apiClient.post(
-        '/auth/refresh-token',
-        body: {
-          'refresh_token': refreshToken,
-        },
-        includeXApiKey: true, // Include API key if required
-      );
-      print("😇😇$response");
-      return response;
-    } catch (e) {
-      throw Exception('Failed to refresh token: $e');
+//       // Call your refresh token endpoint
+//       final response = await apiClient.post(
+//         '/auth/refresh-token',
+//         body: {
+//           'refresh_token': refreshToken,
+//         },
+//         includeXApiKey: true, // Include API key if required
+//       );
+//       print("😇😇$response");
+//       return response;
+//     } catch (e) {
+//       throw Exception('Failed to refresh token: $e');
+//     }
+//   }
+
+Future<Map<String, dynamic>> refreshToken() async {
+  try {
+    final tokenStorage = TokenStorage();
+    final refreshToken = await tokenStorage.getRefreshToken();
+    
+    print("🔑 Refresh token retrieved: ${refreshToken != null}");
+    print("🔑 Token (first 20 chars): ${refreshToken?.substring(0, 20)}...");
+    
+    if (refreshToken == null) {
+      throw Exception('No refresh token available. Please login again.');
     }
+
+    print("🌐 Calling refresh endpoint...");
+    
+    // Call your refresh token endpoint
+    final response = await apiClient.post(
+      '/auth/refresh-token',
+      body: {
+        'refresh_token': refreshToken,
+      },
+      includeXApiKey: true,
+    );
+    
+    print("✅ Refresh response: $response");
+    return response;
+  } catch (e) {
+    print("❌ Refresh exception: $e");
+    throw Exception('Failed to refresh token: $e');
   }
+}
 
   Future<Map<String, dynamic>> editUserPin({
     required String oldPin,

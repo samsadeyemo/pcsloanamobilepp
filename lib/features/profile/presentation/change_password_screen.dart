@@ -90,7 +90,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
       _formKey.currentState?.reset();
     } catch (e) {
       _showSnackBar(
-        e.toString().replaceFirst('Exception: ', ''),
+        "Password must contain at least one uppercase letter, one lowercase letter, one special character, and be at least 6 characters long.",
         isError: true,
       );
     } finally {

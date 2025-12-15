@@ -33,52 +33,61 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   void initState() {
     super.initState();
+    // _clearExpiredSession();
     _initializeBiometric();
     _loadSavedPhoneNumber();
   }
 
-  // Future<void> _loadSavedPhoneNumber() async {
-  //   final data = await LocalStorage.getUser();
-  //   final raw = data?['phone:'];
-    
+  // Future<void> _clearExpiredSession() async {
+  //   final tokenStorage = TokenStorage();
+  //   final hasTokens = await tokenStorage.getRefreshToken() != null;
+
+  //   // If user is on login screen and has tokens, session must have expired
+  //   // Clear everything to ensure clean state
+  //   if (hasTokens) {
+  //     print("🧹 Clearing expired session tokens");
+  //     await tokenStorage.clearTokens();
+
+  //     // Optionally clear LocalStorage too (but keep hasLoginBefore for biometric setup)
+  //     // Don't clear user phone number so it can be pre-filled
+  //   }
   // }
 
-
   Future<void> _loadSavedPhoneNumber() async {
-  try {
-    final data = await LocalStorage.getUser();
-    final rawPhone = data?['phone'];
-    
-    if (rawPhone != null && rawPhone.isNotEmpty) {
-      String formattedPhone = _formatPhoneForDisplay(rawPhone);
-      
-      if (mounted) {
-        setState(() {
-          _phoneController.text = formattedPhone;
-        });
-      }
-    }
-  } catch (e) {
-    debugPrint('Error loading phone number: $e');
-  }
-}
+    try {
+      final data = await LocalStorage.getUser();
+      final rawPhone = data?['phone'];
 
-// Add this new method to format the phone number for display
-String _formatPhoneForDisplay(String phone) {
-  // Remove any whitespace
-  String cleanPhone = phone.replaceAll(RegExp(r'\s+'), '');
-  
-  // Remove country code (234 or +234) to show local format
-  if (cleanPhone.startsWith('+234')) {
-    return cleanPhone.substring(4);
-  } else if (cleanPhone.startsWith('234')) {
-    return cleanPhone.substring(3);
-  } else if (cleanPhone.startsWith('0')) {
-    return cleanPhone; // Already in local format
-  } else {
-    return cleanPhone; // Add leading 0
+      if (rawPhone != null && rawPhone.isNotEmpty) {
+        String formattedPhone = _formatPhoneForDisplay(rawPhone);
+
+        if (mounted) {
+          setState(() {
+            _phoneController.text = formattedPhone;
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('Error loading phone number: $e');
+    }
   }
-}
+
+  // Add this new method to format the phone number for display
+  String _formatPhoneForDisplay(String phone) {
+    // Remove any whitespace
+    String cleanPhone = phone.replaceAll(RegExp(r'\s+'), '');
+
+    // Remove country code (234 or +234) to show local format
+    if (cleanPhone.startsWith('+234')) {
+      return cleanPhone.substring(4);
+    } else if (cleanPhone.startsWith('234')) {
+      return cleanPhone.substring(3);
+    } else if (cleanPhone.startsWith('0')) {
+      return cleanPhone; // Already in local format
+    } else {
+      return cleanPhone; // Add leading 0
+    }
+  }
 
   void _showSnackBar(String message, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -138,6 +147,125 @@ String _formatPhoneForDisplay(String phone) {
   bool get _canUseBiometric =>
       _biometricAvailable && _biometricEnabled && _hasLoggedInBefore;
 
+  // Future<void> _authenticateWithFingerprint() async {
+  //   if (!_canUseBiometric) {
+  //     String message;
+  //     if (!_biometricAvailable) {
+  //       message = 'Biometric authentication not available on this device';
+  //     } else if (!_biometricEnabled) {
+  //       message = 'Please enable biometric in security settings first';
+  //     } else if (!_hasLoggedInBefore) {
+  //       message = 'Please login with password first';
+  //     } else {
+  //       message = 'Biometric authentication not available';
+  //     }
+
+  //     _showSnackBar(message, isError: true);
+  //     return;
+  //   }
+
+  //   setState(() => _authMessage = 'Authenticating...');
+
+  //   try {
+  //     // Step 1: Authenticate with biometric
+  //     final authenticated = await _auth.authenticate(
+  //       localizedReason: 'Please verify your identity to log in',
+  //       options: const AuthenticationOptions(
+  //         biometricOnly: true,
+  //         useErrorDialogs: true,
+  //         stickyAuth: true,
+  //       ),
+  //     );
+
+  //     if (!mounted) return;
+
+  //     if (!authenticated) {
+  //       setState(() => _authMessage = 'Authentication failed or canceled');
+  //       _showSnackBar('Biometric authentication failed', isError: true);
+  //       return;
+  //     }
+
+  //     // Step 2: Biometric successful - now refresh tokens
+  //     setState(() {
+  //       _authMessage = 'Refreshing session...';
+  //       isLoading = true;
+  //     });
+
+  //     try {
+  //       // Call the refresh token endpoint via AuthService
+  //       final result = await _authService.refreshToken();
+
+  //       if (!mounted) return;
+
+  //       // Save the new tokens and user data
+  //       if (result['data'] != null) {
+  //         final data = result['data'];
+
+  //         // Save tokens using TokenStorage (which your ApiClient uses)
+  //         final tokenStorage = TokenStorage();
+  //         if (data['accessToken'] != null) {
+  //           await tokenStorage.saveAccessToken(data['accessToken']);
+  //         }
+  //         if (data['refreshToken'] != null) {
+  //           await tokenStorage.saveRefreshToken(data['refreshToken']);
+  //         }
+
+  //         // Also save to LocalStorage for compatibility
+  //         if (data['accessToken'] != null) {
+  //           await LocalStorage.saveToken(data['accessToken']);
+  //         }
+
+  //         // Update user data if present
+  //         if (data['user'] != null) {
+  //           await LocalStorage.saveUser(data['user']);
+  //         }
+
+  //         // Update loan status if present
+  //         if (data['hasLoan'] != null) {
+  //           await LocalStorage.setHasLoan(data['hasLoan']);
+  //         }
+  //       }
+
+  //       setState(() => _authMessage = 'Login successful!');
+  //       _showSnackBar('Login successful!');
+
+  //       // Brief feedback before navigation
+  //       await Future.delayed(const Duration(milliseconds: 350));
+
+  //       if (!mounted) return;
+  //       context.go('/loan-redirect');
+  //     } catch (refreshError) {
+  //       debugPrint('Token refresh error: $refreshError');
+
+  //       if (!mounted) return;
+
+  //       setState(() {
+  //         _authMessage = 'Session expired. Please login with password';
+  //         isLoading = false;
+  //       });
+
+  //       _showSnackBar(
+  //         'Session expired. Please login with your password',
+  //         isError: true,
+  //       );
+  //     }
+  //   } catch (e) {
+  //     debugPrint('Biometric auth error: $e');
+  //     if (!mounted) return;
+
+  //     setState(() {
+  //       _authMessage = 'Authentication error';
+  //       isLoading = false;
+  //     });
+
+  //     _showSnackBar('Authentication failed: $e', isError: true);
+  //   } finally {
+  //     if (mounted) {
+  //       setState(() => isLoading = false);
+  //     }
+  //   }
+  // }
+
   Future<void> _authenticateWithFingerprint() async {
     if (!_canUseBiometric) {
       String message;
@@ -183,27 +311,50 @@ String _formatPhoneForDisplay(String phone) {
       });
 
       try {
+        print("🔐 Starting token refresh...");
+
         // Call the refresh token endpoint via AuthService
         final result = await _authService.refreshToken();
 
+        print("✅ Refresh successful: $result");
+
         if (!mounted) return;
+
+        // Check if we're still on this screen (not navigated away by onAuthenticationFailed)
+        if (!ModalRoute.of(context)!.isCurrent) {
+          print("⚠️ Screen is no longer current, user was logged out");
+          return;
+        }
 
         // Save the new tokens and user data
         if (result['data'] != null) {
           final data = result['data'];
 
-          // Save tokens using TokenStorage (which your ApiClient uses)
+          // Use the GLOBAL tokenStorage from main.dart
           final tokenStorage = TokenStorage();
-          if (data['accessToken'] != null) {
-            await tokenStorage.saveAccessToken(data['accessToken']);
-          }
-          if (data['refreshToken'] != null) {
-            await tokenStorage.saveRefreshToken(data['refreshToken']);
+
+          // Check which token format the backend is using
+          final accessToken = data['accessToken'] ?? data['access_token'];
+          final refreshToken = data['refreshToken'] ?? data['refresh_token'];
+
+          print(
+            "💾 Saving tokens - access: ${accessToken != null}, refresh: ${refreshToken != null}",
+          );
+
+          if (accessToken != null && refreshToken != null) {
+            await tokenStorage.saveTokens(
+              accessToken: accessToken,
+              refreshToken: refreshToken,
+            );
+          } else if (accessToken != null) {
+            await tokenStorage.saveAccessToken(accessToken);
+          } else if (refreshToken != null) {
+            await tokenStorage.saveRefreshToken(refreshToken);
           }
 
           // Also save to LocalStorage for compatibility
-          if (data['accessToken'] != null) {
-            await LocalStorage.saveToken(data['accessToken']);
+          if (accessToken != null) {
+            await LocalStorage.saveToken(accessToken);
           }
 
           // Update user data if present
@@ -215,6 +366,12 @@ String _formatPhoneForDisplay(String phone) {
           if (data['hasLoan'] != null) {
             await LocalStorage.setHasLoan(data['hasLoan']);
           }
+
+          // Verify tokens were saved
+          final savedRefresh = await tokenStorage.getRefreshToken();
+          print(
+            "🔍 Verification - refresh token saved: ${savedRefresh != null}",
+          );
         }
 
         setState(() => _authMessage = 'Login successful!');
@@ -226,9 +383,15 @@ String _formatPhoneForDisplay(String phone) {
         if (!mounted) return;
         context.go('/loan-redirect');
       } catch (refreshError) {
-        debugPrint('Token refresh error: $refreshError');
+        print("❌ Token refresh error: $refreshError");
 
         if (!mounted) return;
+
+        // Check if we're still on this screen
+        if (!ModalRoute.of(context)!.isCurrent) {
+          print("⚠️ User already navigated away, not showing error");
+          return;
+        }
 
         setState(() {
           _authMessage = 'Session expired. Please login with password';
@@ -236,7 +399,7 @@ String _formatPhoneForDisplay(String phone) {
         });
 
         _showSnackBar(
-          'Session expired. Please login with your password',
+          'Your session has expired. Please login again with your password',
           isError: true,
         );
       }
@@ -257,40 +420,122 @@ String _formatPhoneForDisplay(String phone) {
     }
   }
 
+  // Future<void> _loginUser() async {
+  //   if (!_formKey.currentState!.validate()) return;
+
+  //   setState(() => isLoading = true);
+
+  //   try {
+  //     String rawPhone = _phoneController.text.trim();
+  //     String formattedPhone = _normalizePhoneNumber(rawPhone);
+
+  //     final result = await _authService.loginUser(
+  //       phone: formattedPhone,
+  //       password: _passwordController.text.trim(),
+  //     );
+
+  //     await LocalStorage.saveUser(result['data']['user']);
+  //     await LocalStorage.saveToken(result['data']['accessToken']);
+  //     await LocalStorage.setHasLoan(result['data']['hasLoan']);
+  //     await LocalStorage.setHasLoginBefore(true);
+
+  //     if (!mounted) return;
+
+  //     String resultMessage = result["message"] ?? "Login successful";
+  //     _showSnackBar(resultMessage, isError: false);
+  //     context.go("/loan-redirect");
+  //   } catch (e) {
+  //     if (mounted) {
+  //       _showSnackBar(e.toString(), isError: true);
+  //     }
+  //   } finally {
+  //     if (mounted) {
+  //       setState(() => isLoading = false);
+  //     }
+  //   }
+  // }
+
   Future<void> _loginUser() async {
-    if (!_formKey.currentState!.validate()) return;
+  if (!_formKey.currentState!.validate()) return;
 
-    setState(() => isLoading = true);
+  setState(() => isLoading = true);
 
-    try {
-      String rawPhone = _phoneController.text.trim();
-      String formattedPhone = _normalizePhoneNumber(rawPhone);
+  try {
+    String rawPhone = _phoneController.text.trim();
+    String formattedPhone = _normalizePhoneNumber(rawPhone);
 
-      final result = await _authService.loginUser(
-        phone: formattedPhone,
-        password: _passwordController.text.trim(),
+    print("📞 Logging in with phone: $formattedPhone");
+
+    final result = await _authService.loginUser(
+      phone: formattedPhone,
+      password: _passwordController.text.trim(),
+    );
+
+    print("✅ Login response received");
+    print("📦 Full response: $result");
+
+    final data = result['data'];
+    print("📦 Data field: $data");
+    print("📦 Data type: ${data.runtimeType}");
+
+    final tokenStorage = TokenStorage();
+    
+    // Check both possible field names
+    final accessToken = data['accessToken'] ?? data['access_token'];
+    final refreshToken = data['refreshToken'] ?? data['refresh_token'];
+    
+    print("🔑 Access token found: ${accessToken != null}");
+    print("🔑 Refresh token found: ${refreshToken != null}");
+    
+    if (accessToken != null) {
+      print("🔑 Access token preview: ${accessToken.toString().substring(0, 20)}...");
+    }
+    if (refreshToken != null) {
+      print("🔑 Refresh token preview: ${refreshToken.toString().substring(0, 20)}...");
+    }
+    
+    if (accessToken != null && refreshToken != null) {
+      print("💾 Calling saveTokens...");
+      await tokenStorage.saveTokens(
+        accessToken: accessToken,
+        refreshToken: refreshToken,
       );
+      print("✅ saveTokens completed");
+    } else {
+      print("❌ WARNING: Missing tokens in response!");
+      if (accessToken == null) print("   - accessToken is NULL");
+      if (refreshToken == null) print("   - refreshToken is NULL");
+    }
+    
+    // Verify tokens immediately after saving
+    print("🔍 Immediate verification:");
+    final verifyAccess = await tokenStorage.getAccessToken();
+    final verifyRefresh = await tokenStorage.getRefreshToken();
+    print("   Access: ${verifyAccess != null}");
+    print("   Refresh: ${verifyRefresh != null}");
+    
+    // Save other data
+    await LocalStorage.saveUser(data['user']);
+    await LocalStorage.saveToken(accessToken);
+    await LocalStorage.setHasLoan(data['hasLoan']);
+    await LocalStorage.setHasLoginBefore(true);
 
-      await LocalStorage.saveUser(result['data']['user']);
-      await LocalStorage.saveToken(result['data']['accessToken']);
-      await LocalStorage.setHasLoan(result['data']['hasLoan']);
-      await LocalStorage.setHasLoginBefore(true);
+    if (!mounted) return;
 
-      if (!mounted) return;
-
-      String resultMessage = result["message"] ?? "Login successful";
-      _showSnackBar(resultMessage, isError: false);
-      context.go("/loan-redirect");
-    } catch (e) {
-      if (mounted) {
-        _showSnackBar(e.toString(), isError: true);
-      }
-    } finally {
-      if (mounted) {
-        setState(() => isLoading = false);
-      }
+    String resultMessage = result["message"] ?? "Login successful";
+    _showSnackBar(resultMessage, isError: false);
+    context.go("/loan-redirect");
+  } catch (e) {
+    print("❌ Login error: $e");
+    if (mounted) {
+      _showSnackBar(e.toString(), isError: true);
+    }
+  } finally {
+    if (mounted) {
+      setState(() => isLoading = false);
     }
   }
+}
 
   String _normalizePhoneNumber(String input) {
     String phone = input.replaceAll(RegExp(r'\s+'), '');

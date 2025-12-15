@@ -649,16 +649,17 @@ class _personalInformationScreenState
                             ),
                           ),
                           const SizedBox(height: 16),
+                           _buildInfoCard(
+                            label: 'Phone Number',
+                            value: "+$phoneNumber",
+                          ),
                           _buildInfoCard(
                             label: 'Email Address',
                             value: email,
                             isEditable: true,
                             onEdit: _showEditEmailDialog,
                           ),
-                          _buildInfoCard(
-                            label: 'Phone Number',
-                            value: "+$phoneNumber",
-                          ),
+                         
                           const SizedBox(height: 24),
                           const Text(
                             'Bank Details',

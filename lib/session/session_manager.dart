@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:pcsloan/main.dart'; // imports rootNavigatorKey
 import 'package:go_router/go_router.dart';
 
@@ -8,7 +7,6 @@ class SessionManager with WidgetsBindingObserver {
   static final SessionManager _instance = SessionManager._internal();
   factory SessionManager() => _instance;
 
-  final _storage = const FlutterSecureStorage();
   Timer? _timer;
   final Duration timeout = const Duration(minutes: 5);
 
@@ -27,13 +25,16 @@ class SessionManager with WidgetsBindingObserver {
   void onUserActivity() => _resetTimer();
 
   void _logoutUser() async {
-    await _storage.deleteAll();
-
-    final ctx = rootNavigatorKey.currentContext;
-    if (ctx != null) {
-      GoRouter.of(ctx).go('/signIn'); // logout route
-    }
+  print("⏰ Session timeout - navigating to login");
+  
+  // DON'T clear tokens - let biometric work!
+  // Tokens will be validated when user tries to use them
+  
+  final ctx = rootNavigatorKey.currentContext;
+  if (ctx != null) {
+    GoRouter.of(ctx).go('/signIn');
   }
+}
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {

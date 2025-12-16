@@ -32,6 +32,7 @@ class _personalInformationScreenState
   String accountNumber = "";
   String bvn = "";
   String profilePicture = "";
+  bool isEmailEditable = false;
 
   @override
   void initState() {
@@ -69,6 +70,7 @@ class _personalInformationScreenState
               result['data']['bank_details']['account_number'] ?? '';
           bvn = result['data']['bank_details']['bvn'] ?? '';
           profilePicture = result['data']['profile_picture'] ?? '';
+          if (email == "" || email.isEmpty) isEmailEditable = true;
         });
       }
     } catch (e) {
@@ -374,6 +376,7 @@ class _personalInformationScreenState
                                     if (result['status'] == 'success') {
                                       setState(() {
                                         email = newEmail;
+                                        isEmailEditable = false;
                                       });
                                       await LocalStorage.clearUser();
 
@@ -649,17 +652,17 @@ class _personalInformationScreenState
                             ),
                           ),
                           const SizedBox(height: 16),
-                           _buildInfoCard(
+                          _buildInfoCard(
                             label: 'Phone Number',
                             value: "+$phoneNumber",
                           ),
                           _buildInfoCard(
                             label: 'Email Address',
                             value: email,
-                            isEditable: true,
+                            isEditable: isEmailEditable,
                             onEdit: _showEditEmailDialog,
                           ),
-                         
+
                           const SizedBox(height: 24),
                           const Text(
                             'Bank Details',

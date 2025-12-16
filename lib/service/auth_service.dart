@@ -130,7 +130,7 @@ Future<Map<String, dynamic>> refreshToken() async {
     final refreshToken = await tokenStorage.getRefreshToken();
     
     print("🔑 Refresh token retrieved: ${refreshToken != null}");
-    print("🔑 Token (first 20 chars): ${refreshToken?.substring(0, 20)}...");
+    print("🔑 Token (first 20 chars): ${refreshToken}...");
     
     if (refreshToken == null) {
       throw Exception('No refresh token available. Please login again.');

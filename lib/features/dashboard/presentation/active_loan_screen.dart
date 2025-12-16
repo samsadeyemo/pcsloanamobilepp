@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pcsloan/common/widgets/animated_loan_section.dart';
 import 'package:pcsloan/common/widgets/custom_actions_button.dart';
 import 'package:pcsloan/common/widgets/custom_app_bar.dart';
 import 'package:pcsloan/common/widgets/custom_bottom_nav_bar.dart';
@@ -121,128 +122,143 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
                 if (showPending) LoanReviewCard(),
 
                 // Purple Loan Card - Always show
-                Card(
-                  elevation: 6,
-                  color: Color(0xff7C70DF),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  margin: EdgeInsets.symmetric(vertical: 12),
-                  child: Padding(
-                    padding: EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                showPending
+                    ? AnimatedPendingLoan(
+                      amountRequested: amountRequested,
+                      tenure: tenure,
+                    )
+                    : Card(
+                      elevation: 6,
+                      color: Color(0xff7C70DF),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      margin: EdgeInsets.symmetric(vertical: 12),
+                      child: Padding(
+                        padding: EdgeInsets.all(20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  changeLoanTalk,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Color(0xffFFFFFF),
+                                  ),
+                                ),
+                                Icon(
+                                  Icons.info_outlined,
+                                  color: Color(0xffFFFFFF),
+                                ),
+                              ],
+                            ),
                             Text(
-                              changeLoanTalk,
+                              formatCurrency(amountRequested),
                               style: TextStyle(
-                                fontSize: 14,
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
                                 color: Color(0xffFFFFFF),
                               ),
                             ),
-                            Icon(Icons.info_outlined, color: Color(0xffFFFFFF)),
-                          ],
-                        ),
-                        Text(
-                          formatCurrency(amountRequested),
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xffFFFFFF),
-                          ),
-                        ),
-                        SizedBox(height: 12),
-                        _buildRow(
-                          'Total to Repay:',
-                          formatCurrency(totalToRepay),
-                        ),
-                        _buildRow(
-                          'Amount Repaid:',
-                          formatCurrency(amountRepaid),
-                        ),
-                        _buildRow('Balance:', formatCurrency(balanceLeft)),
-                        _buildRow('Tenure:', '${tenure} Months'),
-                        SizedBox(height: 16),
-                        Container(
-                          padding: EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: Colors.transparent,
-                              width: 1,
+                            SizedBox(height: 12),
+                            _buildRow(
+                              'Total to Repay:',
+                              formatCurrency(totalToRepay),
                             ),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
+                            _buildRow(
+                              'Amount Repaid:',
+                              formatCurrency(amountRepaid),
+                            ),
+                            _buildRow('Balance:', formatCurrency(balanceLeft)),
+                            _buildRow('Tenure:', '${tenure} Months'),
+                            SizedBox(height: 16),
+                            Container(
+                              padding: EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: Colors.transparent,
+                                  width: 1,
+                                ),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    'Repayment Progress',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 12,
-                                    ),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        'Repayment Progress',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                      Text(
+                                        '${repaymentProgress}%',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  Text(
-                                    '${repaymentProgress}%',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 12,
+                                  SizedBox(height: 7),
+                                  LinearProgressIndicator(
+                                    value: repaymentProgress,
+                                    minHeight: 8,
+                                    backgroundColor: Colors.white.withOpacity(
+                                      0.2,
                                     ),
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white,
+                                    ),
+                                    borderRadius: BorderRadius.circular(8),
                                   ),
                                 ],
                               ),
-                              SizedBox(height: 7),
-                              LinearProgressIndicator(
-                                value: repaymentProgress,
-                                minHeight: 8,
-                                backgroundColor: Colors.white.withOpacity(0.2),
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  Colors.white,
-                                ),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ],
-                          ),
-                        ),
-                        SizedBox(height: 16),
-                        if (!showPending) Align(
-                          alignment: Alignment.center,
-                          child: SizedBox(
-                            width: 290,
-                            height: 50,
-                            child: TextButton(
-                              onPressed: () {
-                                // Navigate to repayment progress screen
-                              },
-                              style: TextButton.styleFrom(
-                                backgroundColor: Colors.white.withOpacity(0.1),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  side: BorderSide(
-                                    color: Colors.transparent,
-                                    width: 1.0,
+                            ),
+                            SizedBox(height: 16),
+                            if (!showPending)
+                              Align(
+                                alignment: Alignment.center,
+                                child: SizedBox(
+                                  width: 290,
+                                  height: 50,
+                                  child: TextButton(
+                                    onPressed: () {
+                                      // Navigate to repayment progress screen
+                                    },
+                                    style: TextButton.styleFrom(
+                                      backgroundColor: Colors.white.withOpacity(
+                                        0.1,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                        side: BorderSide(
+                                          color: Colors.transparent,
+                                          width: 1.0,
+                                        ),
+                                      ),
+                                    ),
+                                    child: Text(
+                                      'View Repayment Progress',
+                                      style: TextStyle(
+                                        color: Color(0xffFFFFFF),
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ),
-                              child: Text(
-                                'View Repayment Progress',
-                                style: TextStyle(color: Color(0xffFFFFFF)),
-                              ),
-                            ),
-                          ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
-                  ),
-                ),
 
                 // Show everything below only when showPending is false
                 if (!showPending) ...[

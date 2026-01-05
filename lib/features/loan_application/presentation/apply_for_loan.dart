@@ -54,7 +54,7 @@ class _ApplyForLoan extends ConsumerState<ApplyForLoan> {
 
     try {
       final result = await _loanService.fetchApplicationLoanData();
-
+      if (!mounted) return;
       if (result.isNotEmpty) {
         final loan = result.first; // ✅ Get first loan offer
 
@@ -87,11 +87,11 @@ class _ApplyForLoan extends ConsumerState<ApplyForLoan> {
           availableTenures.sort((a, b) => int.parse(a).compareTo(int.parse(b)));
         });
 
-        print('Loan Data: $loan');
       } else {
         _showSnackBar('No loan offers found', isError: true);
       }
     } catch (e) {
+      if (!mounted) return;
       _showSnackBar(
         e.toString().replaceFirst('Exception: ', ''),
         isError: true,
@@ -131,6 +131,7 @@ class _ApplyForLoan extends ConsumerState<ApplyForLoan> {
         loanOfferId: originalLoanId,
         tenure: int.parse(selectedTenure),
       );
+      if (!mounted) return;
       String resultMessage =
           result["message"] ?? "Loan offer fetched successfully";
       _showSnackBar(resultMessage, isError: false);
@@ -148,6 +149,7 @@ class _ApplyForLoan extends ConsumerState<ApplyForLoan> {
         },
       );
     } catch (e) {
+      if (!mounted) return;
       _showSnackBar(
         e.toString().replaceFirst('Exception: ', ''),
         isError: true,

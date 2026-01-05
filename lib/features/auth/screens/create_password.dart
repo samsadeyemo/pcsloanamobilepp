@@ -59,21 +59,30 @@ class _CreatePasswordScreenState extends ConsumerState<CreatePasswordScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     final data = await LocalStorage.getUser();
+     if (!mounted) return;
+
     final employeeId = data?['user']?['employee_id'] ?? '';
     if (employeeId.isEmpty) return;
+
     FocusScope.of(context).unfocus();
+
     setState(() => _verifying = true);
+
     try {
       final result = await _authService.createPassword(
         employeeId: employeeId,
         password: password,
         confirmPassword: confirmPassword,
       );
+       if (!mounted) return;
 
       await LocalStorage.setPasswordCreated(true);
+       if (!mounted) return;
+
       _showSnackBar(result["message"] ?? "Password created successfully");
       context.go("/transaction-screen");
     } catch (e) {
+       if (!mounted) return;
       _showSnackBar(e.toString().replaceFirst('Exception: ', ''), isError: true);
     } finally {
       if (mounted) setState(() => _verifying = false);

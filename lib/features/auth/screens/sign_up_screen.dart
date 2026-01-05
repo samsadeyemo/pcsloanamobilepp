@@ -60,13 +60,16 @@ class _SignUpScreenState extends State<SignUpScreen>
     setState(() => _fetching = true);
     try {
       final data = await _authService.fetchEmployee(_staffIdController.text);
-      print('Fetched employee data: $data');
+      if (!mounted) return;
+      debugPrint('Fetched employee data: $data');
       setState(() {
         _employeeData = data['data'];
         _firstNameController.text =
             data['data']['first_name'] ?? data['data']['firstname'] ?? '';
-        _lastNameController.text = data['data']['last_name'] ?? data['data']['lastname'] ?? '';
-        String phoneData = data['data']['phone_number'] ?? data['data']['phone'] ?? '';
+        _lastNameController.text =
+            data['data']['last_name'] ?? data['data']['lastname'] ?? '';
+        String phoneData =
+            data['data']['phone_number'] ?? data['data']['phone'] ?? '';
         _phoneController.text = '+$phoneData';
         _emailController.text = data['data']['email'] ?? '';
         _bvnController.text = data['data']['bvn'] ?? '';
@@ -74,12 +77,15 @@ class _SignUpScreenState extends State<SignUpScreen>
 
       _showSnackBar("Employee found successfully");
     } catch (e) {
+      if (!mounted) return;
       _showSnackBar(
         e.toString().replaceFirst('Exception: ', ''),
         isError: true,
       );
     } finally {
-      setState(() => _fetching = false);
+      if (mounted) {
+        setState(() => _fetching = false);
+      }
     }
   }
 
@@ -99,21 +105,26 @@ class _SignUpScreenState extends State<SignUpScreen>
         bvn: _bvnController.text.trim(),
         employeeId: _staffIdController.text.trim(),
       );
-
+      if (!mounted) return;
       await LocalStorage.saveUser(result["data"]);
+      if (!mounted) return;
       await LocalStorage.setAccountCreated(true);
+      if (!mounted) return;
       String resultMessage =
           result["message"] ?? "Account created successfully";
       _showSnackBar(resultMessage);
 
       context.go('/verify-phone');
     } catch (e) {
+      if (!mounted) return;
       _showSnackBar(
         e.toString().replaceFirst('Exception: ', ''),
         isError: true,
       );
     } finally {
-      setState(() => _creating = false);
+      if (mounted) {
+        setState(() => _creating = false);
+      }
     }
   }
 

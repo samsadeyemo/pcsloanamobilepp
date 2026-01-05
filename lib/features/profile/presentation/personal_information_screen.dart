@@ -55,11 +55,12 @@ class _personalInformationScreenState
 
     try {
       final result = await _profileService.fetchUserProfile();
-
+      if (!mounted) return;
       if (result.isNotEmpty) {
         await LocalStorage.clearUser();
-
+        if (!mounted) return;
         await LocalStorage.saveUser(result['data']);
+        if (!mounted) return;
         setState(() {
           userName =
               "${result['data']['first_name']} ${result['data']['last_name']}";
@@ -74,6 +75,7 @@ class _personalInformationScreenState
         });
       }
     } catch (e) {
+      if (!mounted) return;
       _showSnackBar(
         e.toString().replaceFirst('Exception: ', ''),
         isError: true,
@@ -141,13 +143,16 @@ class _personalInformationScreenState
   Future<File?> _compressImageIfNeeded(File imageFile) async {
     try {
       final fileSize = await imageFile.length();
+
       final fileSizeInMB = fileSize / (1024 * 1024);
 
       if (fileSizeInMB <= 5) {
         return imageFile;
       }
 
-      _showSnackBar('Compressing image...', isError: false);
+      if (mounted) {
+        _showSnackBar('Compressing image...', isError: false);
+      }
 
       final compressedFile = await FlutterImageCompress.compressAndGetFile(
         imageFile.absolute.path,
@@ -159,7 +164,9 @@ class _personalInformationScreenState
 
       return compressedFile != null ? File(compressedFile.path) : imageFile;
     } catch (e) {
-      print('Error compressing image: $e');
+      if (mounted) {
+        debugPrint('Error compressing image: $e');
+      }
       return imageFile;
     }
   }
@@ -169,8 +176,10 @@ class _personalInformationScreenState
     if (await permission.isGranted) {
       return true;
     }
+    if (!mounted) return false;
 
     final result = await permission.request();
+    if (!mounted) return false;
     return result.isGranted;
   }
 
@@ -185,6 +194,7 @@ class _personalInformationScreenState
     try {
       // Step 1: Show bottom sheet to select source
       final source = await _showImageSourceBottomSheet();
+      if (!mounted) return;
       if (source == null) return;
 
       // Step 2: Request permission based on source
@@ -192,6 +202,7 @@ class _personalInformationScreenState
           source == ImageSource.camera ? Permission.camera : Permission.photos;
 
       final hasPermission = await _requestPermission(permission);
+      if (!mounted) return;
       if (!hasPermission) {
         _showSnackBar(
           'Permission denied. Please enable it in settings.',
@@ -203,7 +214,7 @@ class _personalInformationScreenState
       // Step 3: Pick image
       final ImagePicker picker = ImagePicker();
       final XFile? pickedFile = await picker.pickImage(source: source);
-
+      if (!mounted) return;
       if (pickedFile == null) return;
 
       // Step 4: Show loading on profile picture
@@ -212,6 +223,7 @@ class _personalInformationScreenState
       // Step 5: Compress image if needed
       File? imageFile = File(pickedFile.path);
       imageFile = await _compressImageIfNeeded(imageFile);
+      if (!mounted) return;
 
       if (imageFile == null) {
         throw Exception('Failed to process image');
@@ -221,22 +233,25 @@ class _personalInformationScreenState
       if (profilePicture.isNotEmpty) {
         _showSnackBar('Removing old picture...', isError: false);
         await _cloudinaryService.deleteImage(profilePicture);
+        if (!mounted) return;
       }
 
       // Step 7: Upload new image to Cloudinary
       _showSnackBar('Uploading new picture...', isError: false);
       final imageUrl = await _cloudinaryService.uploadImage(imageFile);
-
+      if (!mounted) return;
       // Step 8: Update backend with new URL
       final result = await _profileService.editUserProfilePicture(
         imageUrl: imageUrl,
       );
+      if (!mounted) return;
 
       if (result['status'] == 'success') {
         // Step 9: Update UI
         await LocalStorage.clearUser();
-
+        if (!mounted) return;
         await LocalStorage.saveUser(result['data']);
+        if (!mounted) return;
         setState(() {
           profilePicture = imageUrl;
         });
@@ -247,6 +262,7 @@ class _personalInformationScreenState
         );
       }
     } catch (e) {
+      if (!mounted) return;
       _showSnackBar(
         e.toString().replaceFirst('Exception: ', ''),
         isError: true,

@@ -47,14 +47,19 @@ class _SplashScreenState extends State<SplashScreen> {
 
    Future<void> _init() async {
     await Future.delayed(const Duration(seconds: 1));
-
+    if (!mounted) return;
     final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
     final onboardingDone = prefs.getBool('onboarding_done') ?? false;
 
     final accountCreated = await LocalStorage.isAccountCreated();
+    if (!mounted) return;
     final phoneVerified = await LocalStorage.isPhoneVerified();
+    if (!mounted) return;
     final passwordCreated = await LocalStorage.isPasswordCreated();
+    if (!mounted) return;
     final pinCreated = await LocalStorage.isPinCreated();
+    if (!mounted) return;
     final hasLogin = await LocalStorage.hasLoginBefore();
 
     if (!mounted) return; // ✅ Always guard before navigation

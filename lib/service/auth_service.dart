@@ -129,14 +129,11 @@ Future<Map<String, dynamic>> refreshToken() async {
     final tokenStorage = TokenStorage();
     final refreshToken = await tokenStorage.getRefreshToken();
     
-    print("🔑 Refresh token retrieved: ${refreshToken != null}");
-    print("🔑 Token (first 20 chars): ${refreshToken}...");
     
     if (refreshToken == null) {
       throw Exception('No refresh token available. Please login again.');
     }
 
-    print("🌐 Calling refresh endpoint...");
     
     // Call your refresh token endpoint
     final response = await apiClient.post(
@@ -147,10 +144,8 @@ Future<Map<String, dynamic>> refreshToken() async {
       includeXApiKey: true,
     );
     
-    print("✅ Refresh response: $response");
     return response;
   } catch (e) {
-    print("❌ Refresh exception: $e");
     throw Exception('Failed to refresh token: $e');
   }
 }
@@ -180,6 +175,22 @@ Future<Map<String, dynamic>> refreshToken() async {
       '/auth/update/password',
       body: {
         'old_password': oldPassword,
+        "new_password": newPassword,
+        "confirm_new_password": confirmNewpassword
+        },
+      includeXApiKey: true,
+    );
+  }
+
+  Future<Map<String, dynamic>> resetForgottenPassword({
+    required String otp,
+    required String newPassword,
+    required String confirmNewpassword
+  }) async {
+    return await apiClient.post(
+      '/auth/reset-password',
+      body: {
+        'otp': otp,
         "new_password": newPassword,
         "confirm_new_password": confirmNewpassword
         },

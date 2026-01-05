@@ -58,6 +58,7 @@ class _ChangePinScreenState extends ConsumerState<ChangePinScreen> {
         newPin: newPin,
         confirmNewPin: confirmNewPin,
       );
+      if (!mounted) return;
       context.push('/user-profile');
 
       _showSnackBar(
@@ -65,12 +66,13 @@ class _ChangePinScreenState extends ConsumerState<ChangePinScreen> {
         isError: false,
       );
     } catch (e) {
+      if (!mounted) return;
       _showSnackBar(
         e.toString().replaceFirst('Exception: ', ''),
         isError: true,
       );
     } finally {
-      setState(() => _verifying = false);
+      if(mounted) setState(() => _verifying = false);
     }
 
     

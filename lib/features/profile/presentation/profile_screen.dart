@@ -33,12 +33,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Future<void> _loadBriefDataOnce() async {
     try {
       final data = await LocalStorage.getUser();
+      if (!mounted) return;
       print("object data: $data");
       final name = data?['first_name']?.toString().trim();
       final lastName = data?['last_name']?.toString().trim();
       final email = data?['email']?.toString().trim();
       final image_url = data?['profile_picture'];
-      if (!mounted) return;
+      
 
       setState(() {
         _userEmail = (email?.isNotEmpty ?? false) ? email : null;
@@ -47,8 +48,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         _image_url = (image_url?.isNotEmpty ?? false) ? image_url : null;
       });
     } catch (e, st) {
-      debugPrint('❌ Failed to load username: $e\n$st');
       if (!mounted) return;
+      debugPrint('❌ Failed to load username: $e\n$st');
       setState(() => _userName = null);
     }
   }

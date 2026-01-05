@@ -54,10 +54,12 @@ class _ForgetPasswordScreen extends ConsumerState<ForgetPasswordScreen> {
 
     try {
       final result = await _authService.forgetPassword(phone: cleanPhoneNumber);
+      if (!mounted) return;
       String resultMessage = result['message'] ?? 'OTP sent successfully';
       _showSnackBar(resultMessage, isError: false);
       context.go('/verify-password-otp');
     } catch (e) {
+      if (!mounted) return;
       _showSnackBar(
         e.toString().replaceFirst('Exception: ', ''),
         isError: true,

@@ -89,7 +89,6 @@ class CloudinaryService {
         throw Exception('Failed to delete image: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error deleting image: $e');
       return false;
     }
   }
@@ -114,7 +113,6 @@ class CloudinaryService {
       
       return publicId;
     } catch (e) {
-      print('Error extracting public_id: $e');
       return '';
     }
   }

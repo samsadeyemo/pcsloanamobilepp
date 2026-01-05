@@ -7,12 +7,10 @@ class TokenStorage {
 
   Future<void> saveAccessToken(String token) async {
     await _storage.write(key: _accessTokenKey, value: token);
-     print("💾 Access token saved: ${token.substring(0, 20)}...");
   }
 
   Future<void> saveRefreshToken(String token) async {
     await _storage.write(key: _refreshTokenKey, value: token);
-        print("💾 Refresh token saved: ${token.substring(0, 20)}...");
 
   }
 
@@ -33,9 +31,6 @@ Future<void> saveTokens({
     required String accessToken,
     required String refreshToken,
   }) async {
-    print("💾 saveTokens called");
-    print("💾 Access token length: ${accessToken.length}");
-    print("💾 Refresh token length: ${refreshToken.length}");
     
     await Future.wait([
       saveAccessToken(accessToken),
@@ -46,9 +41,6 @@ Future<void> saveTokens({
     final savedAccess = await getAccessToken();
     final savedRefresh = await getRefreshToken();
     
-    print("✅ Verification after save:");
-    print("   Access token exists: ${savedAccess != null}");
-    print("   Refresh token exists: ${savedRefresh != null}");
   }
 
 
@@ -69,23 +61,19 @@ Future<void> saveTokens({
 
   Future<String?> getAccessToken() async {
     final token = await _storage.read(key: _accessTokenKey);
-    print("🔍 Getting access token: ${token != null ? 'EXISTS' : 'NULL'}");
     return token;
   }
 
   Future<String?> getRefreshToken() async {
     final token = await _storage.read(key: _refreshTokenKey);
-    print("🔍 Getting refresh token: ${token != null ? 'EXISTS' : 'NULL'}");
     return token;
   }
 
   Future<void> clearTokens() async {
-    print("🗑️ Clearing all tokens");
     await Future.wait([
       _storage.delete(key: _accessTokenKey),
       _storage.delete(key: _refreshTokenKey),
     ]);
-    print("🗑️ Tokens cleared");
   }
 
 }

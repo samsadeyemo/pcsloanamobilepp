@@ -29,18 +29,18 @@ class _NoLoanScreen extends ConsumerState<NoLoanScreen> {
   Future<void> _loadUserNameOnce() async {
     try {
       final data = await LocalStorage.getUser();
-      print("object data: $data");
+      if (!mounted) return;
       final name = data?['first_name']?.toString().trim();
       final profileUrl = data?['profile_picture'];
-      if (!mounted) return;
+      
 
       setState(() {
         _imageUrl = (profileUrl?.isNotEmpty ?? false) ? profileUrl : null;
         _userName = (name?.isNotEmpty ?? false) ? name : null;
       });
     } catch (e, st) {
-      debugPrint('❌ Failed to load username: $e\n$st');
       if (!mounted) return;
+      debugPrint('❌ Failed to load username: $e\n$st');
       setState(() => _userName = null);
     }
   }

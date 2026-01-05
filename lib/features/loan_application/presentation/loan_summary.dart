@@ -75,7 +75,6 @@ class _LoanSummary extends ConsumerState<LoanSummary> {
         monthlyPaymentValue = 0;
       monthlyPayment = formatter.format(monthlyPaymentValue);
     });
-    print(widget.loanData);
   }
 
   void _showSnackBar(String message, {bool isError = false}) {
@@ -99,13 +98,14 @@ class _LoanSummary extends ConsumerState<LoanSummary> {
         tenure: widget.loanData?['tenure'],
         intrestRate: intrestRate,
       );
-      print(result);
+      if (!mounted) return;
+      
       String resultMessage = result["message"] ?? "Loan Applied successfully";
       _showSnackBar(resultMessage, isError: false);
       String loanOfferId = result["data"]["loan_id"] ?? "";
-      print(loanOfferId);
       context.go("/loan-redirect");
     } catch (e) {
+      if (!mounted) return;
       _showSnackBar(
         e.toString().replaceFirst('Exception: ', ''),
         isError: true,

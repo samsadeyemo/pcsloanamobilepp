@@ -83,12 +83,14 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
         newPassword: newPassword,
         confirmNewpassword: confirmPassword,
       );
+      if (!mounted) return;
       context.push('/user-profile');
 
       _showSnackBar(result["message"], isError: false);
 
       _formKey.currentState?.reset();
     } catch (e) {
+      if (!mounted) return;
       _showSnackBar(
         "Password must contain at least one uppercase letter, one lowercase letter, one special character, and be at least 6 characters long.",
         isError: true,

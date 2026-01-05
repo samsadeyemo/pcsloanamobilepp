@@ -19,21 +19,22 @@ class _TransactionPinScreen extends ConsumerState<TransactionPinScreen> {
   final _authService = AuthService();
 
 
-  void _showSnackBar(String message, {bool isError = false}) {
+void _showSnackBar(String message, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
         backgroundColor: isError ? Colors.red : Colors.green,
       ),
     );
-  }
+}
 
   String pin = "";
   String confirmPin = "";
 
-  Future<void> _createPin() async {
+Future<void> _createPin() async {
     FocusScope.of(context).unfocus();
     final data = await LocalStorage.getUser();
+    if (!mounted) return;
     final employeeId = data?['user']?['employee_id'] ?? '';
     if (employeeId == '') return;
     if (pin == confirmPin) {
@@ -44,13 +45,16 @@ class _TransactionPinScreen extends ConsumerState<TransactionPinScreen> {
             pin: pin,
             confirmPin: confirmPin,
           );
+          if (!mounted) return;
           String resultMessage =
               result["message"] ?? "Transaction PIN created successfully";
           _showSnackBar(resultMessage, isError: false);
           await LocalStorage.setPinCreated(true);
+           if (!mounted) return;
           setState(() => _verifying = false);
           context.go("/account-created-screen");
         } catch (e) {
+          if (!mounted) return;
          _showSnackBar(
           e.toString().replaceFirst('Exception: ', ''),
           isError: true,
@@ -60,7 +64,7 @@ class _TransactionPinScreen extends ConsumerState<TransactionPinScreen> {
     }else {
       _showSnackBar("Pins do not match", isError: true);
     }
-  }
+}
 
   @override
   Widget build(BuildContext context) {

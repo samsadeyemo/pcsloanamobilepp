@@ -277,8 +277,11 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
     try {
       // Check if device supports biometrics
       final isSupported = await _auth.isDeviceSupported();
+      if (!mounted) return;
       final canCheck = await _auth.canCheckBiometrics;
+      if (!mounted) return;
       final types = await _auth.getAvailableBiometrics();
+      if (!mounted) return;
       
       final available = isSupported && canCheck && types.isNotEmpty;
       
@@ -313,15 +316,7 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
       return;
     }
 
-    // Check if user has logged in before
-    // final hasLoginBefore = await LocalStorage.hasLoginBefore();
-    // if (!hasLoginBefore) {
-    //   _showSnackBar(
-    //     'Please login at least once before enabling biometric authentication',
-    //     isError: true,
-    //   );
-    //   return;
-    // }
+    
 
     if (value) {
       // User wants to ENABLE biometric - verify it works first
@@ -340,12 +335,14 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
         if (authenticated) {
           // Save the preference
           await LocalStorage.setBiometricEnabled(true);
+          if (!mounted) return;
           setState(() => _isBiometricEnabled = true);
           _showSnackBar('Biometric login enabled successfully',isError: false);
         } else {
           _showSnackBar('Authentication failed. Biometric not enabled', isError: true);
         }
       } catch (e) {
+        if (!mounted) return;
         debugPrint('Biometric auth error: $e');
         if (mounted) {
           _showSnackBar('Failed to enable biometric: $e', isError: true);
@@ -354,6 +351,7 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
     } else {
       // User wants to DISABLE biometric - just save preference
       await LocalStorage.setBiometricEnabled(false);
+      if (!mounted) return;
       setState(() => _isBiometricEnabled = false);
       _showSnackBar('Biometric login disabled');
     }

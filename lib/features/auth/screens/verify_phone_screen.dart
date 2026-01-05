@@ -46,9 +46,10 @@ class _VerifyPhoneScreenState extends ConsumerState<VerifyPhoneScreen> {
 
   Future<void> _loadPhoneNumberOnce() async {
     final data = await LocalStorage.getUser();
+     if (!mounted) return;
     final phoneNumber = data?['user']?['phone'] ?? '';
 
-    if (!mounted) return;
+    
     setState(() {
       _phoneNumber = phoneNumber;
       _isLoading = false;
@@ -65,12 +66,15 @@ class _VerifyPhoneScreenState extends ConsumerState<VerifyPhoneScreen> {
         otp: _otpCode,
         phone: _phoneNumber,
       );
+      if (!mounted) return;
       await LocalStorage.setPhoneVerified(true);
+      if (!mounted) return;
       String resultMessage =
           result["message"] ?? "Phone number verified successfully";
       _showSnackBar(resultMessage, isError: false);
       context.go('/create-password');
     } catch (e) {
+       if (!mounted) return;
       _showSnackBar(
         e.toString().replaceFirst('Exception: ', ''),
         isError: true,
@@ -92,14 +96,17 @@ class _VerifyPhoneScreenState extends ConsumerState<VerifyPhoneScreen> {
 
   Future<bool> _attemptResend() async {
     final data = await LocalStorage.getUser();
+    if (!mounted) return false;
     final employeeId = data?['user']?['employee_id'] ?? '';
     if (employeeId == "") return false;
     try {
       final result = await _authService.resendVerificationCode(employeeId);
+      if (!mounted) return false;
       String resultMessage = result["message"] ?? "OTP resent successfully";
       _showSnackBar(resultMessage, isError: false);
       return true;
     } catch (e) {
+       if (!mounted) return false;
       _showSnackBar(
         e.toString().replaceFirst('Exception: ', ''),
         isError: true,
@@ -115,7 +122,6 @@ class _VerifyPhoneScreenState extends ConsumerState<VerifyPhoneScreen> {
     });
 
     final success = await _attemptResend();
-
     if (!mounted) return;
     if (success) {
       // hide resend button and restart timer

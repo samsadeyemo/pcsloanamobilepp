@@ -29,8 +29,6 @@ class _LoanStatusScreenState extends ConsumerState<LoanStatusScreen> {
     _timer = Timer(const Duration(seconds: 2), () {
       if (mounted) {
         debugPrint('Timer fired - navigating to LoanSummary');
-        print("recieved and sending");
-        print(widget.loanData);
         context.replace('/loan-summary', extra: widget.loanData);
       } else {
         debugPrint('Widget not mounted - skipping navigation');

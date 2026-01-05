@@ -26,8 +26,9 @@ class _LoanRedirectScreenState extends ConsumerState<LoanRedirectScreen> {
 
     try {
       final dashboardData = await _loanService.getUserDashboard();
-      final hasActiveLoan = dashboardData['data']['hasloans'] as bool? ?? false;
       if (!mounted) return;
+      final hasActiveLoan = dashboardData['data']['hasloans'] as bool? ?? false;
+      
 
       if (hasActiveLoan) {
         // print(dashboardData);
@@ -49,8 +50,9 @@ class _LoanRedirectScreenState extends ConsumerState<LoanRedirectScreen> {
         context.go("/no-loan");
       }
     } catch (e) {
-      debugPrint('❌ Error fetching dashboard data: $e');
       if (!mounted) return;
+      debugPrint('❌ Error fetching dashboard data: $e');
+      
       // Fallback to local storage check
       final hasLoan = await LocalStorage.hasLoan();
       if (!mounted) return;

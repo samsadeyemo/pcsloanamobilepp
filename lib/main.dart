@@ -17,7 +17,9 @@ final tokenStorage = TokenStorage();
 late final ApiClient apiClient;
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: ".env");
+  // await dotenv.load(fileName: ".env");
+  await dotenv.load(fileName: ".env", isOptional: true);
+
   final sharedPreferences = await SharedPreferences.getInstance();
 
    SessionManager().init(); 

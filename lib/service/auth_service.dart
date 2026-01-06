@@ -198,5 +198,21 @@ Future<Map<String, dynamic>> refreshToken() async {
     );
   }
 
+  Future<Map<String, dynamic>> resetPassword({
+    required String otp,
+    required String newPassword,
+    required String confirmNewpassword
+  }) async {
+    return await apiClient.post(
+      '/auth/reset-password',
+      body: {
+        'otp': otp,
+        "new_password": newPassword,
+        "confirm_new_password": confirmNewpassword
+        },
+      includeXApiKey: true,
+    );
+  }
+
 }
 

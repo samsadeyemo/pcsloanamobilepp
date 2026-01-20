@@ -30,6 +30,7 @@ import 'package:pcsloan/features/profile/presentation/profile_screen.dart';
 import 'package:pcsloan/features/profile/presentation/security_settings.dart';
 import 'package:pcsloan/features/profile/presentation/support_screen.dart';
 import 'package:pcsloan/main.dart';
+import 'package:pcsloan/smile_id_test_screen.dart';
 import '../../features/splash/presentation/splash_screen.dart';
 import '../../features/onboarding/presentation/onboarding_screen.dart';
 
@@ -117,7 +118,7 @@ final GoRouter router = GoRouter(
     ),
     GoRoute(
       path: '/facial-verification-screen',
-      builder: (context, state) => const FacialVerificationScreen(),
+      builder: (context, state) => const SmileIDVerificationScreen(),
     ),
     GoRoute(
       path: '/debit-authorization-screen',
@@ -165,7 +166,11 @@ final GoRouter router = GoRouter(
     GoRoute(
       path: "/change-pin",
       builder: (content, state) => ChangePinScreen()
-    )  
+    ),
+    GoRoute(
+      path: "/smileid/verification",
+      builder: (content, state) => SmileIDTestScreen()
+      )
     
   ],
 );

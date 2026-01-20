@@ -93,7 +93,7 @@ class _ApplyForLoan extends ConsumerState<ApplyForLoan> {
     } catch (e) {
       if (!mounted) return;
       _showSnackBar(
-        e.toString().replaceFirst('Exception: ', ''),
+        e.toString().replaceFirst('Error: ', ''),
         isError: true,
       );
     } finally {

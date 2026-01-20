@@ -66,7 +66,7 @@ class ApiClient {
           ), // Include X-API-Key for refresh
           body: jsonEncode(body),
         )
-        .timeout(const Duration(seconds: 15));
+        .timeout(const Duration(seconds: 30));
 
     final decoded = jsonDecode(response.body);
 
@@ -104,70 +104,10 @@ class ApiClient {
     }
   }
 
-  // Future<Map<String, dynamic>> _handleRequest(
-  //   Future<http.Response> Function() request,
-  //   String path,
-  // ) async {
-  //   try {
-  //     final response = await request();
-  //     final decoded = jsonDecode(response.body);
-
-  //     // Check if it's a 401 Unauthorized
-  //     if (response.statusCode == 401 && !path.contains('/auth/refresh-token')) {
-  //       // If already refreshing, queue this request
-  //       if (_isRefreshing) {
-  //         final completer = Completer<void>();
-  //         _failedQueue.add(completer);
-
-  //         try {
-  //           await completer.future;
-  //           // Retry the request after refresh completes
-  //           return await _handleRequest(request, path);
-  //         } catch (e) {
-  //           onAuthenticationFailed();
-  //           rethrow;
-  //         }
-  //       }
-
-  //       // Start refresh process
-  //       _isRefreshing = true;
-
-  //       try {
-  //         await _refreshToken();
-  //         _processQueue();
-
-  //         // Retry the original request
-  //         return await _handleRequest(request, path);
-  //       } catch (refreshError) {
-  //         _processQueue(error: refreshError);
-  //         await tokenStorage.clearTokens();
-  //         onAuthenticationFailed();
-  //         throw ApiException('Session expired. Please login again.');
-  //       } finally {
-  //         _isRefreshing = false;
-  //       }
-  //     }
-
-  //     // Check for successful response
-  //     if ((response.statusCode == 200 || response.statusCode == 201) &&
-  //         decoded['status'] == 'success') {
-  //       // Save tokens if present in response
-  //       await _saveTokensIfPresent(decoded);
-  //       return decoded;
-  //     } else {
-  //       print(decoded);
-  //       throw ApiException(decoded['message'] ?? 'Request failed');
-  //     }
-  //   } on TimeoutException {
-  //     throw ApiException('Request timed out');
-  //   } catch (e) {
-  //     if (e is ApiException) rethrow;
-  //     throw ApiException('Network error: $e');
-  //   }
-  // }
 Future<Map<String, dynamic>> _handleRequest(
   Future<http.Response> Function() request,
   String path,
+  
 ) async {
   try {
     final response = await request();
@@ -236,7 +176,7 @@ Future<Map<String, dynamic>> _handleRequest(
 
       return await http
           .get(url, headers: headers)
-          .timeout(const Duration(seconds: 15));
+          .timeout(const Duration(seconds: 30));
     }, path);
   }
 
@@ -255,7 +195,7 @@ Future<Map<String, dynamic>> _handleRequest(
 
       return await http
           .post(url, headers: headers, body: jsonEncode(body ?? {}))
-          .timeout(const Duration(seconds: 15));
+          .timeout(const Duration(seconds: 30));
     }, path);
   }
 
@@ -284,7 +224,7 @@ Future<Map<String, dynamic>> _handleRequest(
             headers: headers,
             body: jsonEncode(body ?? {}), // Encode the request body as JSON
           )
-          .timeout(const Duration(seconds: 15)); // Apply a 15-second timeout
+          .timeout(const Duration(seconds: 30)); // Apply a 15-second timeout
     }, path);
   }
 }

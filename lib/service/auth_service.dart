@@ -8,7 +8,6 @@ import 'package:pcsloan/main.dart';
 import 'package:pcsloan/service/api_exception.dart';
 
 class AuthService {
-  final String baseUrl = appConfig.apiBaseUrl;
 
 
   Future<Map<String, dynamic>> fetchEmployee(String employeeNo) async {
@@ -75,11 +74,7 @@ Future<Map<String, dynamic>> createTransactionPin({
     });
   }
 
-  
-
-
-
-Future<Map<String, dynamic>> loginUser({
+  Future<Map<String, dynamic>> loginUser({
   required String phone,
   required String password,
 }) async {

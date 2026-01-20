@@ -13,40 +13,6 @@ class VerifyOtpScreen extends ConsumerStatefulWidget {
 }
 
 class _VerifyOtpScreen extends ConsumerState<VerifyOtpScreen> {
-  //   bool _obscurePassword = true;
-  //   bool _obscurePassword1 = true;
-  //   String password = "";
-  //   String password1 = "";
-  //   String otpCode = "";
-  //   bool _verifying = false;
-
-  // String? _passwordValidator(String? value) {
-  //     if (value == null || value.isEmpty) return "Password cannot be empty";
-  //     if (value.length < 8) return "Password must be at least 8 characters";
-
-  //     final hasLetter = RegExp(r'[A-Za-z]').hasMatch(value);
-  //     final hasNumber = RegExp(r'\d').hasMatch(value);
-  //     final hasSpecial = RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(value);
-
-  //     if (!hasLetter || !hasNumber || !hasSpecial) {
-  //       return "Password must include letters, numbers & special chars";
-  //     }
-
-  //     return null;
-  //   }
-
-  // String? _confirmPasswordValidator(String? value) {
-  //     if (value == null || value.isEmpty) return "Please confirm password";
-  //     if (value != password) return "Passwords do not match";
-  //     return null;
-  //   }
-
-  // Future<void> _resetPassword() async {
-  //   FocusScope.of(context).unfocus();
-  //   setState(() => _verifying = true);
-
-  //   }
-
   final _formKey = GlobalKey<FormState>();
   final _authService = AuthService();
 
@@ -78,6 +44,16 @@ class _VerifyOtpScreen extends ConsumerState<VerifyOtpScreen> {
     return null;
   }
 
+  void _showSnackBar(String message, {bool isError = false}) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Colors.red : Colors.green,
+      ),
+    );
+  }
+
   Future<void> _resetPassword() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -90,17 +66,24 @@ class _VerifyOtpScreen extends ConsumerState<VerifyOtpScreen> {
     setState(() => _verifying = true);
 
     try {
-      await _authService.resetPassword(
+      final result = await _authService.resetPassword(
         otp: otpCode,
         newPassword: password,
         confirmNewpassword: confirmPassword,
       );
 
       if (!mounted) return;
-      context.go('/password-change-success');
+      if (result['status'] == "success") {
+        context.go('/password-change-success');
+      }
+      
     } catch (e) {
       if (!mounted) return;
-      _showError(e.toString().replaceFirst('Exception: ', ''));
+
+      _showSnackBar(
+        e.toString().replaceFirst('Error: ', ''),
+        isError: true,
+      );
     } finally {
       if (mounted) setState(() => _verifying = false);
     }

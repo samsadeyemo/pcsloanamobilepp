@@ -10,21 +10,31 @@ import 'app/routes/app_router.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 
 final tokenStorage = TokenStorage();
 late final ApiClient apiClient;
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // await dotenv.load(fileName: ".env");
-  await dotenv.load(fileName: ".env", isOptional: true);
+  
+  // Try to load .env, but don't fail if it doesn't exist
+  try {
+    await dotenv.load(fileName: ".env");
+    print("✅ .env file loaded successfully");
+  } catch (e) {
+    print("⚠️ .env file not found, using dart-define values");
+    // Initialize dotenv with empty map so dotenv.env doesn't throw errors
+    dotenv.testLoad(fileInput: '');
+  }
 
   final sharedPreferences = await SharedPreferences.getInstance();
 
-   SessionManager().init(); 
-   apiClient = ApiClient(
-    appConfig: appConfig, // This uses the appConfig from app_config.dart
+  SessionManager().init(); 
+  final config = AppConfig.fromEnv();
+  
+  apiClient = ApiClient(
+    appConfig: config,
     tokenStorage: tokenStorage,
     onAuthenticationFailed: () {
       rootNavigatorKey.currentState?.pushNamedAndRemoveUntil(
@@ -33,15 +43,16 @@ Future<void> main() async {
       );
     },
   );
+  
   runApp(
     ProviderScope(
-     
+      overrides: [
+        appConfigProvider.overrideWithValue(config),
+      ],
       child: const MyApp(),
     ),
   );
 }
-
-
 
 class MyApp extends ConsumerWidget {
   const MyApp({super.key});
@@ -55,9 +66,10 @@ class MyApp extends ConsumerWidget {
       routerConfig: router,
       theme: ThemeData(fontFamily: 'Inter'),
       builder: (context, child) {
-        return GestureDetector(
+        return Listener(
           behavior: HitTestBehavior.translucent,
-          onTap: () => SessionManager().onUserActivity(),
+          // onPointerDown catches the very start of any touch (scroll, tap, drag)
+          onPointerDown: (_) => SessionManager().onUserActivity(),
           child: NetworkGuard(child: child ?? const SizedBox()),
         );
       },

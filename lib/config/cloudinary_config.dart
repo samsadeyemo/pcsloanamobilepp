@@ -1,10 +1,22 @@
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+
+
+// class CloudinaryConfig {
+  
+//   static String cloudName = appConfig.cloudinaryCloudName;
+//   static  String apiKey = appConfig.cloudinaryApiKey;
+//   static  String apiSecret = appConfig.cloudinaryApiSecret;
+//   // We might need uploadPreset if using unsigned uploads
+// }
 
 
 class CloudinaryConfig {
-  
-  static String cloudName = dotenv.env['CLOUDINARY_CLOUD_NAME'] ?? '';
-  static  String apiKey = dotenv.env['CLOUDINARY_API_KEY'] ?? '';
-  static  String apiSecret = dotenv.env['CLOUDINARY_API_SECRET'] ?? '';
-  // We might need uploadPreset if using unsigned uploads
+  final String cloudName;
+  final String apiKey;
+  final String apiSecret;
+
+  const CloudinaryConfig({
+    required this.cloudName,
+    required this.apiKey,
+    required this.apiSecret,
+  });
 }

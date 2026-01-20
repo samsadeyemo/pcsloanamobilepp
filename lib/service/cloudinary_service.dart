@@ -5,6 +5,11 @@ import 'package:http/http.dart' as http;
 import 'package:pcsloan/config/cloudinary_config.dart';
 
 class CloudinaryService {
+  
+
+  CloudinaryService(this._config);
+  final CloudinaryConfig _config;
+
   // Upload image to Cloudinary
   Future<String> uploadImage(File imageFile) async {
     try {
@@ -19,7 +24,7 @@ class CloudinaryService {
       
       // Prepare multipart request
       final url = Uri.parse(
-        'https://api.cloudinary.com/v1_1/${CloudinaryConfig.cloudName}/image/upload'
+        'https://api.cloudinary.com/v1_1/${_config.cloudName}/image/upload'
       );
       
       final request = http.MultipartRequest('POST', url);
@@ -32,7 +37,7 @@ class CloudinaryService {
       // Add parameters
       request.fields['public_id'] = publicId;
       request.fields['timestamp'] = timestamp;
-      request.fields['api_key'] = CloudinaryConfig.apiKey;
+      request.fields['api_key'] = _config.apiKey;
       request.fields['signature'] = signature;
       request.fields['folder'] = 'profile_pictures';
       
@@ -69,7 +74,7 @@ class CloudinaryService {
       
       // Prepare request
       final url = Uri.parse(
-        'https://api.cloudinary.com/v1_1/${CloudinaryConfig.cloudName}/image/destroy'
+        'https://api.cloudinary.com/v1_1/${_config.cloudName}/image/destroy'
       );
       
       final response = await http.post(
@@ -77,7 +82,7 @@ class CloudinaryService {
         body: {
           'public_id': publicId,
           'timestamp': timestamp,
-          'api_key': CloudinaryConfig.apiKey,
+          'api_key': _config.apiKey,
           'signature': signature,
         },
       );
@@ -119,7 +124,7 @@ class CloudinaryService {
   
   // Generate signature for upload
   String _generateSignature(String timestamp, String publicId) {
-    final stringToSign = 'folder=profile_pictures&public_id=$publicId&timestamp=$timestamp${CloudinaryConfig.apiSecret}';
+    final stringToSign = 'folder=profile_pictures&public_id=$publicId&timestamp=$timestamp${_config.apiSecret}';
     final bytes = utf8.encode(stringToSign);
     final digest = sha1.convert(bytes);
     return digest.toString();
@@ -127,7 +132,7 @@ class CloudinaryService {
   
   // Generate signature for deletion
   String _generateDeleteSignature(String timestamp, String publicId) {
-    final stringToSign = 'public_id=$publicId&timestamp=$timestamp${CloudinaryConfig.apiSecret}';
+    final stringToSign = 'public_id=$publicId&timestamp=$timestamp${_config.apiSecret}';
     final bytes = utf8.encode(stringToSign);
     final digest = sha1.convert(bytes);
     return digest.toString();

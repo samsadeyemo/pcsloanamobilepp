@@ -4,11 +4,13 @@ import 'package:intl/intl.dart';
 class AnimatedPendingLoan extends StatefulWidget {
   final double amountRequested;
   final String tenure;
+  final bool isKycIncomplete;
 
   const AnimatedPendingLoan({
     Key? key,
     required this.amountRequested,
     required this.tenure,
+    required this.isKycIncomplete,
   }) : super(key: key);
 
   @override
@@ -215,7 +217,9 @@ class _AnimatedPendingLoanState extends State<AnimatedPendingLoan>
               const SizedBox(height: 16),
 
               // Description text
-              Text(
+              Text(widget.isKycIncomplete
+                  ? 'Complete your KYC to proceed with the loan application'
+                  :
                 'Your loan application is being reviewed',
                 textAlign: TextAlign.center,
                 style: TextStyle(

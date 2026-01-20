@@ -6,9 +6,7 @@ import 'package:pcsloan/service/api_exception.dart';
 import 'package:pcsloan/utils/local_storage.dart';
 
 class LoanService {
-  final String baseUrl = appConfig.apiBaseUrl;
-  final String xApiKey = appConfig.xApiKey;
-
+  
 
   Future<List<dynamic>> fetchApplicationLoanData() async {
   final applicationLoanData = await apiClient.get(

@@ -34,6 +34,7 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
   String nextRepaymentDate = "";
   bool showPending = false;
   String changeLoanTalk = "";
+  bool showKyc = false;
 
   @override
   void initState() {
@@ -44,6 +45,7 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
 
   void _loadDash() {
     final data = widget.dashData;
+    print(data);
     if (data != null) {
       setState(() {
         loanStatus = data['loanStatus'] ?? "";
@@ -57,7 +59,11 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
         recentTransactions = data['recentTransactions'] ?? [];
         nextRepaymentDate = data['nextRepaymentDate'] ?? "";
         if (data['loanStatus'] == "PENDING_DISBURSEMENT") {
-          showPending = true;
+          showKyc = true;
+          changeLoanTalk = "Pending";
+        }
+        else if (data['loanStatus'] == "PENDING_APPROVAL"){
+            showPending = true;
           changeLoanTalk = "Pending";
         }
       });
@@ -70,7 +76,6 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
       if (!mounted) return;
       final name = data?['first_name']?.toString().trim();
       final profileUrl = data?['profile_picture'];
-
 
       setState(() {
         _imageUrl = (profileUrl?.isNotEmpty ?? false) ? profileUrl : null;
@@ -118,13 +123,15 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Show LoanReviewCard only when showPending is true
-                if (showPending) LoanReviewCard(),
+                if (showPending) LoanReviewCard(status: 'review'),
+                if (showKyc) LoanReviewCard(status: 'verification'),
 
                 // Purple Loan Card - Always show
-                showPending
+                showPending || showKyc
                     ? AnimatedPendingLoan(
                       amountRequested: amountRequested,
                       tenure: tenure,
+                      isKycIncomplete: showKyc,
                     )
                     : Card(
                       elevation: 6,
@@ -260,7 +267,7 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
                     ),
 
                 // Show everything below only when showPending is false
-                if (!showPending) ...[
+                if (!showPending && !showKyc) ...[
                   SizedBox(height: 20),
                   Text(
                     "Quick Actions",

@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:pcsloan/common/widgets/custom_loan_app_bar.dart';
 import 'package:pcsloan/common/widgets/custom_profile_app_bar.dart';
 import 'package:pcsloan/service/cloudinary_service.dart';
+import 'package:pcsloan/service/cloudinary_service_provider.dart';
 import 'package:pcsloan/service/profile_sevice.dart';
 import 'package:pcsloan/utils/local_storage.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -23,7 +24,7 @@ class _personalInformationScreenState
     extends ConsumerState<PersonalInformationScreen> {
   bool _fetching = false;
   bool _isUploadingProfilePicture = false;
-  final _cloudinaryService = CloudinaryService();
+late CloudinaryService _cloudinaryService;
   final _profileService = ProfileService();
   String userName = "";
   String email = "";
@@ -37,7 +38,9 @@ class _personalInformationScreenState
   @override
   void initState() {
     super.initState();
+    _cloudinaryService = ref.read(cloudinaryServiceProvider);
     _loadPersonalInformation();
+
   }
 
   void _showSnackBar(String message, {bool isError = false}) {

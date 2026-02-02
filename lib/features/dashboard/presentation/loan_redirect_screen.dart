@@ -58,7 +58,7 @@ class _LoanRedirectScreenState extends ConsumerState<LoanRedirectScreen> {
       if (!mounted) return;
 
       if (hasLoan) {
-        context.go("/active-loan");
+        context.go('/loan-redirect');
       } else {
         context.go("/no-loan");
       }

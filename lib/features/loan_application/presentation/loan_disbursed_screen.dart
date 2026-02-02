@@ -440,7 +440,7 @@ class _LoanDisbursedScreen extends ConsumerState<LoanDisbursedScreen> {
                     height: 50,
                     child: ElevatedButton(
                       onPressed: () {
-                        context.go('/active-loan');
+                        context.go('/loan-redirect');
                       },
                       style: ElevatedButton.styleFrom(
                         padding: EdgeInsets.zero,

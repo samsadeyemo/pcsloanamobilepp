@@ -93,75 +93,75 @@ class ApiClient {
           refreshToken: refreshToken,
         );
       } else if (accessToken != null) {
-                print("second condition was executed 👼");
+        print("second condition was executed 👼");
 
         await tokenStorage.saveAccessToken(accessToken);
       } else if (refreshToken != null) {
-                print("third condition was executed 👼");
+        print("third condition was executed 👼");
 
         await tokenStorage.saveRefreshToken(refreshToken);
       }
     }
   }
 
-Future<Map<String, dynamic>> _handleRequest(
-  Future<http.Response> Function() request,
-  String path,
-  
-) async {
-  try {
-    final response = await request();
-    final decoded = jsonDecode(response.body);
+  Future<Map<String, dynamic>> _handleRequest(
+    Future<http.Response> Function() request,
+    String path,
+  ) async {
+    try {
+      final response = await request();
+      final decoded = jsonDecode(response.body);
 
-    // Check if it's a 401 Unauthorized
-    if (response.statusCode == 401 && !path.contains('/auth/refresh-token')) {
-      // If already refreshing, queue this request
-      if (_isRefreshing) {
-        final completer = Completer<void>();
-        _failedQueue.add(completer);
+      // Check if it's a 401 Unauthorized
+      if (response.statusCode == 401 && !path.contains('/auth/refresh-token')) {
+        // If already refreshing, queue this request
+        if (_isRefreshing) {
+          final completer = Completer<void>();
+          _failedQueue.add(completer);
+
+          try {
+            await completer.future;
+            return await _handleRequest(request, path);
+          } catch (e) {
+            rethrow;
+          }
+        }
+
+        // Start refresh process
+        _isRefreshing = true;
 
         try {
-          await completer.future;
+          await _refreshToken();
+          _processQueue();
           return await _handleRequest(request, path);
-        } catch (e) {
-          rethrow;
+        } catch (refreshError) {
+          _processQueue(error: refreshError);
+
+          // 🔥 ONLY navigate to login, DON'T clear tokens
+          onAuthenticationFailed();
+
+          throw ApiException('Session expired. Please login again.');
+        } finally {
+          _isRefreshing = false;
         }
       }
 
-      // Start refresh process
-      _isRefreshing = true;
-
-      try {
-        await _refreshToken();
-        _processQueue();
-        return await _handleRequest(request, path);
-      } catch (refreshError) {
-        _processQueue(error: refreshError);
-        
-        // 🔥 ONLY navigate to login, DON'T clear tokens
-        onAuthenticationFailed();
-        
-        throw ApiException('Session expired. Please login again.');
-      } finally {
-        _isRefreshing = false;
+      // Check for successful response
+      if ((response.statusCode == 200 || response.statusCode == 201) &&
+          decoded['status'] == 'success') {
+        await _saveTokensIfPresent(decoded);
+        return decoded;
+      } else {
+        throw ApiException(decoded['message'] ?? 'Request failed');
       }
+    } on TimeoutException {
+      throw ApiException('Request timed out');
+    } catch (e) {
+      if (e is ApiException) rethrow;
+      throw ApiException('Network error: $e');
     }
-
-    // Check for successful response
-    if ((response.statusCode == 200 || response.statusCode == 201) &&
-        decoded['status'] == 'success') {
-      await _saveTokensIfPresent(decoded);
-      return decoded;
-    } else {
-      throw ApiException(decoded['message'] ?? 'Request failed');
-    }
-  } on TimeoutException {
-    throw ApiException('Request timed out');
-  } catch (e) {
-    if (e is ApiException) rethrow;
-    throw ApiException('Network error: $e');
   }
-}
+
   Future<Map<String, dynamic>> get(
     String path, {
     bool includeXApiKey = false,
@@ -226,5 +226,44 @@ Future<Map<String, dynamic>> _handleRequest(
           )
           .timeout(const Duration(seconds: 30)); // Apply a 15-second timeout
     }, path);
+  }
+
+  // Add this NEW method to your ApiClient class (keep existing get method as is)
+  Future<List<dynamic>> getList(
+    String path, {
+    bool includeXApiKey = false,
+  }) async {
+    try {
+      final token = await tokenStorage.getAccessToken();
+      final url = _buildUrl(path);
+      final headers = _buildHeaders(
+        token: token,
+        includeXApiKey: includeXApiKey,
+      );
+
+      final response = await http
+          .get(url, headers: headers)
+          .timeout(const Duration(seconds: 30));
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final decoded = jsonDecode(response.body);
+        if (decoded is List) {
+          return decoded;
+        } else {
+          throw ApiException(
+            'Expected List response but got ${decoded.runtimeType}',
+          );
+        }
+      } else {
+        throw ApiException(
+          'Request failed with status: ${response.statusCode}',
+        );
+      }
+    } on TimeoutException {
+      throw ApiException('Request timed out');
+    } catch (e) {
+      if (e is ApiException) rethrow;
+      throw ApiException('Network error: $e');
+    }
   }
 }

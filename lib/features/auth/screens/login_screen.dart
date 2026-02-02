@@ -679,7 +679,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           style: TextStyle(
                             fontFamily: "Inter",
                             color: Color(0xff4B5563),
-                            fontSize: 14,
+                            fontSize: 12,
                           ),
                         ),
                         TextButton(
@@ -689,7 +689,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           child: Text(
                             "Create an Account",
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: 12,
                               color: Color(0xffA198FF),
                               fontFamily: "Inter",
                             ),

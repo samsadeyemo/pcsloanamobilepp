@@ -184,7 +184,7 @@ class GetStartedScreen extends StatelessWidget {
                     padding: const EdgeInsets.only(bottom: 80),
                     child: Text(
                       "By continuing, you agree to our",
-                      style: TextStyle(fontSize: 14, fontFamily: "Inter"),
+                      style: TextStyle(fontSize: 12, fontFamily: "Inter", fontWeight: FontWeight.w500),
                     ),
                   ),
                 ),
@@ -200,7 +200,7 @@ class GetStartedScreen extends StatelessWidget {
                       child: Text(
                         "Terms of Service and Privacy Policy",
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: 12,
                           color: Color(0xffA198FF),
                           fontFamily: "Inter",
                         ),
@@ -223,7 +223,7 @@ class GetStartedScreen extends StatelessWidget {
                           style: TextStyle(
                             fontFamily: "Inter",
                             color: Color(0xff4B5563),
-                            fontSize: 14,
+                            fontSize: 12,
                           ),
                         ),
                       ],

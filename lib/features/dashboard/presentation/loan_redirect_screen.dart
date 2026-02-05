@@ -67,6 +67,8 @@ class _LoanRedirectScreenState extends ConsumerState<LoanRedirectScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    return const Scaffold(
+      backgroundColor: Colors.white,
+      body: Center(child: CircularProgressIndicator(color: Color(0xff7C70DF),)));
   }
 }

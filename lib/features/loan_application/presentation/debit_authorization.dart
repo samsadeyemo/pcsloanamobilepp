@@ -409,78 +409,89 @@ class _DebitAuthorizationScreen
                           ),
 
                         if (_verificationStatus != null && !_verifying)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 16),
-                            child: Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color:
-                                    _verificationStatus == 'success'
-                                        ? const Color(
-                                          0xffA198FF,
-                                        ).withOpacity(0.1)
-                                        : Colors.red.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color:
-                                      _verificationStatus == 'success'
-                                          ? const Color(0xff7C70DF)
-                                          : Colors.red,
-                                  width: 1.5,
-                                ),
-                              ),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Icon(
-                                    _verificationStatus == 'success'
-                                        ? Icons.check_circle
-                                        : Icons.error,
+                          Builder(
+                            builder: (context) {
+                              final isSuccess =
+                                  _verificationStatus == 'success';
+
+                              return Padding(
+                                padding: const EdgeInsets.only(top: 16),
+                                child: Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
                                     color:
-                                        _verificationStatus == 'success'
-                                            ? const Color(0xff7C70DF)
-                                            : Colors.red,
-                                    size: 24,
+                                        isSuccess
+                                            ? const Color(
+                                              0xFFE0F7FA,
+                                            ) // Light cyan background
+                                            : Colors.red.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(12),
                                   ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        if (_accountName != null)
-                                          Text(
-                                            _accountName!,
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w600,
-                                              color:
-                                                  _verificationStatus ==
-                                                          'success'
-                                                      ? const Color(0xff0F2D62)
-                                                      : Colors.red[900],
-                                            ),
-                                          ),
-                                        if (_accountName != null)
-                                          const SizedBox(height: 4),
-                                        Text(
-                                          _verificationMessage ?? '',
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w400,
-                                            color:
-                                                _verificationStatus == 'success'
-                                                    ? const Color(0xff0F2D62)
-                                                    : Colors.red[700],
-                                          ),
+                                  child: Row(
+                                    children: [
+                                      // Circular icon with purple background
+                                      Container(
+                                        width: 48,
+                                        height: 48,
+                                        decoration: BoxDecoration(
+                                          color:
+                                              isSuccess
+                                                  ? const Color(
+                                                    0xFF9C8CFF,
+                                                  ) // Purple color
+                                                  : Colors.red,
+                                          shape: BoxShape.circle,
                                         ),
-                                      ],
-                                    ),
+                                        child: Icon(
+                                          isSuccess ? Icons.check : Icons.error,
+                                          color: Colors.white,
+                                          size: 24,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 16),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              isSuccess
+                                                  ? 'Verified Account'
+                                                  : 'Verification Failed',
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w500,
+                                                fontFamily: "Inter",
+                                                color:
+                                                    isSuccess
+                                                        ? const Color(
+                                                          0xFF9C8CFF,
+                                                        ) // Purple text
+                                                        : Colors.red[700],
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            if (_accountName != null)
+                                              Text(
+                                                _accountName!,
+                                                style: const TextStyle(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w600,
+                                                  fontFamily: "Inter",
+                                                  color: Color(
+                                                    0xFF000000,
+                                                  ), // Black text
+                                                ),
+                                              ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ],
-                              ),
-                            ),
+                                ),
+                              );
+                            },
                           ),
 
                         const SizedBox(height: 20),
@@ -592,7 +603,8 @@ class _DebitAuthorizationScreen
                         ),
 
                         const SizedBox(height: 20),
-                        const Divider(thickness: 2, color: Color(0xFFE5E7EB)),
+                        const Divider(thickness: 1, color: Color(0xFFE5E7EB)),
+                        const SizedBox(height: 20),
                         SizedBox(
                           width: double.infinity,
                           height: 50,
@@ -656,6 +668,47 @@ class _DebitAuthorizationScreen
                                   : SizedBox(height: 20),
                         ),
                         const SizedBox(height: 20),
+                         SizedBox(
+                          width: double.infinity,
+                          height: 50,
+                          child:
+                        ElevatedButton(
+                          onPressed: () {
+                            context.pop();
+                          },
+                          style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(25),
+                            ),
+                            backgroundColor: Colors.transparent,
+                            shadowColor: Colors.transparent,
+                            disabledBackgroundColor: Colors.grey[300],
+                          ),
+                          child: Ink(
+                            decoration: BoxDecoration(
+                              color: Color(0xFF00B7BD),
+                              borderRadius: BorderRadius.circular(25),
+                            ),
+                            child: Container(
+                              alignment: Alignment.center,
+                              child: 
+                                  Text(
+                                    "Cancel",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      fontFamily: 'Inter',
+                                    ),
+                                  ),
+                                
+                            ),
+                          ),
+                        ),
+                        ),
+                        const SizedBox(height: 20),
+
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: const [

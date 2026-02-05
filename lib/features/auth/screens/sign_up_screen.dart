@@ -164,7 +164,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                   ),
                   const Text(
                     'Please fill in your information below',
-                    style: TextStyle(
+                    style: TextStyle(    
                       fontFamily: 'Inter',
                       fontSize: 14,
                       color: Color(0xff4B5563),

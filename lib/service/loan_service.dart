@@ -60,50 +60,55 @@ class LoanService {
     return await apiClient.get('/users/dashboard', includeXApiKey: true);
   }
 
-  // Future<Map<String, dynamic>> getBankList() async {
-  //   return await apiClient.get('/paystack/banks', includeXApiKey: true);
-  // }
+  
 
   Future<List<dynamic>> getBankList() async {
-  return await apiClient.getList('/paystack/banks', includeXApiKey: true);
-}
-
-// Future<Map<String, dynamic>> verifyBankAccount({
-//     required String accountNumber,
-//     required String bankCode,
-//   }) async {
-//     return await apiClient.post(
-//       '/paystack/banks/resolve',
-//       body: {
-//         "account_number": accountNumber,
-//         "bank_code": bankCode,
-//       },
-//       includeXApiKey: true,
-//     );
-//   }
-
-Future<Map<String, dynamic>> verifyBankAccount({
-  required String accountNumber,
-  required String bankCode,
-}) async {
-  print('📞 Calling verifyBankAccount API');
-  print('📍 Endpoint: /paystack/banks/resolve');
-  print('📦 Payload: {"account_number": "$accountNumber", "bank_code": "$bankCode"}');
-  
-  try {
-    final response = await apiClient.post(
-      '/paystack/banks/resolve',
-      body: {
-        "account_number": accountNumber,
-        "bank_code": bankCode,
-      },
-    );
-    
-    print('✅ API Response received: $response');
-    return response;
-  } catch (e) {
-    print('❌ API Error: $e');
-    rethrow;
+    return await apiClient.getList('/paystack/banks', includeXApiKey: true);
   }
-}
+
+  Future<Map<String, dynamic>> verifyBankAccount({
+    required String accountNumber,
+    required String bankCode,
+  }) async {
+    print('📞 Calling verifyBankAccount API');
+    print('📍 Endpoint: /paystack/banks/resolve');
+    print(
+      '📦 Payload: {"account_number": "$accountNumber", "bank_code": "$bankCode"}',
+    );
+
+    try {
+      final response = await apiClient.post(
+        '/paystack/banks/resolve',
+        body: {"account_number": accountNumber, "bank_code": bankCode},
+      );
+
+      print('✅ API Response received: $response');
+      return response;
+    } catch (e) {
+      print('❌ API Error: $e');
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> linkBankAccount({
+    required String accountNumber,
+    required String bankCode,
+  }) async {
+    try {
+      final response = await apiClient.post(
+        '/users/bank',
+        body: {"account_number": accountNumber, "bank_code": bankCode},
+      );
+
+      print('✅ API Response received: $response');
+      return response;
+    } catch (e) {
+      print('❌ API Error: $e');
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> getUserBvn() async {
+    return await apiClient.get('/users/bvn', includeXApiKey: true);
+  }
 }

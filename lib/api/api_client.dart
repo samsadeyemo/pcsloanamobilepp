@@ -147,10 +147,15 @@ class ApiClient {
       }
 
       // Check for successful response
-      if ((response.statusCode == 200 || response.statusCode == 201) &&
-          decoded['status'] == 'success') {
-        await _saveTokensIfPresent(decoded);
-        return decoded;
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final status = decoded['status'];
+
+        if (status == true || status == 'success') {
+          await _saveTokensIfPresent(decoded);
+          return decoded;
+        } else {
+          throw ApiException(decoded['message'] ?? 'Request failed');
+        }
       } else {
         throw ApiException(decoded['message'] ?? 'Request failed');
       }

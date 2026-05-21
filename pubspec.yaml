@@ -54,6 +54,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   flutter_image_compress: ^2.1.0
   smile_id: ^11.2.5
+  flutter_inappwebview: ^6.0.0
   
 
 dev_dependencies:

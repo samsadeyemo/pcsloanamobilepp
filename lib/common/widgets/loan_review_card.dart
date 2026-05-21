@@ -1,12 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:pcsloan/features/loan_application/presentation/debit_authorization.dart';
 import 'package:pcsloan/features/loan_application/presentation/facial_verification_screen.dart';
 import 'dart:math' as math;
+import 'package:intl/intl.dart';
 
 class LoanReviewCard extends StatefulWidget {
-  final String status; // 'review' or 'verification'
+  final String status; // 'review' | 'verification' | 'cancelled'
+  final double? amountRequested;
+  final String? tenure;
 
-  const LoanReviewCard({super.key, required this.status});
+  const LoanReviewCard({
+    super.key,
+    required this.status,
+    this.amountRequested,
+    this.tenure,
+  });
 
   @override
   State<LoanReviewCard> createState() => _LoanReviewCardState();
@@ -23,7 +30,7 @@ class _LoanReviewCardState extends State<LoanReviewCard>
   @override
   void initState() {
     super.initState();
-    
+
     _pulseController = AnimationController(
       duration: const Duration(milliseconds: 2000),
       vsync: this,
@@ -57,6 +64,36 @@ class _LoanReviewCardState extends State<LoanReviewCard>
   }
 
   bool get isVerification => widget.status == 'verification';
+  bool get isCancelled => widget.status == 'cancelled';
+
+  // Gradient colors based on status
+  List<Color> get _gradientColors {
+    if (isCancelled) {
+      return [
+        const Color(0xffC0392B),
+        const Color(0xffE74C3C),
+      ];
+    }
+    if (isVerification) {
+      return [
+        const Color(0xff7C70DF),
+        const Color(0xffA78BFA),
+      ];
+    }
+    return [
+      const Color(0xff7C70DF),
+      const Color(0xff9D8FE8),
+    ];
+  }
+
+  String formatCurrency(double amount) {
+    final formatter = NumberFormat.currency(
+      locale: 'en_NG',
+      symbol: '₦',
+      decimalDigits: 2,
+    );
+    return formatter.format(amount);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -73,17 +110,19 @@ class _LoanReviewCardState extends State<LoanReviewCard>
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xff7C70DF).withOpacity(
-                        _pulseAnimation.value * 0.25,
-                      ),
+                      color: (isCancelled
+                              ? const Color(0xffE74C3C)
+                              : const Color(0xff7C70DF))
+                          .withOpacity(_pulseAnimation.value * 0.25),
                       blurRadius: 20,
                       spreadRadius: 2,
                     ),
-                    if (isVerification)
+                    if (isVerification || isCancelled)
                       BoxShadow(
-                        color: const Color(0xffA78BFA).withOpacity(
-                          _pulseAnimation.value * 0.15,
-                        ),
+                        color: (isCancelled
+                                ? const Color(0xffFC8181)
+                                : const Color(0xffA78BFA))
+                            .withOpacity(_pulseAnimation.value * 0.15),
                         blurRadius: 25,
                         spreadRadius: 1,
                       ),
@@ -97,15 +136,7 @@ class _LoanReviewCardState extends State<LoanReviewCard>
           Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: isVerification
-                    ? [
-                        const Color(0xff7C70DF),
-                        const Color(0xffA78BFA),
-                      ]
-                    : [
-                        const Color(0xff7C70DF),
-                        const Color(0xff9D8FE8),
-                      ],
+                colors: _gradientColors,
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -119,12 +150,13 @@ class _LoanReviewCardState extends State<LoanReviewCard>
                   _buildGridPattern(),
 
                   // Shimmer effect
-                  if (isVerification) _buildShimmerEffect(),
+                  if (isVerification || isCancelled) _buildShimmerEffect(),
 
                   // Content
                   Padding(
                     padding: const EdgeInsets.all(16),
                     child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildIconSection(),
                         const SizedBox(width: 12),
@@ -215,8 +247,7 @@ class _LoanReviewCardState extends State<LoanReviewCard>
           child: Stack(
             alignment: Alignment.center,
             children: [
-              // Rotating ring
-              if (isVerification)
+              if (isVerification || isCancelled)
                 AnimatedBuilder(
                   animation: _rotateController,
                   builder: (context, child) {
@@ -236,13 +267,14 @@ class _LoanReviewCardState extends State<LoanReviewCard>
                     );
                   },
                 ),
-              // Icon
               Transform.scale(
                 scale: _pulseAnimation.value,
                 child: Icon(
-                  isVerification
-                      ? Icons.verified_rounded
-                      : Icons.pending_outlined,
+                  isCancelled
+                      ? Icons.cancel_rounded
+                      : isVerification
+                          ? Icons.verified_rounded
+                          : Icons.pending_outlined,
                   color: Colors.white,
                   size: 22,
                 ),
@@ -279,7 +311,11 @@ class _LoanReviewCardState extends State<LoanReviewCard>
         ),
         const SizedBox(width: 8),
         Text(
-          isVerification ? 'APPROVED' : 'UNDER REVIEW',
+          isCancelled
+              ? 'CANCELLED'
+              : isVerification
+                  ? 'APPROVED'
+                  : 'UNDER REVIEW',
           style: const TextStyle(
             fontSize: 10,
             fontWeight: FontWeight.w700,
@@ -293,6 +329,73 @@ class _LoanReviewCardState extends State<LoanReviewCard>
   }
 
   Widget _buildContent() {
+    if (isCancelled) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Your loan application has been cancelled. Please contact our support team to resolve this issue.',
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.white.withOpacity(0.9),
+              height: 1.4,
+              fontFamily: 'Inter',
+            ),
+          ),
+          if (widget.amountRequested != null || widget.tenure != null) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (widget.amountRequested != null) ...[
+                    const Icon(Icons.monetization_on_outlined,
+                        color: Colors.white70, size: 13),
+                    const SizedBox(width: 4),
+                    Text(
+                      formatCurrency(widget.amountRequested!),
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                        fontFamily: 'Inter',
+                      ),
+                    ),
+                  ],
+                  if (widget.amountRequested != null && widget.tenure != null)
+                    Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 8),
+                      width: 1,
+                      height: 12,
+                      color: Colors.white38,
+                    ),
+                  if (widget.tenure != null) ...[
+                    const Icon(Icons.calendar_today_outlined,
+                        color: Colors.white70, size: 13),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${widget.tenure} Months',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                        fontFamily: 'Inter',
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ],
+      );
+    }
+
     return Text(
       isVerification
           ? 'Complete your biometric verification to unlock your funds'
@@ -307,6 +410,82 @@ class _LoanReviewCardState extends State<LoanReviewCard>
   }
 
   Widget _buildActionSection() {
+    if (isCancelled) {
+      return Row(
+        children: [
+          // Try Again button
+          Expanded(
+            child: GestureDetector(
+              onTap: () {
+                // TODO: Route to loan application
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 9),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.refresh_rounded,
+                        color: Color(0xffC0392B), size: 15),
+                    SizedBox(width: 5),
+                    Text(
+                      'Try Again',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xffC0392B),
+                        fontFamily: 'Inter',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          // Contact Support button
+          Expanded(
+            child: GestureDetector(
+              onTap: () {
+                // TODO: Route to support / open contact screen
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 9),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.4),
+                    width: 1,
+                  ),
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.headset_mic_rounded,
+                        color: Colors.white, size: 15),
+                    SizedBox(width: 5),
+                    Text(
+                      'Get Support',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                        fontFamily: 'Inter',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
     if (isVerification) {
       return AnimatedBuilder(
         animation: _pulseAnimation,
@@ -315,27 +494,20 @@ class _LoanReviewCardState extends State<LoanReviewCard>
             onTap: () {
               Navigator.push(
                 context,
-                // MaterialPageRoute(
-                //   builder: (context) => SmileIDVerificationScreen(),
-                // ),
                 MaterialPageRoute(
-                  builder: (context) => DebitAuthorizationScreen(),
+                  builder: (context) => SmileIDVerificationScreen(),
                 ),
               );
             },
             child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 14,
-                vertical: 10,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.white.withOpacity(
-                      _pulseAnimation.value * 0.4,
-                    ),
+                    color: Colors.white
+                        .withOpacity(_pulseAnimation.value * 0.4),
                     blurRadius: 12,
                     spreadRadius: 1,
                   ),
@@ -344,11 +516,8 @@ class _LoanReviewCardState extends State<LoanReviewCard>
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(
-                    Icons.fingerprint_rounded,
-                    color: Color(0xff7C70DF),
-                    size: 18,
-                  ),
+                  const Icon(Icons.fingerprint_rounded,
+                      color: Color(0xff7C70DF), size: 18),
                   const SizedBox(width: 8),
                   const Text(
                     'Start Verification',
@@ -363,11 +532,8 @@ class _LoanReviewCardState extends State<LoanReviewCard>
                   const SizedBox(width: 4),
                   Transform.scale(
                     scale: _pulseAnimation.value,
-                    child: const Icon(
-                      Icons.arrow_forward_rounded,
-                      color: Color(0xff7C70DF),
-                      size: 16,
-                    ),
+                    child: const Icon(Icons.arrow_forward_rounded,
+                        color: Color(0xff7C70DF), size: 16),
                   ),
                 ],
               ),
@@ -385,11 +551,8 @@ class _LoanReviewCardState extends State<LoanReviewCard>
             color: Colors.white.withOpacity(0.2),
             shape: BoxShape.circle,
           ),
-          child: const Icon(
-            Icons.schedule_rounded,
-            color: Colors.white,
-            size: 14,
-          ),
+          child: const Icon(Icons.schedule_rounded,
+              color: Colors.white, size: 14),
         ),
         const SizedBox(width: 8),
         Expanded(

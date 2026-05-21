@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:pcsloan/common/widgets/custom_profile_app_bar.dart';
 
 class SupportScreen extends ConsumerStatefulWidget {
@@ -110,35 +111,35 @@ class _SupportScreenState extends ConsumerState<SupportScreen> {
                       icon: Icons.help_outline,
                       title: 'Frequently asked questions',
                       iconColor: const Color(0xFF7C70DF),
-                      onTap: () => _handleSupportOption('FAQ'),
+                      onTap: () => context.push('/faq'),
                     ),
                     const SizedBox(height: 12),
 
                     // Speak directly with an agent
-                    _buildSupportOptionCard(
-                      icon: Icons.phone_outlined,
-                      title: 'Speak directly with an agent',
-                      iconColor: const Color(0xFF7C70DF),
-                      onTap: () => _handleSupportOption('Speak with agent'),
-                    ),
-                    const SizedBox(height: 12),
+                    // _buildSupportOptionCard(
+                    //   icon: Icons.phone_outlined,
+                    //   title: 'Speak directly with an agent',
+                    //   iconColor: const Color(0xFF7C70DF),
+                    //   onTap: () => _handleSupportOption('Speak with agent'),
+                    // ),
+                    // const SizedBox(height: 12),
 
-                    // Send us an email
-                    _buildSupportOptionCard(
-                      icon: Icons.email_outlined,
-                      title: 'Send us an email',
-                      iconColor: const Color(0xFF7C70DF),
-                      onTap: () => _handleSupportOption('Send email'),
-                    ),
-                    const SizedBox(height: 12),
+                    // // Send us an email
+                    // _buildSupportOptionCard(
+                    //   icon: Icons.email_outlined,
+                    //   title: 'Send us an email',
+                    //   iconColor: const Color(0xFF7C70DF),
+                    //   onTap: () => _handleSupportOption('Send email'),
+                    // ),
+                    // const SizedBox(height: 12),
 
-                    // Book a call at your convenience
-                    _buildSupportOptionCard(
-                      icon: Icons.calendar_today_outlined,
-                      title: 'Book a call at your convenience',
-                      iconColor: const Color(0xFF7C70DF),
-                      onTap: () => _handleSupportOption('Book a call'),
-                    ),
+                    // // Book a call at your convenience
+                    // _buildSupportOptionCard(
+                    //   icon: Icons.calendar_today_outlined,
+                    //   title: 'Book a call at your convenience',
+                    //   iconColor: const Color(0xFF7C70DF),
+                    //   onTap: () => _handleSupportOption('Book a call'),
+                    // ),
 
                     const SizedBox(height: 32),
 
@@ -184,12 +185,12 @@ class _SupportScreenState extends ConsumerState<SupportScreen> {
                                 onTap: () => _handleContactMethod('Email'),
                               ),
                               const SizedBox(width: 20),
-                              _buildContactButton(
-                                icon: Icons.chat,
-                                label: 'WhatsApp',
-                                color: const Color(0xFF25D366),
-                                onTap: () => _handleContactMethod('WhatsApp'),
-                              ),
+                              // _buildContactButton(
+                              //   icon: Icons.chat,
+                              //   label: 'WhatsApp',
+                              //   color: const Color(0xFF25D366),
+                              //   onTap: () => _handleContactMethod('WhatsApp'),
+                              // ),
                             ],
                           ),
                           const SizedBox(height: 20),

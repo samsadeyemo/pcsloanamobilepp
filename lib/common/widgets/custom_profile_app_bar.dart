@@ -14,7 +14,7 @@ class CustomProfileAppBar extends StatelessWidget implements PreferredSizeWidget
         child: Center(
           child: GestureDetector(
             onTap: () {
-              context.pop();
+              context.go('/user-profile');
             },
             child: Container(
               width: 36,

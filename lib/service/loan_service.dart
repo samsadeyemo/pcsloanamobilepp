@@ -70,11 +70,6 @@ class LoanService {
     required String accountNumber,
     required String bankCode,
   }) async {
-    print('📞 Calling verifyBankAccount API');
-    print('📍 Endpoint: /paystack/banks/resolve');
-    print(
-      '📦 Payload: {"account_number": "$accountNumber", "bank_code": "$bankCode"}',
-    );
 
     try {
       final response = await apiClient.post(
@@ -95,7 +90,7 @@ class LoanService {
     required String bankCode,
   }) async {
     try {
-      final response = await apiClient.post(
+      final response = await apiClient.put(
         '/users/bank',
         body: {"account_number": accountNumber, "bank_code": bankCode},
       );
@@ -111,4 +106,36 @@ class LoanService {
   Future<Map<String, dynamic>> getUserBvn() async {
     return await apiClient.get('/users/bvn', includeXApiKey: true);
   }
+
+  Future<Map<String, dynamic>> getLoan(String loanId) async {
+    return await apiClient.get('/loans/$loanId', includeXApiKey: true);
+  }
+
+  Future<Map<String, dynamic>> getLoanSchedule(String loanId) async {
+    return await apiClient.get('/loans/schedule/$loanId', includeXApiKey: true);
+  }
+
+  Future<Map<String, dynamic>> payLoan(String loanId, double amount, String schedule_id) async {
+    return await apiClient.post(
+      '/loans/pay',
+      body: {
+        "loan_id": loanId,
+        "amount": amount,
+        "schedule_id": schedule_id,
+        "is_full_payment": false
+      },
+      includeXApiKey: true,
+    );
+  }
+
+  Future<Map<String, dynamic>> payFullLoan(String loanId) async {
+    return await apiClient.post(
+      '/loans/pay',
+      body: {
+        "loan_id": loanId,
+        "is_full_payment": true},
+      includeXApiKey: true,
+    );
+  }
+  
 }

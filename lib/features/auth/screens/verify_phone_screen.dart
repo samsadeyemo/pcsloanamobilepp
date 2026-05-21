@@ -362,6 +362,41 @@ class _VerifyPhoneScreenState extends ConsumerState<VerifyPhoneScreen> {
                 const SizedBox(height: 25),
 
                 // Resend row -- invisible while countdown runs.
+                const SizedBox(height: 25),
+
+// ADD THIS
+Align(
+  alignment: Alignment.bottomCenter,
+  child: Row(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      const Text(
+        "Made a mistake?",
+        style: TextStyle(
+          fontFamily: "Inter",
+          color: Color(0xff4B5563),
+          fontSize: 14,
+        ),
+      ),
+      TextButton(
+        onPressed: () => context.go('/signUp'),
+        style: TextButton.styleFrom(
+          padding: EdgeInsets.zero,
+          minimumSize: const Size(0, 0),
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        ),
+        child: const Text(
+          " Go back to Sign Up",
+          style: TextStyle(
+            fontSize: 14,
+            color: Color(0xffA198FF),
+            fontFamily: "Inter",
+          ),
+        ),
+      ),
+    ],
+  ),
+),
               ],
             ),
           ),

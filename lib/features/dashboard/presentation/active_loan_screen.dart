@@ -535,7 +535,7 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
               size: 20,
             ),
           ),
-          const SizedBox(width: 9),
+          const SizedBox(width: 8),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

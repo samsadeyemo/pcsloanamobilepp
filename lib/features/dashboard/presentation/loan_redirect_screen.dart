@@ -31,7 +31,7 @@ class _LoanRedirectScreenState extends ConsumerState<LoanRedirectScreen> {
       
 
       if (hasActiveLoan) {
-        // print(dashboardData);
+        print(dashboardData);
         context.go(
           "/active-loan",
           extra: {
@@ -44,6 +44,7 @@ class _LoanRedirectScreenState extends ConsumerState<LoanRedirectScreen> {
             "repaymentProgress": dashboardData['data']['repaymentProgress'],
             "recentTransactions": dashboardData['data']['transactions'],
             "nextRepaymentDate": dashboardData['data']['nextPaymentDueDate'],
+            "id": dashboardData['data']['activeLoan']['id'],
           },
         );
       } else {

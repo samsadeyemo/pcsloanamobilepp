@@ -17,7 +17,7 @@ late final ApiClient apiClient;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Try to load .env, but don't fail if it doesn't exist
   try {
     await dotenv.load(fileName: ".env");
@@ -30,25 +30,20 @@ Future<void> main() async {
 
   final sharedPreferences = await SharedPreferences.getInstance();
 
-  SessionManager().init(); 
+  SessionManager().init();
   final config = AppConfig.fromEnv();
-  
+
   apiClient = ApiClient(
     appConfig: config,
     tokenStorage: tokenStorage,
     onAuthenticationFailed: () {
-      rootNavigatorKey.currentState?.pushNamedAndRemoveUntil(
-        '/signIn',
-        (route) => false,
-      );
+      router.go('/signin'); // ✅ use your GoRouter instance directly
     },
   );
-  
+
   runApp(
     ProviderScope(
-      overrides: [
-        appConfigProvider.overrideWithValue(config),
-      ],
+      overrides: [appConfigProvider.overrideWithValue(config)],
       child: const MyApp(),
     ),
   );

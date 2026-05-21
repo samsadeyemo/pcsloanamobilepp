@@ -21,10 +21,12 @@ class _DebitAuthorizationScreen
   final _profileService = ProfileService();
   bool _fetching = false;
   bool _verifying = false;
+  bool _savingBank = false;
+  bool _isBankSaved = false;
   final _loanService = LoanService();
   String accountNumber = "";
   String? _selectedBankName;
-  String? _selectedBankCode;
+  String _selectedBankCode = "";
   List<Map<String, String>> _bankList = [];
   final _accountNumberController = TextEditingController();
 
@@ -134,7 +136,7 @@ class _DebitAuthorizationScreen
     if (result != null && mounted) {
       setState(() {
         _selectedBankName = result['name'];
-        _selectedBankCode = result['code'];
+        _selectedBankCode = result['code']!;
         _verificationStatus = null;
         _verificationMessage = null;
         _accountName = null;
@@ -161,26 +163,13 @@ class _DebitAuthorizationScreen
     });
 
     try {
-      print('=== VERIFICATION START ===');
-      print('Account Number: ${_accountNumberController.text}');
-      print('Bank Code: $_selectedBankCode');
-      print('Bank Name: $_selectedBankName');
-
       final result = await _loanService.verifyBankAccount(
         accountNumber: _accountNumberController.text,
-        bankCode: _selectedBankCode!,
+        bankCode: _selectedBankCode,
       );
-
-      print('=== API RESPONSE ===');
-      print('Result: $result');
-      print('Status: ${result['status']}');
-      print('Message: ${result['message']}');
-
       if (!mounted) return;
 
-      // Check if the response has data
       if (result != null && result.isNotEmpty) {
-        // Check the status field
         final status = result['status'];
 
         if (status == true || status == 'true' || status == 'success') {
@@ -200,7 +189,6 @@ class _DebitAuthorizationScreen
             _verificationMessage =
                 result['message'] ?? 'Failed to verify account';
           });
-          print('❌ Verification failed: ${result['message']}');
         }
       } else {
         // Empty response
@@ -208,13 +196,8 @@ class _DebitAuthorizationScreen
           _verificationStatus = 'error';
           _verificationMessage = 'No response from server';
         });
-        print('❌ Empty response from server');
       }
     } catch (e, stackTrace) {
-      print('=== EXCEPTION OCCURRED ===');
-      print('Error: $e');
-      print('Stack trace: $stackTrace');
-
       if (!mounted) return;
 
       setState(() {
@@ -249,6 +232,87 @@ class _DebitAuthorizationScreen
     }
   }
 
+  Future<void> _onRefresh() async {
+    await Future.wait([_loadAccountNumber(), loadBankList()]);
+  }
+
+  Future<void> _saveBank() async {
+    if (_verificationStatus != "success") {
+      _showSnackBar('Please verify your account first', isError: true);
+      return;
+    }
+
+    setState(() {
+      _savingBank = true;
+      _isBankSaved = false;
+    });
+
+    try {
+      final result = await _loanService.linkBankAccount(
+        accountNumber: _accountNumberController.text,
+        bankCode: _selectedBankCode,
+      );
+
+      if (!mounted) return;
+
+      if (result != null && result.isNotEmpty) {
+        final status = result['status'];
+
+        if (status == true || status == 'true' || status == 'success') {
+          // ✅ Success case
+          setState(() {
+            _isBankSaved = true;
+          });
+
+          _showSnackBar(
+            result['message'] ?? 'Bank account linked successfully',
+            isError: false,
+          );
+
+          // ✅ Navigate to next screen after brief delay
+          await Future.delayed(const Duration(milliseconds: 500));
+          if (!mounted) return;
+          context.go('/loan-disbursed-screen');
+        } else {
+          // ❌ Error from API
+          _showSnackBar(
+            result['message'] ?? 'Failed to link bank account',
+            isError: true,
+          );
+        }
+      } else {
+        // ❌ Empty response
+        _showSnackBar('No response from server', isError: true);
+      }
+    } catch (e) {
+      if (!mounted) return;
+
+      // ❌ Exception occurred
+      String errorMessage = e.toString();
+
+      // Remove "Exception: " prefix if present
+      if (errorMessage.startsWith('Exception: ')) {
+        errorMessage = errorMessage.substring(11);
+      }
+
+      // Check for specific error types
+      if (errorMessage.toLowerCase().contains('timeout')) {
+        errorMessage =
+            'Request timeout. Please check your internet connection.';
+      } else if (errorMessage.toLowerCase().contains('socket')) {
+        errorMessage = 'Network error. Please check your internet connection.';
+      } else if (errorMessage.toLowerCase().contains('failed')) {
+        errorMessage = 'Unable to link account. Please try again.';
+      }
+
+      _showSnackBar(errorMessage, isError: true);
+    } finally {
+      if (mounted) {
+        setState(() => _savingBank = false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final List<String> benefits = [
@@ -267,433 +331,458 @@ class _DebitAuthorizationScreen
                 child: CircularProgressIndicator(color: Color(0xff7C70DF)),
               )
               : SafeArea(
-                child: SingleChildScrollView(
-                  keyboardDismissBehavior:
-                      ScrollViewKeyboardDismissBehavior.onDrag,
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Align(
-                          alignment: Alignment.topCenter,
-                          child: Padding(
-                            padding: const EdgeInsets.only(top: 5),
-                            child: Container(
-                              width: 84,
-                              height: 84,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: const Color(0xffA198FF).withOpacity(0.1),
-                              ),
-                              child: const Icon(
-                                Icons.account_balance,
-                                color: Color(0xff7C70DF),
-                                size: 40,
+                child: RefreshIndicator(
+                  onRefresh: _onRefresh,
+                  color: const Color(0xff7C70DF),
+                  child: SingleChildScrollView(
+                    keyboardDismissBehavior:
+                        ScrollViewKeyboardDismissBehavior.onDrag,
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Align(
+                            alignment: Alignment.topCenter,
+                            child: Padding(
+                              padding: const EdgeInsets.only(top: 5),
+                              child: Container(
+                                width: 84,
+                                height: 84,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: const Color(
+                                    0xffA198FF,
+                                  ).withOpacity(0.1),
+                                ),
+                                child: const Icon(
+                                  Icons.account_balance,
+                                  color: Color(0xff7C70DF),
+                                  size: 40,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 10),
-                        const Align(
-                          alignment: Alignment.center,
-                          child: Text(
-                            'Link Your Bank Account',
-                            style: TextStyle(
-                              color: Color(0xff0F2D62),
-                              fontSize: 20,
-                              fontWeight: FontWeight.w600,
+                          const SizedBox(height: 10),
+                          const Align(
+                            alignment: Alignment.center,
+                            child: Text(
+                              'Link Your Bank Account',
+                              style: TextStyle(
+                                color: Color(0xff0F2D62),
+                                fontSize: 20,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 10),
-                        const Align(
-                          alignment: Alignment.center,
-                          child: Text(
-                            'Link your bank account to receive loan disbursements quickly and securely',
-                            textAlign: TextAlign.center,
+                          const SizedBox(height: 10),
+                          const Align(
+                            alignment: Alignment.center,
+                            child: Text(
+                              'Link your bank account to receive loan disbursements quickly and securely',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w400,
+                                color: Color(0xff0F2D62),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 30),
+                          const Text(
+                            'Select Bank',
                             style: TextStyle(
                               fontSize: 14,
-                              fontWeight: FontWeight.w400,
+                              fontWeight: FontWeight.w500,
                               color: Color(0xff0F2D62),
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 30),
-                        const Text(
-                          'Select Bank',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: Color(0xff0F2D62),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        InkWell(
-                          onTap: _verifying ? null : _openBankPicker,
-                          borderRadius: BorderRadius.circular(12),
-                          child: Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 16,
-                            ),
-                            decoration: BoxDecoration(
-                              color:
-                                  _verifying ? Colors.grey[100] : Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: const Color(0xFFE5E7EB),
-                                width: 1.5,
+                          const SizedBox(height: 8),
+                          InkWell(
+                            onTap: _verifying ? null : _openBankPicker,
+                            borderRadius: BorderRadius.circular(12),
+                            child: Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 16,
                               ),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    _selectedBankName ?? 'Select Bank',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                      color:
-                                          _selectedBankName == null
-                                              ? const Color(0xFF9CA3AF)
-                                              : const Color(0xff0F2D62),
+                              decoration: BoxDecoration(
+                                color:
+                                    _verifying
+                                        ? Colors.grey[100]
+                                        : Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: const Color(0xFFE5E7EB),
+                                  width: 1.5,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      _selectedBankName ?? 'Select Bank',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w500,
+                                        color:
+                                            _selectedBankName == null
+                                                ? const Color(0xFF9CA3AF)
+                                                : const Color(0xff0F2D62),
+                                      ),
                                     ),
                                   ),
-                                ),
-                                const Icon(
-                                  Icons.keyboard_arrow_down,
-                                  color: Color(0xFF9CA3AF),
-                                  size: 24,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        SignupInputField(
-                          icon: Icons.account_balance,
-                          label: 'Account Number',
-                          hintText: '',
-                          controller: _accountNumberController,
-                          enabled: false,
-                        ),
-
-                        if (_verifying)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 16),
-                            child: Center(
-                              child: Column(
-                                children: const [
-                                  SizedBox(
-                                    width: 24,
-                                    height: 24,
-                                    child: CircularProgressIndicator(
-                                      color: Color(0xff7C70DF),
-                                      strokeWidth: 3,
-                                    ),
-                                  ),
-                                  SizedBox(height: 8),
-                                  Text(
-                                    'Verifying account...',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Color(0xFF9CA3AF),
-                                    ),
+                                  const Icon(
+                                    Icons.keyboard_arrow_down,
+                                    color: Color(0xFF9CA3AF),
+                                    size: 24,
                                   ),
                                 ],
                               ),
                             ),
                           ),
-
-                        if (_verificationStatus != null && !_verifying)
-                          Builder(
-                            builder: (context) {
-                              final isSuccess =
-                                  _verificationStatus == 'success';
-
-                              return Padding(
-                                padding: const EdgeInsets.only(top: 16),
-                                child: Container(
-                                  width: double.infinity,
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    color:
-                                        isSuccess
-                                            ? const Color(
-                                              0xFFE0F7FA,
-                                            ) // Light cyan background
-                                            : Colors.red.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      // Circular icon with purple background
-                                      Container(
-                                        width: 48,
-                                        height: 48,
-                                        decoration: BoxDecoration(
-                                          color:
-                                              isSuccess
-                                                  ? const Color(
-                                                    0xFF9C8CFF,
-                                                  ) // Purple color
-                                                  : Colors.red,
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: Icon(
-                                          isSuccess ? Icons.check : Icons.error,
-                                          color: Colors.white,
-                                          size: 24,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 16),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              isSuccess
-                                                  ? 'Verified Account'
-                                                  : 'Verification Failed',
-                                              style: TextStyle(
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.w500,
-                                                fontFamily: "Inter",
-                                                color:
-                                                    isSuccess
-                                                        ? const Color(
-                                                          0xFF9C8CFF,
-                                                        ) // Purple text
-                                                        : Colors.red[700],
-                                              ),
-                                            ),
-                                            const SizedBox(height: 4),
-                                            if (_accountName != null)
-                                              Text(
-                                                _accountName!,
-                                                style: const TextStyle(
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.w600,
-                                                  fontFamily: "Inter",
-                                                  color: Color(
-                                                    0xFF000000,
-                                                  ), // Black text
-                                                ),
-                                              ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
+                          const SizedBox(height: 20),
+                          SignupInputField(
+                            icon: Icons.account_balance,
+                            label: 'Account Number',
+                            hintText: '',
+                            controller: _accountNumberController,
+                            enabled: false,
                           ),
 
-                        const SizedBox(height: 20),
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Color(0xFFF6F3FF),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Lock Icon
-                              Icon(
-                                Icons.info,
-                                color: Color(0xFF5E3DB3),
-                                size: 20,
-                              ),
-
-                              const SizedBox(width: 12),
-                              // Text Content
-                              Expanded(
+                          if (_verifying)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 16),
+                              child: Center(
                                 child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: const [
-                                    Text(
-                                      'Important information',
-                                      style: TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w300,
-                                        color: Color(0xFF1F2937),
+                                    SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: CircularProgressIndicator(
+                                        color: Color(0xff7C70DF),
+                                        strokeWidth: 3,
                                       ),
                                     ),
-                                    SizedBox(height: 6),
+                                    SizedBox(height: 8),
                                     Text(
-                                      'Ensure the account name matches your registered name. Loan disbursements will be sent to this account within 24 hours of approval.',
+                                      'Verifying account...',
                                       style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.black87,
+                                        fontSize: 14,
+                                        color: Color(0xFF9CA3AF),
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
-                            ],
-                          ),
-                        ),
-                        SizedBox(height: 20),
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Color(0xFFEFF8FF),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.info_outline,
-                                    color: Color(0xff7C70DF),
-                                    size: 15,
-                                  ),
-                                  SizedBox(width: 6),
-                                  const Text(
-                                    'Why Link Your Account?',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
-                                      color: Color(0xFF1F2937),
+                            ),
+
+                          if (_verificationStatus != null && !_verifying)
+                            Builder(
+                              builder: (context) {
+                                final isSuccess =
+                                    _verificationStatus == 'success';
+
+                                return Padding(
+                                  padding: const EdgeInsets.only(top: 16),
+                                  child: Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.all(16),
+                                    decoration: BoxDecoration(
+                                      color:
+                                          isSuccess
+                                              ? const Color(
+                                                0xFFE0F7FA,
+                                              ) // Light cyan background
+                                              : Colors.red.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        // Circular icon with purple background
+                                        Container(
+                                          width: 48,
+                                          height: 48,
+                                          decoration: BoxDecoration(
+                                            color:
+                                                isSuccess
+                                                    ? const Color(
+                                                      0xFF9C8CFF,
+                                                    ) // Purple color
+                                                    : Colors.red,
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: Icon(
+                                            isSuccess
+                                                ? Icons.check
+                                                : Icons.error,
+                                            color: Colors.white,
+                                            size: 24,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 16),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                isSuccess
+                                                    ? 'Verified Account'
+                                                    : 'Verification Failed',
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w500,
+                                                  fontFamily: "Inter",
+                                                  color:
+                                                      isSuccess
+                                                          ? const Color(
+                                                            0xFF9C8CFF,
+                                                          ) // Purple text
+                                                          : Colors.red[700],
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              if (_accountName != null)
+                                                Text(
+                                                  _accountName!,
+                                                  style: const TextStyle(
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.w600,
+                                                    fontFamily: "Inter",
+                                                    color: Color(
+                                                      0xFF000000,
+                                                    ), // Black text
+                                                  ),
+                                                ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
-                                ],
-                              ),
+                                );
+                              },
+                            ),
 
-                              const SizedBox(height: 12),
-                              ...benefits.map(
-                                (benefit) => Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 6,
-                                  ),
-                                  child: Row(
+                          const SizedBox(height: 20),
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Color(0xFFF6F3FF),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Lock Icon
+                                Icon(
+                                  Icons.info,
+                                  color: Color(0xFF5E3DB3),
+                                  size: 20,
+                                ),
+
+                                const SizedBox(width: 12),
+                                // Text Content
+                                Expanded(
+                                  child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
-                                    children: [
-                                      const Icon(
-                                        Icons.check_sharp,
-                                        color: Color(0xFF7C70DF),
-                                        size: 12,
+                                    children: const [
+                                      Text(
+                                        'Important information',
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w300,
+                                          color: Color(0xFF1F2937),
+                                        ),
                                       ),
-                                      const SizedBox(width: 8),
-                                      Expanded(
-                                        child: Text(
-                                          benefit,
-                                          style: const TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w500,
-                                            color: Colors.black87,
-                                          ),
+                                      SizedBox(height: 6),
+                                      Text(
+                                        'Ensure the account name matches your registered name. Loan disbursements will be sent to this account within 24 hours of approval.',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.black87,
                                         ),
                                       ),
                                     ],
                                   ),
                                 ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        const SizedBox(height: 20),
-                        const Divider(thickness: 1, color: Color(0xFFE5E7EB)),
-                        const SizedBox(height: 20),
-                        SizedBox(
-                          width: double.infinity,
-                          height: 50,
-                          child:
-                              _verificationStatus == 'success'
-                                  ? ElevatedButton(
-                                    onPressed:
-                                        _verificationStatus == 'success'
-                                            ? () {
-                                              context.go(
-                                                '/loan-disbursed-screen',
-                                              );
-                                            }
-                                            : null,
-                                    style: ElevatedButton.styleFrom(
-                                      padding: EdgeInsets.zero,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(25),
-                                      ),
-                                      backgroundColor: Colors.transparent,
-                                      shadowColor: Colors.transparent,
-                                      disabledBackgroundColor: Colors.grey[300],
-                                    ),
-                                    child: Ink(
-                                      decoration: BoxDecoration(
-                                        gradient: const LinearGradient(
-                                          colors: [
-                                            Color(0xff7C70DF),
-                                            Color(0xffA198FF),
-                                          ],
-                                        ),
-                                        borderRadius: BorderRadius.circular(25),
-                                      ),
-                                      child: Container(
-                                        alignment: Alignment.center,
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: const [
-                                            Icon(
-                                              Icons.link,
-                                              size: 16,
-                                              color: Colors.white,
-                                            ),
-                                            SizedBox(width: 8),
-                                            Text(
-                                              "Confirm & Link",
-                                              style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.w600,
-                                                fontFamily: 'Inter',
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  )
-                                  : SizedBox(height: 20),
-                        ),
-                        const SizedBox(height: 20),
-                         SizedBox(
-                          width: double.infinity,
-                          height: 50,
-                          child:
-                        ElevatedButton(
-                          onPressed: () {
-                            context.pop();
-                          },
-                          style: ElevatedButton.styleFrom(
-                            padding: EdgeInsets.zero,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(25),
+                              ],
                             ),
-                            backgroundColor: Colors.transparent,
-                            shadowColor: Colors.transparent,
-                            disabledBackgroundColor: Colors.grey[300],
                           ),
-                          child: Ink(
+                          SizedBox(height: 20),
+                          Container(
+                            padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: Color(0xFF00B7BD),
-                              borderRadius: BorderRadius.circular(25),
+                              color: Color(0xFFEFF8FF),
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                            child: Container(
-                              alignment: Alignment.center,
-                              child: 
-                                  Text(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.info_outline,
+                                      color: Color(0xff7C70DF),
+                                      size: 15,
+                                    ),
+                                    SizedBox(width: 6),
+                                    const Text(
+                                      'Why Link Your Account?',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                        color: Color(0xFF1F2937),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+
+                                const SizedBox(height: 12),
+                                ...benefits.map(
+                                  (benefit) => Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 6,
+                                    ),
+                                    child: Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        const Icon(
+                                          Icons.check_sharp,
+                                          color: Color(0xFF7C70DF),
+                                          size: 12,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            benefit,
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w500,
+                                              color: Colors.black87,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          const SizedBox(height: 20),
+                          const Divider(thickness: 1, color: Color(0xFFE5E7EB)),
+                          const SizedBox(height: 20),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 50,
+                            child:
+                                _verificationStatus == 'success'
+                                    ? ElevatedButton(
+                                      onPressed:
+                                          _verificationStatus == 'success' &&
+                                                  !_savingBank
+                                              ? _saveBank // ✅ FIXED: Now calls _saveBank instead of navigating directly
+                                              : null,
+                                      style: ElevatedButton.styleFrom(
+                                        padding: EdgeInsets.zero,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            25,
+                                          ),
+                                        ),
+                                        backgroundColor: Colors.transparent,
+                                        shadowColor: Colors.transparent,
+                                        disabledBackgroundColor:
+                                            Colors.grey[300],
+                                      ),
+                                      child: Ink(
+                                        decoration: BoxDecoration(
+                                          gradient: const LinearGradient(
+                                            colors: [
+                                              Color(0xff7C70DF),
+                                              Color(0xffA198FF),
+                                            ],
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            25,
+                                          ),
+                                        ),
+                                        child: Container(
+                                          alignment: Alignment.center,
+                                          child:
+                                              _savingBank // ✅ Show loading indicator while saving
+                                                  ? const SizedBox(
+                                                    width: 24,
+                                                    height: 24,
+                                                    child:
+                                                        CircularProgressIndicator(
+                                                          color: Colors.white,
+                                                          strokeWidth: 3,
+                                                        ),
+                                                  )
+                                                  : Row(
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .center,
+                                                    children: const [
+                                                      Icon(
+                                                        Icons.link,
+                                                        size: 16,
+                                                        color: Colors.white,
+                                                      ),
+                                                      SizedBox(width: 8),
+                                                      Text(
+                                                        "Confirm & Link",
+                                                        style: TextStyle(
+                                                          color: Colors.white,
+                                                          fontSize: 16,
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                          fontFamily: 'Inter',
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                        ),
+                                      ),
+                                    )
+                                    : const SizedBox(height: 20),
+                          ),
+                          const SizedBox(height: 20),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 50,
+                            child: ElevatedButton(
+                              onPressed: () {
+                                context.pop();
+                              },
+                              style: ElevatedButton.styleFrom(
+                                padding: EdgeInsets.zero,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(25),
+                                ),
+                                backgroundColor: Colors.transparent,
+                                shadowColor: Colors.transparent,
+                                disabledBackgroundColor: Colors.grey[300],
+                              ),
+                              child: Ink(
+                                decoration: BoxDecoration(
+                                  color: Color(0xFF00B7BD),
+                                  borderRadius: BorderRadius.circular(25),
+                                ),
+                                child: Container(
+                                  alignment: Alignment.center,
+                                  child: Text(
                                     "Cancel",
                                     style: TextStyle(
                                       color: Colors.white,
@@ -702,33 +791,33 @@ class _DebitAuthorizationScreen
                                       fontFamily: 'Inter',
                                     ),
                                   ),
-                                
-                            ),
-                          ),
-                        ),
-                        ),
-                        const SizedBox(height: 20),
-
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
-                            Icon(
-                              Icons.lock_outline,
-                              color: Colors.grey,
-                              size: 18,
-                            ),
-                            SizedBox(width: 6),
-                            Text(
-                              'Your information is secure and encrypted',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey,
-                                fontWeight: FontWeight.w400,
+                                ),
                               ),
                             ),
-                          ],
-                        ),
-                      ],
+                          ),
+                          const SizedBox(height: 20),
+
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              Icon(
+                                Icons.lock_outline,
+                                color: Colors.grey,
+                                size: 18,
+                              ),
+                              SizedBox(width: 6),
+                              Text(
+                                'Your information is secure and encrypted',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),

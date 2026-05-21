@@ -70,7 +70,7 @@ class _SignUpScreenState extends State<SignUpScreen>
             data['data']['last_name'] ?? data['data']['lastname'] ?? '';
         String phoneData =
             data['data']['phone_number'] ?? data['data']['phone'] ?? '';
-        _phoneController.text = '+$phoneData';
+        _phoneController.text = _normalizePhone(phoneData);
         _emailController.text = data['data']['email'] ?? '';
         _bvnController.text = data['data']['bvn'] ?? '';
       });
@@ -95,8 +95,9 @@ class _SignUpScreenState extends State<SignUpScreen>
     setState(() => _creating = true);
     try {
       final rawPhone = _phoneController.text.trim();
-      final formattedPhone =
-          rawPhone.startsWith('+') ? rawPhone.substring(1) : rawPhone;
+      final formattedPhone = '234${rawPhone}';
+      print('Creating account with phone: $formattedPhone');
+      print('Other details - Email: ${_emailController.text}, First Name: ${_firstNameController.text}, Last Name: ${_lastNameController.text}, BVN: ${_bvnController.text}, Employee ID: ${_staffIdController.text}');
       final result = await _authService.registerUser(
         email: _emailController.text.trim(),
         firstName: _firstNameController.text.trim(),
@@ -126,6 +127,33 @@ class _SignUpScreenState extends State<SignUpScreen>
         setState(() => _creating = false);
       }
     }
+  }
+
+  String _normalizePhone(String raw) {
+    String phone = raw.trim();
+
+    // Remove all spaces
+    phone = phone.replaceAll(' ', '');
+
+    // Strip +234 (Nigerian country code)
+    if (phone.startsWith('+234')) {
+      phone = phone.substring(4);
+    }
+    // Strip any other country code starting with +
+    else if (phone.startsWith('+')) {
+      phone = phone.replaceFirst(RegExp(r'^\+\d{1,3}'), '');
+    }
+
+    // Strip leading 0
+    if (phone.startsWith('0')) {
+      phone = phone.substring(1);
+    } else if (phone.startsWith('234')) {
+      phone = phone.substring(3);
+    }
+
+    print('Normalizing phone number: "$raw" -> "$phone"');
+
+    return phone;
   }
 
   void _resetFetchedData() {
@@ -164,7 +192,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                   ),
                   const Text(
                     'Please fill in your information below',
-                    style: TextStyle(    
+                    style: TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 14,
                       color: Color(0xff4B5563),

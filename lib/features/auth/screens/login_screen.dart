@@ -372,6 +372,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
      if (!mounted) return;
     await LocalStorage.setHasLoginBefore(true);
     if (!mounted) return;
+    await LocalStorage.setPhoneVerified(true);
+    if (!mounted) return; 
+    await LocalStorage.setPasswordCreated(true);
+    if (!mounted) return;
+    await LocalStorage.setPinCreated(true);
+    
 
     String resultMessage = result["message"] ?? "Login successful";
     _showSnackBar(resultMessage, isError: false);

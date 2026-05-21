@@ -28,7 +28,7 @@ class AuthService {
       'email': email,
       'first_name': firstName,
       'last_name': lastName,
-      'phone_number': phone,
+      'phone': phone,
       'bvn': bvn,
       'employee_id': employeeId,
     });
@@ -94,30 +94,6 @@ Future<Map<String, dynamic>> createTransactionPin({
     });
 
   }
-
-// Future<Map<String, dynamic>> refreshToken() async {
-//     try {
-//       final tokenStorage = TokenStorage();
-//       final refreshToken = await tokenStorage.getRefreshToken();
-      
-//       if (refreshToken == null) {
-//         throw Exception('No refresh token available. Please login again.');
-//       }
-
-//       // Call your refresh token endpoint
-//       final response = await apiClient.post(
-//         '/auth/refresh-token',
-//         body: {
-//           'refresh_token': refreshToken,
-//         },
-//         includeXApiKey: true, // Include API key if required
-//       );
-//       print("😇😇$response");
-//       return response;
-//     } catch (e) {
-//       throw Exception('Failed to refresh token: $e');
-//     }
-//   }
 
 Future<Map<String, dynamic>> refreshToken() async {
   try {

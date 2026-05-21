@@ -16,14 +16,18 @@ import 'package:pcsloan/features/loan_application/presentation/bvn_verification_
 import 'package:pcsloan/features/loan_application/presentation/debit_authorization.dart';
 import 'package:pcsloan/features/loan_application/presentation/facial_verification_screen.dart';
 import 'package:pcsloan/features/loan_application/presentation/loan_disbursed_screen.dart';
+import 'package:pcsloan/features/loan_application/presentation/loan_repayment.dart';
+import 'package:pcsloan/features/loan_application/presentation/loan_repayment_shedule_screen.dart';
 import 'package:pcsloan/features/loan_application/presentation/loan_status_screen.dart';
 import 'package:pcsloan/features/loan_application/presentation/loan_summary.dart';
+import 'package:pcsloan/features/loan_application/presentation/repayment_overview_screen.dart';
 import 'package:pcsloan/features/password_management/presentation/forget_password_screen.dart';
 import 'package:pcsloan/features/password_management/presentation/password_changed_success_screen.dart';
 import 'package:pcsloan/features/password_management/presentation/verify_otp_screen.dart';
 import 'package:pcsloan/features/profile/presentation/change_pin_screen.dart';
 import 'package:pcsloan/features/profile/presentation/change_password_screen.dart';
 import 'package:pcsloan/features/profile/presentation/credentials_routing.dart';
+import 'package:pcsloan/features/profile/presentation/f_a_q_screen.dart';
 import 'package:pcsloan/features/profile/presentation/notifications_screen.dart';
 import 'package:pcsloan/features/profile/presentation/personal_information_screen.dart';
 import 'package:pcsloan/features/profile/presentation/profile_screen.dart';
@@ -138,39 +142,62 @@ final GoRouter router = GoRouter(
     ),
     GoRoute(
       path: "/transactions-history",
-      builder: (context, state) => RecentTransactionsPage(),),
+      builder: (context, state) => RecentTransactionsPage(),
+    ),
     GoRoute(
       path: "/personal-information",
-      builder: (context, state) => PersonalInformationScreen()
-      ),
+      builder: (context, state) => PersonalInformationScreen(),
+    ),
     GoRoute(
       path: "/security-settings",
-      builder: (context, state) => SecuritySettings()
-      ),
+      builder: (context, state) => SecuritySettings(),
+    ),
     GoRoute(
       path: '/notification-prefrence',
-      builder: (context, state) => NotificationPreferences()
-      ),
+      builder: (context, state) => NotificationPreferences(),
+    ),
     GoRoute(
       path: '/change-password',
-      builder: (context, state) => ChangePasswordScreen()
-      ),
+      builder: (context, state) => ChangePasswordScreen(),
+    ),
     GoRoute(
       path: "/support-page",
-      builder: (context,state) => SupportScreen()
+      builder: (context, state) => SupportScreen(),
     ),
     GoRoute(
       path: "/edit/credentials",
-      builder: (contect, state) => EditCredentials()
-      ),
+      builder: (contect, state) => EditCredentials(),
+    ),
     GoRoute(
       path: "/change-pin",
-      builder: (content, state) => ChangePinScreen()
+      builder: (content, state) => ChangePinScreen(),
     ),
     GoRoute(
       path: "/smileid/verification",
-      builder: (content, state) => SmileIDTestScreen()
-      )
-    
+      builder: (content, state) => SmileIDTestScreen(),
+    ),
+    GoRoute(
+      path: '/repayment-overview',
+      builder: (context, state) {
+        final data = state.extra as Map<String, dynamic>?;
+        return RepaymentOverviewScreen(loanId: data?['loanId'] ?? '');
+      },
+    ),
+    GoRoute(path: '/repay/loan', 
+    builder: (context, state) {
+      final data = state.extra as Map<String, dynamic>?;
+      return LoanRepaymentScreen(loanId: data?['loanId'] ?? '', amount: data?['amount'] ?? 0.0, scheduleId: data?['scheduleId'] ?? '',);
+    }),
+    GoRoute(
+      path: '/repayment-schedule',
+      builder: (context, state) {
+      final data = state.extra as Map<String, dynamic>?;
+      return RepaymentScheduleScreen(loanId: data?['loanId'] ?? '');
+      },
+    ),
+    GoRoute(
+  path: '/faq',
+  builder: (context, state) => const FaqScreen(),
+),
   ],
 );

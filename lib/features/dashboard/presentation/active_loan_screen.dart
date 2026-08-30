@@ -30,7 +30,8 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
   double balanceLeft = 0;
   String tenure = "";
   double repaymentProgress = 0.0;
-  Map<String, dynamic>? recentTransactions;
+  // Map<String, dynamic>? recentTransactions;
+  List<dynamic>? recentTransactions;
   String nextRepaymentDate = "";
   String loanId = "";
 
@@ -79,6 +80,7 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
       loanId = data['id'] ?? "";
       print('Loaded loan data: $data');
       print('Loaded id: $loanId');
+      print('Loaded recentTransactions: $recentTransactions');
 
       // Reset all flags
       showPending = false;
@@ -135,6 +137,10 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
   Future<void> _handleRefresh() async {
     context.go('/loan-redirect');
   }
+  bool _isCreditTransaction(dynamic type) {
+  const creditTypes = {'DISBURSEMENT', 'REFUND', 'CREDIT'};
+  return creditTypes.contains(type?.toString().toUpperCase());
+}
 
   /// True when the full active loan card + quick actions + transactions
   /// should render (ACTIVE or APPROVED, no terminal/pending state)
@@ -286,7 +292,10 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
                                   ),
                                   const SizedBox(height: 7),
                                   LinearProgressIndicator(
-                                    value: (repaymentProgress / 100).clamp(0.0, 1.0),
+                                    value: (repaymentProgress / 100).clamp(
+                                      0.0,
+                                      1.0,
+                                    ),
                                     minHeight: 8,
                                     backgroundColor: Colors.white.withOpacity(
                                       0.2,
@@ -307,12 +316,13 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
                                 width: 290,
                                 height: 50,
                                 child: TextButton(
-                                  onPressed: () => context.push(
-                                '/repayment-overview',
-                                extra: {
-                                  'loanId': loanId,
-                                }, // replace loanId with whatever your variable is
-                              ),
+                                  onPressed:
+                                      () => context.push(
+                                        '/repayment-overview',
+                                        extra: {
+                                          'loanId': loanId,
+                                        }, // replace loanId with whatever your variable is
+                                      ),
                                   style: TextButton.styleFrom(
                                     backgroundColor: Colors.white.withOpacity(
                                       0.1,
@@ -372,108 +382,95 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
                         ),
                       ],
                     ),
-                    if (recentTransactions != null &&
-                        (recentTransactions?['transactions'] ?? []).isNotEmpty)
-                      Card(
-                        color: Colors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(7),
-                          side: BorderSide(
-                            color: Colors.grey.shade100,
-                            width: 1.5,
-                          ),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Align(
-                              alignment: Alignment.topRight,
-                              child: TextButton(
-                                onPressed:
-                                    () => context.push('/transactions-history'),
-                                child: const Text(
-                                  'View All',
-                                  style: TextStyle(color: Colors.green),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            recentTransactions == null ||
-                                    (recentTransactions?['transactions'] ?? [])
-                                        .isEmpty
-                                ? const Padding(
-                                  padding: EdgeInsets.all(16.0),
-                                  child: Text(
-                                    'No recent transactions available.',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                                )
-                                : ListView.builder(
-                                  shrinkWrap: true,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  itemCount: 3,
-                                  itemBuilder: (context, index) {
-                                    final tx =
-                                        (recentTransactions?['transactions'] ??
-                                            [])[index];
-                                    return ListTile(
-                                      leading: Container(
-                                        width: 40,
-                                        height: 40,
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          color:
-                                              tx['isCredit']
-                                                  ? Colors.deepPurple[100]
-                                                  : Colors.pink[50],
-                                        ),
-                                        child: Icon(
-                                          tx['isCredit']
-                                              ? Icons.arrow_downward
-                                              : Icons.arrow_upward,
-                                          color:
-                                              tx['isCredit']
-                                                  ? const Color(0xff7C70DF)
-                                                  : Colors.red,
-                                        ),
-                                      ),
-                                      title: Text(
-                                        tx['type'],
-                                        style: const TextStyle(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.bold,
-                                          overflow: TextOverflow.visible,
-                                        ),
-                                      ),
-                                      subtitle: Text(
-                                        tx['date'],
-                                        style: const TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.grey,
-                                        ),
-                                      ),
-                                      trailing: Text(
-                                        tx['isCredit']
-                                            ? '+ ${formatCurrency(tx['amount'])}'
-                                            : '- ${formatCurrency(tx['amount'])}',
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          color:
-                                              tx['isCredit']
-                                                  ? const Color(0xff7C70DF)
-                                                  : Colors.red,
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                          ],
-                        ),
-                      ),
+                    if (recentTransactions != null && (recentTransactions ?? []).isNotEmpty)
+  Card(
+    color: Colors.white,
+    elevation: 0,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(7),
+      side: BorderSide(color: Colors.grey.shade100, width: 1.5),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Align(
+          alignment: Alignment.topRight,
+          child: TextButton(
+            onPressed: () => context.push('/transactions-history'),
+            child: const Text(
+              'View All',
+              style: TextStyle(color: Colors.green),
+            ),
+          ),
+        ),
+        const SizedBox(height: 6),
+        ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          // ✅ never ask for more items than actually exist
+          itemCount: (recentTransactions ?? []).length > 3
+              ? 3
+              : (recentTransactions ?? []).length,
+          itemBuilder: (context, index) {
+            final tx = (recentTransactions ?? [])[index];
+
+            // ✅ derive credit/debit from `type` instead of a
+            // non-existent `isCredit` key
+            final bool isCredit = _isCreditTransaction(tx['type']);
+
+            // ✅ parse amount safely — API sends it as a String
+            final rawAmount = tx['amount'];
+            final double txAmount = rawAmount is String
+                ? double.tryParse(rawAmount) ?? 0.0
+                : (rawAmount?.toDouble() ?? 0.0);
+
+            // ✅ use the real date key
+            final rawDate = tx['createdAt'];
+            final parsedDate = DateTime.tryParse(rawDate ?? '');
+            final formattedDate = parsedDate != null
+                ? DateFormat('MMM d, yyyy').format(parsedDate)
+                : '';
+
+            return ListTile(
+              leading: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: isCredit ? Colors.deepPurple[100] : Colors.pink[50],
+                ),
+                child: Icon(
+                  isCredit ? Icons.arrow_downward : Icons.arrow_upward,
+                  color: isCredit ? const Color(0xff7C70DF) : Colors.red,
+                ),
+              ),
+              title: Text(
+                (tx['type'] ?? '').toString(),
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  overflow: TextOverflow.visible,
+                ),
+              ),
+              subtitle: Text(
+                formattedDate,
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+              trailing: Text(
+                isCredit
+                    ? '+ ${formatCurrency(txAmount)}'
+                    : '- ${formatCurrency(txAmount)}',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: isCredit ? const Color(0xff7C70DF) : Colors.red,
+                ),
+              ),
+            );
+          },
+        ),
+      ],
+    ),
+  ),
                     if (nextRepaymentDate.isNotEmpty) _buildNextRepaymentCard(),
                   ],
                 ],

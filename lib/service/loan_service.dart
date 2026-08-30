@@ -6,7 +6,7 @@ import 'package:pcsloan/service/api_exception.dart';
 import 'package:pcsloan/utils/local_storage.dart';
 
 class LoanService {
-  Future<List<dynamic>> fetchApplicationLoanData() async {
+Future<List<dynamic>> fetchApplicationLoanData() async {
     final applicationLoanData = await apiClient.get(
       '/loans/offers',
       includeXApiKey: true,
@@ -22,7 +22,7 @@ class LoanService {
     return List<dynamic>.from(data);
   }
 
-  Future<Map<String, dynamic>> applyForLoan({
+Future<Map<String, dynamic>> applyForLoan({
     required double loanAmount,
     required String loanName,
     required double intrestRate,
@@ -38,7 +38,7 @@ class LoanService {
       },
       includeXApiKey: true,
     );
-  }
+}
 
   Future<Map<String, dynamic>> getLoanOverView({
     required double loanAmount,
@@ -59,8 +59,6 @@ class LoanService {
   Future<Map<String, dynamic>> getUserDashboard() async {
     return await apiClient.get('/users/dashboard', includeXApiKey: true);
   }
-
-  
 
   Future<List<dynamic>> getBankList() async {
     return await apiClient.getList('/paystack/banks', includeXApiKey: true);
@@ -137,5 +135,14 @@ class LoanService {
       includeXApiKey: true,
     );
   }
+
+  Future<Map<String, dynamic>> getTransactionHistory() async {
+    return await apiClient.get('/transactions', includeXApiKey: true);
+  }
+
+  Future<Map<String, dynamic>> getTransactionDetail(String transactionId) async {
+    return await apiClient.get('/transactions/$transactionId', includeXApiKey: true);
+  }
+
   
 }

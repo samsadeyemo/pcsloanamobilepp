@@ -52,7 +52,11 @@ class _PaystackWebViewScreenState extends State<PaystackWebViewScreen> {
         actions: [
           // X button — pop back
           GestureDetector(
-            onTap: () => context.pop(),
+            onTap:
+                () => context.go(
+                  '/loan-redirect',
+                  extra: {'loanId': widget.loanId},
+                ),
             child: Container(
               margin: const EdgeInsets.only(right: 14),
               width: 34,
@@ -89,9 +93,7 @@ class _PaystackWebViewScreenState extends State<PaystackWebViewScreen> {
       body: Stack(
         children: [
           InAppWebView(
-            initialUrlRequest: URLRequest(
-              url: WebUri(widget.authorizationUrl),
-            ),
+            initialUrlRequest: URLRequest(url: WebUri(widget.authorizationUrl)),
             initialSettings: InAppWebViewSettings(
               useShouldOverrideUrlLoading: true,
               javaScriptEnabled: true,
@@ -107,10 +109,7 @@ class _PaystackWebViewScreenState extends State<PaystackWebViewScreen> {
 
               // Detect Paystack callback / completion
               if (url != null && _isPaystackDone(url.toString())) {
-                context.go(
-                  '/loan-redirect',
-                  extra: {'loanId': widget.loanId},
-                );
+                context.go('/loan-redirect', extra: {'loanId': widget.loanId});
               }
             },
             onLoadStop: (controller, url) {
@@ -143,9 +142,7 @@ class _PaystackWebViewScreenState extends State<PaystackWebViewScreen> {
             Container(
               color: Colors.white,
               child: const Center(
-                child: CircularProgressIndicator(
-                  color: Color(0xff7C70DF),
-                ),
+                child: CircularProgressIndicator(color: Color(0xff7C70DF)),
               ),
             ),
         ],

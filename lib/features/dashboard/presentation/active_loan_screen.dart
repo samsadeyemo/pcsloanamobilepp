@@ -169,7 +169,7 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
               MaterialPageRoute(builder: (_) => ProfileScreen()),
             ),
       ),
-      bottomNavigationBar: CustomBottomNavBar(),
+      bottomNavigationBar: CustomBottomNavBar(), 
       backgroundColor: const Color(0xffFFFFFF),
       body: SafeArea(
         child: RefreshIndicator(

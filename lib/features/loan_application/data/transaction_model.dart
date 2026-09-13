@@ -1,7 +1,6 @@
 import 'package:intl/intl.dart';
 
 class Transaction {
-  final String id;  
   final String title;
   final String dateTime;
   final String amount;
@@ -11,7 +10,6 @@ class Transaction {
   final String? paymentMethod;
 
   Transaction({
-    required this.id,
     required this.title,
     required this.dateTime,
     required this.amount,
@@ -22,6 +20,7 @@ class Transaction {
   });
 
   factory Transaction.fromJson(Map<String, dynamic> json) {
+    // Amount comes back as a String from the API, e.g. "300000.00"
     final rawAmount = json['amount'];
     final double parsedAmount = rawAmount is String
         ? double.tryParse(rawAmount) ?? 0.0
@@ -29,6 +28,7 @@ class Transaction {
 
     final String type = (json['type'] ?? '').toString().toUpperCase();
 
+    // Adjust this set once you know every `type` value your backend sends
     const creditTypes = {'DISBURSEMENT', 'REFUND', 'CREDIT'};
     final bool isCredit = creditTypes.contains(type);
 
@@ -48,7 +48,6 @@ class Transaction {
         '${isCredit ? '+' : '-'}${formatter.format(parsedAmount)}';
 
     return Transaction(
-      id: json['id']?.toString() ?? '',          // ✅ new
       title: _titleFromType(type),
       dateTime: formattedDate,
       amount: formattedAmount,

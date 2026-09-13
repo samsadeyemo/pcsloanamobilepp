@@ -132,10 +132,10 @@ final GoRouter router = GoRouter(
       path: '/loan-disbursed-screen',
       builder: (context, state) => const LoanDisbursedScreen(),
     ),
-    GoRoute(
-      path: '/activity-tab',
-      builder: (context, state) => const ActivityTab(),
-    ),
+    // GoRoute(
+    //   path: '/activity-tab',
+    //   builder: (context, state) => const ActivityTab(),
+    // ),
     GoRoute(
       path: '/user-profile',
       builder: (context, state) => ProfileScreen(),

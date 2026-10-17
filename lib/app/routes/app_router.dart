@@ -122,7 +122,10 @@ final GoRouter router = GoRouter(
     ),
     GoRoute(
       path: '/facial-verification-screen',
-      builder: (context, state) => const SmileIDVerificationScreen(),
+      builder: (context, state) {
+        final data = state.extra as Map<String, dynamic>?;
+        return SmileIDVerificationScreen(loanId: data?['loanId'] ?? '');
+      },
     ),
     GoRoute(
       path: '/debit-authorization-screen',

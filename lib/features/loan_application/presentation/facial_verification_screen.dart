@@ -1,16 +1,20 @@
 
-
+import 'dart:io';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pcsloan/common/widgets/custom_loan_app_bar.dart';
-import 'package:permission_handler/permission_handler.dart'; // FIX #1: added
+import 'package:pcsloan/service/loan_service.dart';
+import 'package:pcsloan/service/profile_sevice.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:smile_id/products/biometric/smile_id_biometric_kyc.dart';
 import 'package:smile_id/smile_id.dart';
 
 class SmileIDVerificationScreen extends ConsumerStatefulWidget {
-  const SmileIDVerificationScreen({super.key});
+  final String loanId;
+
+  const SmileIDVerificationScreen({super.key, required this.loanId});
 
   @override
   ConsumerState<SmileIDVerificationScreen> createState() =>
@@ -24,6 +28,13 @@ class _SmileIDVerificationScreenState
   String? _errorMessage;
   late AnimationController _shieldController;
   late Animation<double> _shieldAnimation;
+  final _loanService = LoanService();
+  final _profileService = ProfileService();
+
+  // ── Profile data loaded on screen open ──────────────────────────────────
+  bool _profileFetching = true;
+  String? _userId;
+  String? _userBvn;
 
   @override
   void initState() {
@@ -42,10 +53,11 @@ class _SmileIDVerificationScreenState
       curve: Curves.easeInOut,
     ));
 
-    // FIX #2: Defer initialization until after first frame so the widget
+    // Defer both calls until after first frame so the widget
     // tree is fully ready before SmileID.initialize() is called.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initializeSmileID();
+      _loadUserProfile();
     });
   }
 
@@ -73,6 +85,48 @@ class _SmileIDVerificationScreenState
         setState(() {
           _errorMessage = 'Failed to initialize Smile ID: $e';
         });
+      }
+    }
+  }
+
+  /// Fetch user profile to get userId and BVN for SmileID
+  Future<void> _loadUserProfile() async {
+    try {
+      final result = await _profileService.fetchUserProfile();
+      if (!mounted) return;
+
+      if (result.isNotEmpty) {
+        final data = result['data'] as Map<String, dynamic>?;
+        if (data != null) {
+          final bankDetails = data['bank_details'];
+          final bvn =
+              (bankDetails is Map ? bankDetails['bvn'] : null)?.toString();
+          final userId = data['id']?.toString();
+
+          print('👤 Profile loaded — userId: $userId | bvn: $bvn');
+
+          setState(() {
+            _userId = userId;
+            _userBvn = bvn;
+          });
+        }
+      }
+    } catch (e) {
+      if (!mounted) return;
+      // Non-fatal — show a snackbar but don't block the whole screen
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Could not load profile: ${e.toString().replaceFirst('Exception: ', '')}',
+          ),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _profileFetching = false);
       }
     }
   }
@@ -156,11 +210,23 @@ class _SmileIDVerificationScreenState
       return;
     }
 
-    // FIX #3 (cont.): Always request/check camera permission before proceeding.
+    if (_profileFetching || _userId == null || _userBvn == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Still loading your profile, please wait...'),
+          backgroundColor: Colors.orange,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
     final bool hasPermission = await _requestCameraPermission();
-    if (!hasPermission) return; // Abort cleanly if camera access was denied
+    if (!hasPermission) return;
 
     print("🚀 Starting BVN Biometric KYC Verification");
+    print("   userId : $_userId");
+    print("   bvn    : $_userBvn");
 
     if (!mounted) return;
 
@@ -173,10 +239,9 @@ class _SmileIDVerificationScreenState
           ),
           body: SmileIDBiometricKYC(
             country: "NG",
-            idType: "BVN", 
-            idNumber:
-                    "0000000000000000007", // TODO: Replace with actual user BVN
-                userId: "4f97b378-5b12-4c07-9802-0cb93465f033",
+            idType: "BVN",
+            idNumber: _userBvn!,
+            userId: _userId!,
             showInstructions: false,
             useStrictMode: false,
             consentGrantedDate: DateTime.now().toIso8601String(),
@@ -325,44 +390,50 @@ class _SmileIDVerificationScreenState
     try {
       print("\n📡 SENDING TO BACKEND...");
 
-      final requestData = {
-        'jobId': jobId,
-        'timestamp': DateTime.now().toIso8601String(),
-        'verificationType': 'BVN_BIOMETRIC_KYC',
-        'didSubmitJob': fullResult['didSubmitBiometricKycJob'] ?? false,
-        'fullResultData': fullResult,
-      };
+      // ── Selfie ──────────────────────────────────────────────────────────
+      final selfiePath = fullResult['selfieFile'] as String?;
+      final selfieBase64 =
+          selfiePath != null ? await _fileToBase64(selfiePath) : null;
 
-      print("📤 Request Data:");
-      print(jsonEncode(requestData));
-
-      // TODO: Uncomment and update with your actual backend endpoint
-      /*
-      final response = await http.post(
-        Uri.parse('https://your-backend.com/api/kyc/bvn-verify'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer YOUR_TOKEN',
-        },
-        body: jsonEncode(requestData),
-      );
-
-      if (response.statusCode == 200) {
-        print("✅ Backend received jobId successfully");
-        final responseData = jsonDecode(response.body);
-        print("   Backend response: ${responseData['message']}");
-      } else {
-        print("❌ Backend error: ${response.statusCode}");
-        throw Exception('Backend submission failed');
+      // ── Liveness / liveliness images ────────────────────────────────────
+      final livenessRaw = fullResult['livenessFiles'] as List<dynamic>?;
+      final List<String> livelinessBase64List = [];
+      if (livenessRaw != null) {
+        for (final path in livenessRaw) {
+          final b64 = await _fileToBase64(path as String);
+          livelinessBase64List.add(b64);
+        }
       }
-      */
 
-      if (jobId != 'NO_JOB_ID') {
-        print("✅ Backend will query Smile ID using jobId: $jobId");
-        print("   Backend should call: GET /v1/job_status/$jobId");
-      } else {
-        print("⚠️ WARNING: No valid jobId to send to backend!");
+      // ── Pretty-print the image payloads ─────────────────────────────────
+      print("\n📸 IMAGE PAYLOAD (base64):");
+      print("{");
+      print('  "selfie_image": "${selfieBase64 ?? 'null'}",');
+      print('  "liveliness_images": [');
+      for (int i = 0; i < livelinessBase64List.length; i++) {
+        final comma = i < livelinessBase64List.length - 1 ? ',' : '';
+        print('    "${livelinessBase64List[i]}"$comma');
       }
+      print('  ]');
+      print("}");
+      print("");
+
+      print("📤 Calling /loans/validate ...");
+
+      // ── Call the backend ─────────────────────────────────────────────────
+      if (selfieBase64 == null) {
+        print("⚠️ WARNING: No selfie image available to send!");
+      } else {
+        final response = await _loanService.validateLoan(
+          loanId: widget.loanId,
+          selfieImage: selfieBase64,
+          livelinessImages: livelinessBase64List,
+        );
+
+        print("✅ /loans/validate response:");
+        print(jsonEncode(response));
+      }
+
       print("==========================================\n");
     } catch (e) {
       print("❌ Backend submission error: $e");
@@ -388,6 +459,11 @@ class _SmileIDVerificationScreenState
         ),
       );
     }
+  }
+
+  Future<String> _fileToBase64(String path) async {
+    final bytes = await File(path).readAsBytes();
+    return base64Encode(bytes);
   }
 
   @override
@@ -613,7 +689,7 @@ class _SmileIDVerificationScreenState
                   ],
                 ),
                 child: ElevatedButton(
-                  onPressed: _isInitialized ? _launchVerification : null,
+                  onPressed: _isInitialized && !_profileFetching ? _launchVerification : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.transparent,
                     shadowColor: Colors.transparent,
@@ -621,7 +697,7 @@ class _SmileIDVerificationScreenState
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: _isInitialized
+                  child: _isInitialized && !_profileFetching
                       ? const Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [

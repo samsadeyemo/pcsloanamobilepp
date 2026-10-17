@@ -305,8 +305,9 @@ class ApiClient {
   final TokenStorage tokenStorage;
   final void Function() onAuthenticationFailed;
 
-  bool _isRefreshing = false;
-  final List<Completer<void>> _failedQueue = [];
+  // In-flight refresh, shared so concurrent callers never send the same
+  // refresh token twice (a rotated token would make the second call fail).
+  Future<Map<String, dynamic>>? _refreshFuture;
 
   // ─── Retry config ────────────────────────────────────────────
   static const int _maxRetries = 3;
@@ -342,13 +343,11 @@ class ApiClient {
     };
   }
 
-  void _processQueue({dynamic error}) {
-    for (final completer in _failedQueue) {
-      error != null
-          ? completer.completeError(error)
-          : completer.complete();
-    }
-    _failedQueue.clear();
+  bool _isSuccess(http.Response response, dynamic decoded) {
+    if (response.statusCode != 200 && response.statusCode != 201) return false;
+    if (decoded is! Map) return false;
+    final status = decoded['status'];
+    return status == true || status == 'success';
   }
 
   // ─── NEW: Check if an error is a retryable network-level error ───
@@ -389,29 +388,70 @@ class ApiClient {
     }
   }
 
-  Future<void> _refreshToken() async {
+  /// Exchanges the stored refresh token for new tokens and saves them.
+  /// Returns the response `data` map (may contain `user`, `hasLoan`, ...).
+  ///
+  /// Throws [SessionExpiredException] when the refresh token is missing or
+  /// rejected, and [ApiException] for network/server problems (retryable).
+  Future<Map<String, dynamic>> refreshSession() {
+    return _refreshFuture ??=
+        _refreshToken().whenComplete(() => _refreshFuture = null);
+  }
+
+  Future<Map<String, dynamic>> _refreshToken() async {
     final refreshToken = await tokenStorage.getRefreshToken();
-    if (refreshToken == null) throw ApiException('No refresh token available');
+    if (refreshToken == null) throw SessionExpiredException();
+    // The backend expects the (possibly expired) access token alongside
+    // the refresh token, so send it like any other request.
+    final accessToken = await tokenStorage.getAccessToken();
 
-    final url = _buildUrl('/auth/refresh-token');
-    final response = await _executeWithRetry( // ← uses retry too
-      () => http
-          .post(
-            url,
-            headers: _buildHeaders(includeXApiKey: true),
-            body: jsonEncode({'refresh_token': refreshToken}),
-          )
-          .timeout(const Duration(seconds: 60)),
-    );
-
-    final decoded = jsonDecode(response.body);
-    if ((response.statusCode == 200 || response.statusCode == 201) &&
-        decoded['status'] == 'success') {
-      await _saveTokensIfPresent(decoded);
-    } else {
+    final http.Response response;
+    try {
+      response = await _executeWithRetry(
+        () => http
+            .post(
+              _buildUrl('/auth/refresh-token'),
+              headers: _buildHeaders(token: accessToken, includeXApiKey: true),
+              body: jsonEncode({'refresh_token': refreshToken}),
+            )
+            .timeout(const Duration(seconds: 60)),
+      );
+    } catch (e) {
       throw ApiException(
-          _parseMessage(decoded['message'], 'Token refresh failed'));
+          'Could not reach the server. Please check your network and try again.');
     }
+
+    dynamic decoded;
+    try {
+      decoded = jsonDecode(response.body);
+    } on FormatException {
+      decoded = null;
+    }
+
+    if (_isSuccess(response, decoded)) {
+      await _saveTokensIfPresent(decoded);
+      final data = decoded['data'];
+      return data is Map<String, dynamic> ? data : <String, dynamic>{};
+    }
+
+    print('Token refresh failed (${response.statusCode}): ${response.body}');
+
+    if (response.statusCode >= 500) {
+      throw ApiException('Server error. Please try again shortly.');
+    }
+
+    throw SessionExpiredException();
+  }
+
+  /// Returns the first value under [keys] that is shaped like a JWT.
+  /// Some responses carry the user record, whose `refresh_token` is the
+  /// server's bcrypt hash (`$2b$...`); saving that would break refresh.
+  static String? _jwtFrom(Map<String, dynamic> data, List<String> keys) {
+    for (final key in keys) {
+      final value = data[key];
+      if (value is String && value.split('.').length == 3) return value;
+    }
+    return null;
   }
 
   Future<void> _saveTokensIfPresent(
@@ -419,8 +459,8 @@ class ApiClient {
     final data = responseData['data'];
     if (data == null || data is! Map<String, dynamic>) return;
 
-    final accessToken = data['access_token'] ?? data['accessToken'];
-    final refreshToken = data['refresh_token'] ?? data['refreshToken'];
+    final accessToken = _jwtFrom(data, ['access_token', 'accessToken']);
+    final refreshToken = _jwtFrom(data, ['refresh_token', 'refreshToken']);
 
     if (accessToken != null && refreshToken != null) {
       await tokenStorage.saveTokens(
@@ -434,44 +474,30 @@ class ApiClient {
 
   Future<Map<String, dynamic>> _handleRequest(
     Future<http.Response> Function() request,
-    String path,
-  ) async {
+    String path, {
+    bool isRetry = false,
+  }) async {
     try {
       // ↓ All requests now go through the retry wrapper
       final response = await _executeWithRetry(request);
+
+      // Only retry once after a refresh, so a server that keeps answering
+      // 401 can't trap us in a refresh loop.
+      if (response.statusCode == 401 && !isRetry && path != '/auth/login') {
+        try {
+          await refreshSession();
+        } on SessionExpiredException {
+          onAuthenticationFailed();
+          return {'status': 'unauthenticated', 'data': null};
+        }
+        return await _handleRequest(request, path, isRetry: true);
+      }
+
       final decoded = jsonDecode(response.body);
       print('API Response for $path: $decoded');
 
-      if (response.statusCode == 401 &&
-          !path.contains('/auth/refresh-token')) {
-        if (_isRefreshing) {
-          final completer = Completer<void>();
-          _failedQueue.add(completer);
-          try {
-            await completer.future;
-            return await _handleRequest(request, path);
-          } catch (e) {
-            rethrow;
-          }
-        }
-
-        _isRefreshing = true;
-        try {
-          await _refreshToken();
-          _processQueue();
-          return await _handleRequest(request, path);
-        } catch (refreshError) {
-          _processQueue(error: refreshError);
-          onAuthenticationFailed();
-          return {'status': 'unauthenticated', 'data': null};
-        } finally {
-          _isRefreshing = false;
-        }
-      }
-
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final status = decoded['status'];
-        if (status == true || status == 'success') {
+        if (_isSuccess(response, decoded)) {
           await _saveTokensIfPresent(decoded);
           return decoded;
         } else {
@@ -562,8 +588,8 @@ class ApiClient {
 
     if (response.statusCode == 401) {
       try {
-        await _refreshToken();
-      } catch (_) {
+        await refreshSession();
+      } on SessionExpiredException {
         onAuthenticationFailed();
         return [];
       }

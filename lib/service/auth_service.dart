@@ -1,11 +1,5 @@
 // lib/features/auth/services/auth_service.dart
-import 'dart:async';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'package:pcsloan/auth_storage/token_storage.dart';
-import 'package:pcsloan/config/app_config.dart';
 import 'package:pcsloan/main.dart';
-import 'package:pcsloan/service/api_exception.dart';
 
 class AuthService {
 
@@ -95,31 +89,9 @@ Future<Map<String, dynamic>> createTransactionPin({
 
   }
 
-Future<Map<String, dynamic>> refreshToken() async {
-  try {
-    final tokenStorage = TokenStorage();
-    final refreshToken = await tokenStorage.getRefreshToken();
-    
-    
-    if (refreshToken == null) {
-      throw Exception('No refresh token available. Please login again.');
-    }
-
-    
-    // Call your refresh token endpoint
-    final response = await apiClient.post(
-      '/auth/refresh-token',
-      body: {
-        'refresh_token': refreshToken,
-      },
-      includeXApiKey: true,
-    );
-    
-    return response;
-  } catch (e) {
-    throw Exception('Failed to refresh token: $e');
-  }
-}
+  /// Gets fresh tokens using the stored refresh token (tokens are saved
+  /// by the ApiClient). Returns the response `data` map.
+  Future<Map<String, dynamic>> refreshToken() => apiClient.refreshSession();
 
   Future<Map<String, dynamic>> editUserPin({
     required String oldPin,

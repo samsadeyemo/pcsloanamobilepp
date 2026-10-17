@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:pcsloan/common/widgets/signup_input_field.dart';
 import 'package:pcsloan/common/widgets/signup_password_field.dart';
+import 'package:pcsloan/service/api_exception.dart';
 import 'package:pcsloan/service/auth_service.dart';
 import 'package:pcsloan/utils/local_storage.dart';
-import 'package:pcsloan/auth_storage/token_storage.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -147,21 +148,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         message = 'Biometric authentication not available on this device';
       } else if (!_biometricEnabled) {
         message = 'Please enable biometric in security settings first';
-      } else if (!_hasLoggedInBefore) {
-        message = 'Please login with password first';
       } else {
-        message = 'Biometric authentication not available';
+        message = 'Please login with password first';
       }
-
       _showSnackBar(message, isError: true);
       return;
     }
 
     setState(() => _authMessage = 'Authenticating...');
 
+    // Step 1: verify the fingerprint on-device
+    bool authenticated;
     try {
-      // Step 1: Authenticate with biometric
-      final authenticated = await _auth.authenticate(
+      authenticated = await _auth.authenticate(
         localizedReason: 'Please verify your identity to log in',
         options: const AuthenticationOptions(
           biometricOnly: true,
@@ -169,134 +168,48 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           stickyAuth: true,
         ),
       );
+    } on PlatformException catch (e) {
+      debugPrint('Biometric auth error: ${e.code} ${e.message}');
+      authenticated = false;
+    }
+    if (!mounted) return;
 
+    if (!authenticated) {
+      setState(() => _authMessage = 'Use fingerprint to log in');
+      _showSnackBar('Biometric authentication failed or canceled', isError: true);
+      return;
+    }
+
+    // Step 2: exchange the stored refresh token for new tokens
+    setState(() {
+      _authMessage = 'Refreshing session...';
+      isLoading = true;
+    });
+
+    try {
+      // ApiClient saves the new tokens itself
+      final data = await _authService.refreshToken();
+      if (data['user'] is Map<String, dynamic>) {
+        await LocalStorage.saveUser(data['user']);
+      }
+      if (data['hasLoan'] is bool) {
+        await LocalStorage.setHasLoan(data['hasLoan']);
+      }
       if (!mounted) return;
 
-      if (!authenticated) {
-        setState(() => _authMessage = 'Authentication failed or canceled');
-        _showSnackBar('Biometric authentication failed', isError: true);
-        return;
-      }
-
-      // Step 2: Biometric successful - now refresh tokens
-      setState(() {
-        _authMessage = 'Refreshing session...';
-        isLoading = true;
-      });
-
-      try {
-        debugPrint("🔐 Starting token refresh...");
-
-        // Call the refresh token endpoint via AuthService
-        final result = await _authService.refreshToken();
-         if (!mounted) return;
-
-        
-
-        // Check if we're still on this screen (not navigated away by onAuthenticationFailed)
-        if (!ModalRoute.of(context)!.isCurrent) {
-          return;
-        }
-
-        // Save the new tokens and user data
-        if (result['data'] != null) {
-          final data = result['data'];
-
-          // Use the GLOBAL tokenStorage from main.dart
-          final tokenStorage = TokenStorage();
-
-          // Check which token format the backend is using
-          final accessToken = data['accessToken'] ?? data['access_token'];
-          final refreshToken = data['refreshToken'] ?? data['refresh_token'];
-
-          debugPrint(
-            "💾 Saving tokens - access: ${accessToken != null}, refresh: ${refreshToken != null}",
-          );
-
-          if (accessToken != null && refreshToken != null) {
-            await tokenStorage.saveTokens(
-              accessToken: accessToken,
-              refreshToken: refreshToken,
-            );
-             if (!mounted) return;
-          } else if (accessToken != null) {
-            await tokenStorage.saveAccessToken(accessToken);
-             if (!mounted) return;
-          } else if (refreshToken != null) {
-            await tokenStorage.saveRefreshToken(refreshToken);
-             if (!mounted) return;
-          }
-
-          // Also save to LocalStorage for compatibility
-          if (accessToken != null) {
-            await LocalStorage.saveToken(accessToken);
-             if (!mounted) return;
-          }
-
-          // Update user data if present
-          if (data['user'] != null) {
-            await LocalStorage.saveUser(data['user']);
-             if (!mounted) return;
-          }
-
-          // Update loan status if present
-          if (data['hasLoan'] != null) {
-            await LocalStorage.setHasLoan(data['hasLoan']);
-             if (!mounted) return;
-          }
-
-          // Verify tokens were saved
-          final savedRefresh = await tokenStorage.getRefreshToken();
-           if (!mounted) return;
-          debugPrint(
-            "🔍 Verification - refresh token saved: ${savedRefresh != null}",
-          );
-        }
-
-        setState(() => _authMessage = 'Login successful!');
-        _showSnackBar('Login successful!');
-
-        // Brief feedback before navigation
-        await Future.delayed(const Duration(milliseconds: 350));
-         if (!mounted) return;
-       
-        context.go('/loan-redirect');
-      } catch (refreshError) {
-         if (!mounted) return;
-        
-
-        // Check if we're still on this screen
-        if (!ModalRoute.of(context)!.isCurrent) {
-          debugPrint("⚠️ User already navigated away, not showing error");
-          return;
-        }
-
-        setState(() {
-          _authMessage = 'Session expired. Please login with password';
-          isLoading = false;
-        });
-
-        _showSnackBar(
-          'Your session has expired. Please login again with your password',
-          isError: true,
-        );
-      }
+      _showSnackBar('Login successful!');
+      context.go('/loan-redirect');
+    } on SessionExpiredException catch (e) {
+      if (!mounted) return;
+      setState(() => _authMessage = 'Session expired. Please login with password');
+      _showSnackBar(e.message, isError: true);
     } catch (e) {
-       if (!mounted) return;
-      debugPrint('Biometric auth error: $e');
-      
-
-      setState(() {
-        _authMessage = 'Authentication error';
-        isLoading = false;
-      });
-
-      _showSnackBar('Authentication failed: $e', isError: true);
+      // Network/server problem - the session may still be valid, so let them retry
+      if (!mounted) return;
+      setState(() => _authMessage = 'Use fingerprint to log in');
+      _showSnackBar(e.toString(), isError: true);
     } finally {
-       
-      if (mounted) {
-        setState(() => isLoading = false);
-      }
+      if (mounted) setState(() => isLoading = false);
     }
   }
 
@@ -324,49 +237,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final data = result['data'];
     
 
-    final tokenStorage = TokenStorage();
-    
-    // Check both possible field names
-    final accessToken = data['accessToken'] ?? data['access_token'];
-    final refreshToken = data['refreshToken'] ?? data['refresh_token'];
-    
-    debugPrint("🔑 Access token found: ${accessToken != null}");
-    debugPrint("🔑 Refresh token found: ${refreshToken != null}");
-    
-    if (accessToken != null) {
-      debugPrint("🔑 Access token preview: ${accessToken.toString().substring(0, 20)}...");
-    }
-    if (refreshToken != null) {
-      debugPrint("🔑 Refresh token preview: ${refreshToken.toString().substring(0, 20)}...");
-    }
-    
-    if (accessToken != null && refreshToken != null) {
-      debugPrint("💾 Calling saveTokens...");
-      await tokenStorage.saveTokens(
-        accessToken: accessToken,
-        refreshToken: refreshToken,
-      );
-       if (!mounted) return;
-      debugPrint("✅ saveTokens completed");
-    } else {
-      debugPrint("❌ WARNING: Missing tokens in response!");
-      if (accessToken == null) debugPrint("   - accessToken is NULL");
-      if (refreshToken == null) debugPrint("   - refreshToken is NULL");
-    }
-    
-    // Verify tokens immediately after saving
-    debugPrint("🔍 Immediate verification:");
-    final verifyAccess = await tokenStorage.getAccessToken();
-     if (!mounted) return;
-    final verifyRefresh = await tokenStorage.getRefreshToken();
-     if (!mounted) return;
-    debugPrint("   Access: ${verifyAccess != null}");
-    debugPrint("   Refresh: ${verifyRefresh != null}");
-    
+    // Tokens are saved by ApiClient (only valid JWTs are kept)
     // Save other data
     await LocalStorage.saveUser(data['user']);
-     if (!mounted) return;
-    await LocalStorage.saveToken(accessToken);
      if (!mounted) return;
     await LocalStorage.setHasLoan(data['hasLoan']);
      if (!mounted) return;
@@ -377,6 +250,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     await LocalStorage.setPasswordCreated(true);
     if (!mounted) return;
     await LocalStorage.setPinCreated(true);
+    if (!mounted) return;
     
 
     String resultMessage = result["message"] ?? "Login successful";

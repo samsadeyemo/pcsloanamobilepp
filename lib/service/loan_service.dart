@@ -144,5 +144,20 @@ Future<Map<String, dynamic>> applyForLoan({
     return await apiClient.get('/transactions/$transactionId', includeXApiKey: true);
   }
 
-  
+  Future<Map<String, dynamic>> validateLoan({
+    required String loanId,
+    required String selfieImage,
+    required List<String> livelinessImages,
+  }) async {
+    return await apiClient.post(
+      '/loans/validate',
+      body: {
+        'loan_id': loanId,
+        'selfie_image': selfieImage,
+        'liveliness_images': livelinessImages,
+      },
+      includeXApiKey: true,
+    );
+  }
+
 }

@@ -7,12 +7,14 @@ class LoanReviewCard extends StatefulWidget {
   final String status; // 'review' | 'verification' | 'cancelled'
   final double? amountRequested;
   final String? tenure;
+  final String? loanId;
 
   const LoanReviewCard({
     super.key,
     required this.status,
     this.amountRequested,
     this.tenure,
+    this.loanId,
   });
 
   @override
@@ -64,6 +66,7 @@ class _LoanReviewCardState extends State<LoanReviewCard>
   }
 
   bool get isVerification => widget.status == 'verification';
+  bool get isDisbursement => widget.status == 'disbursement';
   bool get isCancelled => widget.status == 'cancelled';
 
   // Gradient colors based on status
@@ -72,6 +75,12 @@ class _LoanReviewCardState extends State<LoanReviewCard>
       return [
         const Color(0xffC0392B),
         const Color(0xffE74C3C),
+      ];
+    }
+    if (isDisbursement) {
+      return [
+        const Color(0xff7C70DF),
+        const Color(0xff7C70DF),
       ];
     }
     if (isVerification) {
@@ -112,16 +121,20 @@ class _LoanReviewCardState extends State<LoanReviewCard>
                     BoxShadow(
                       color: (isCancelled
                               ? const Color(0xffE74C3C)
-                              : const Color(0xff7C70DF))
+                              : isDisbursement
+                                  ? const Color(0xff27AE60)
+                                  : const Color(0xff7C70DF))
                           .withOpacity(_pulseAnimation.value * 0.25),
                       blurRadius: 20,
                       spreadRadius: 2,
                     ),
-                    if (isVerification || isCancelled)
+                    if (isVerification || isDisbursement || isCancelled)
                       BoxShadow(
                         color: (isCancelled
                                 ? const Color(0xffFC8181)
-                                : const Color(0xffA78BFA))
+                                : isDisbursement
+                                    ? const Color(0xff52BE80)
+                                    : const Color(0xffA78BFA))
                             .withOpacity(_pulseAnimation.value * 0.15),
                         blurRadius: 25,
                         spreadRadius: 1,
@@ -150,7 +163,7 @@ class _LoanReviewCardState extends State<LoanReviewCard>
                   _buildGridPattern(),
 
                   // Shimmer effect
-                  if (isVerification || isCancelled) _buildShimmerEffect(),
+                  if (isVerification || isDisbursement || isCancelled) _buildShimmerEffect(),
 
                   // Content
                   Padding(
@@ -247,7 +260,7 @@ class _LoanReviewCardState extends State<LoanReviewCard>
           child: Stack(
             alignment: Alignment.center,
             children: [
-              if (isVerification || isCancelled)
+              if (isVerification || isDisbursement || isCancelled)
                 AnimatedBuilder(
                   animation: _rotateController,
                   builder: (context, child) {
@@ -272,9 +285,11 @@ class _LoanReviewCardState extends State<LoanReviewCard>
                 child: Icon(
                   isCancelled
                       ? Icons.cancel_rounded
-                      : isVerification
-                          ? Icons.verified_rounded
-                          : Icons.pending_outlined,
+                      : isDisbursement
+                          ? Icons.account_balance_rounded
+                          : isVerification
+                              ? Icons.verified_rounded
+                              : Icons.pending_outlined,
                   color: Colors.white,
                   size: 22,
                 ),
@@ -313,9 +328,11 @@ class _LoanReviewCardState extends State<LoanReviewCard>
         Text(
           isCancelled
               ? 'CANCELLED'
-              : isVerification
+              : isDisbursement
                   ? 'APPROVED'
-                  : 'UNDER REVIEW',
+                  : isVerification
+                      ? 'APPROVED'
+                      : 'UNDER REVIEW',
           style: const TextStyle(
             fontSize: 10,
             fontWeight: FontWeight.w700,
@@ -397,9 +414,11 @@ class _LoanReviewCardState extends State<LoanReviewCard>
     }
 
     return Text(
-      isVerification
-          ? 'Complete your biometric verification to unlock your funds'
-          : 'Your application is being reviewed. We\'ll notify you shortly',
+      isDisbursement
+          ? 'Your loan has been approved and verified. Funds are being transferred to your account'
+          : isVerification
+              ? 'Complete your biometric verification to unlock your funds'
+              : 'Your application is being reviewed. We\'ll notify you shortly',
       style: TextStyle(
         fontSize: 12,
         color: Colors.white.withOpacity(0.9),
@@ -486,6 +505,33 @@ class _LoanReviewCardState extends State<LoanReviewCard>
       );
     }
 
+    if (isDisbursement) {
+      return Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.send_rounded, color: Colors.white, size: 14),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Transfer in progress — check your bank shortly',
+              style: TextStyle(
+                fontSize: 11,
+                color: Colors.white.withOpacity(0.85),
+                fontWeight: FontWeight.w600,
+                fontFamily: 'Inter',
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
     if (isVerification) {
       return AnimatedBuilder(
         animation: _pulseAnimation,
@@ -495,7 +541,9 @@ class _LoanReviewCardState extends State<LoanReviewCard>
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => SmileIDVerificationScreen(),
+                  builder: (context) => SmileIDVerificationScreen(
+                    loanId: widget.loanId ?? '',
+                  ),
                 ),
               );
             },

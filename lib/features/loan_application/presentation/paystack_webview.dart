@@ -32,6 +32,8 @@ class _PaystackWebViewScreenState extends State<PaystackWebViewScreen> {
             url.contains('verify'));
   }
 
+   
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

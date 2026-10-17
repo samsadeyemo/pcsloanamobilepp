@@ -36,9 +36,10 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
   String loanId = "";
 
   // ── status flags ─────────────────────────────────────────────────────────
-  bool showPending = false; // PENDING_APPROVAL
-  bool showKyc = false; // PENDING_DISBURSEMENT | PENDING_VERIFICATION
-  bool showCancelled = false; // CANCELLED | CLOSED
+  bool showPending = false;      // PENDING_APPROVAL
+  bool showVerification = false; // PENDING_VERIFICATION — must complete KYC
+  bool showDisbursement = false; // PENDING_DISBURSEMENT — verified, waiting for funds
+  bool showCancelled = false;    // CANCELLED | CLOSED
 
   String changeLoanTalk = "";
 
@@ -84,7 +85,8 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
 
       // Reset all flags
       showPending = false;
-      showKyc = false;
+      showVerification = false;
+      showDisbursement = false;
       showCancelled = false;
       changeLoanTalk = "";
 
@@ -94,9 +96,13 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
           changeLoanTalk = "Pending";
           break;
 
-        case 'PENDING_DISBURSEMENT':
         case 'PENDING_VERIFICATION':
-          showKyc = true;
+          showVerification = true;
+          changeLoanTalk = "Pending";
+          break;
+
+        case 'PENDING_DISBURSEMENT':
+          showDisbursement = true;
           changeLoanTalk = "Pending";
           break;
 
@@ -144,7 +150,7 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
 
   /// True when the full active loan card + quick actions + transactions
   /// should render (ACTIVE or APPROVED, no terminal/pending state)
-  bool get isActiveLoan => !showPending && !showKyc && !showCancelled;
+  bool get isActiveLoan => !showPending && !showVerification && !showDisbursement && !showCancelled;
 
   @override
   Widget build(BuildContext context) {
@@ -186,8 +192,11 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
                   // ── PENDING_APPROVAL ────────────────────────────────────
                   if (showPending) LoanReviewCard(status: 'review'),
 
-                  // ── PENDING_DISBURSEMENT | PENDING_VERIFICATION ─────────
-                  if (showKyc) LoanReviewCard(status: 'verification'),
+                  // ── PENDING_VERIFICATION ───────────────────────────────
+                  if (showVerification) LoanReviewCard(status: 'verification', loanId: loanId),
+
+                  // ── PENDING_DISBURSEMENT ────────────────────────────────
+                  if (showDisbursement) LoanReviewCard(status: 'disbursement', loanId: loanId),
 
                   // ── CANCELLED | CLOSED ──────────────────────────────────
                   if (showCancelled)
@@ -204,11 +213,11 @@ class _ActiveLoanScreen extends ConsumerState<ActiveLoanScreen> {
                     ),
 
                   // ── PENDING states — big purple pending card ─────────────
-                  if (showPending || showKyc)
+                  if (showPending || showVerification || showDisbursement)
                     AnimatedPendingLoan(
                       amountRequested: amountRequested,
                       tenure: tenure,
-                      isKycIncomplete: showKyc,
+                      isKycIncomplete: showVerification,
                     ),
 
                   // ── ACTIVE | APPROVED — full loan card ──────────────────

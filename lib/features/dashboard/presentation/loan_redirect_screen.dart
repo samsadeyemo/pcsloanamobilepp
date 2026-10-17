@@ -12,7 +12,7 @@ class LoanRedirectScreen extends ConsumerStatefulWidget {
 }
 
 class _LoanRedirectScreenState extends ConsumerState<LoanRedirectScreen> {
-  bool _fetching = false;
+  String? _error;
   final _loanService = LoanService();
 
   @override
@@ -22,11 +22,13 @@ class _LoanRedirectScreenState extends ConsumerState<LoanRedirectScreen> {
   }
 
   Future<void> _checkLoanStatus() async {
-    setState(() => _fetching = true);
+    setState(() => _error = null);
 
     try {
       final dashboardData = await _loanService.getUserDashboard();
       if (!mounted) return;
+      // Session expired: ApiClient is already showing the login prompt
+      if (dashboardData['status'] == 'unauthenticated') return;
       final hasActiveLoan = dashboardData['data']['hasloans'] as bool? ?? false;
       
 
@@ -59,7 +61,8 @@ class _LoanRedirectScreenState extends ConsumerState<LoanRedirectScreen> {
       if (!mounted) return;
 
       if (hasLoan) {
-        context.go('/loan-redirect');
+        // The active-loan screen needs the dashboard data, so let them retry
+        setState(() => _error = e.toString());
       } else {
         context.go("/no-loan");
       }
@@ -68,8 +71,48 @@ class _LoanRedirectScreenState extends ConsumerState<LoanRedirectScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
       backgroundColor: Colors.white,
-      body: Center(child: CircularProgressIndicator(color: Color(0xff7C70DF),)));
+      body: Center(
+        child: _error == null
+            ? const CircularProgressIndicator(color: Color(0xff7C70DF))
+            : Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.cloud_off, size: 48, color: Color(0xff7C70DF)),
+                    const SizedBox(height: 16),
+                    const Text(
+                      "Couldn't load your loan details",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xff0F2D62),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      _error!,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 14, color: Color(0xff4B5563)),
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: _checkLoanStatus,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xff7C70DF),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                      ),
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              ),
+      ),
+    );
   }
 }

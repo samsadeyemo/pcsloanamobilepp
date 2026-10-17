@@ -46,6 +46,11 @@ class _NoLoanScreen extends ConsumerState<NoLoanScreen> {
   }
 
 
+  // Re-runs the loan check: lands on /active-loan if a loan now exists
+  Future<void> _handleRefresh() async {
+    context.go('/loan-redirect');
+  }
+
   @override
   Widget build(BuildContext context) {
     
@@ -67,7 +72,13 @@ class _NoLoanScreen extends ConsumerState<NoLoanScreen> {
         ),
         bottomNavigationBar: CustomBottomNavBar(currentIndex: 0),
         body: SafeArea(
+          child: RefreshIndicator(
+          onRefresh: _handleRefresh,
+          color: const Color(0xff7C70DF),
+          backgroundColor: Colors.white,
           child: SingleChildScrollView(
+            // Lets the pull gesture work even when content fits the screen
+            physics: const AlwaysScrollableScrollPhysics(),
             child: Padding(
               padding: const EdgeInsets.all(20),
               child: Column(
@@ -434,6 +445,7 @@ class _NoLoanScreen extends ConsumerState<NoLoanScreen> {
                 ],
               ),
             ),
+          ),
           ),
         ),
       );

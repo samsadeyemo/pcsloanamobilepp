@@ -45,7 +45,7 @@ Future<void> _createPin() async {
 
     final data = await LocalStorage.getUser();
     if (!mounted) return;
-    final employeeId = data?['user']?['employee_id'] ?? '';
+    final employeeId = data?['employee_id'] ?? '';
     if (employeeId == '') {
       _showSnackBar(
         "We couldn't find your registration details. Please sign up again.",

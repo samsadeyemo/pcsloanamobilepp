@@ -48,7 +48,7 @@ class _VerifyPhoneScreenState extends ConsumerState<VerifyPhoneScreen> {
   Future<void> _loadPhoneNumberOnce() async {
     final data = await LocalStorage.getUser();
      if (!mounted) return;
-    final phoneNumber = data?['user']?['phone'] ?? '';
+    final phoneNumber = data?['phone'] ?? '';
 
     
     setState(() {
@@ -96,7 +96,7 @@ class _VerifyPhoneScreenState extends ConsumerState<VerifyPhoneScreen> {
   Future<bool> _attemptResend() async {
     final data = await LocalStorage.getUser();
     if (!mounted) return false;
-    final employeeId = data?['user']?['employee_id'] ?? '';
+    final employeeId = data?['employee_id'] ?? '';
     if (employeeId == "") {
       _showSnackBar(
         "We couldn't find your registration details. Please sign up again.",

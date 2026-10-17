@@ -10,7 +10,7 @@ import 'package:pcsloan/features/network/network_guard.dart';
 import 'package:pcsloan/session/session_manager.dart';
 import 'app/routes/app_router.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:pcsloan/utils/local_storage.dart';
 
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -44,7 +44,7 @@ Future<void> _main() async {
     dotenv.testLoad(fileInput: '');
   }
 
-  final sharedPreferences = await SharedPreferences.getInstance();
+  await LocalStorage.migrate();
 
   SessionManager().init();
   final config = AppConfig.fromEnv();
@@ -52,9 +52,7 @@ Future<void> _main() async {
   apiClient = ApiClient(
     appConfig: config,
     tokenStorage: tokenStorage,
-    onAuthenticationFailed: () {
-      router.go('/signin'); // ✅ use your GoRouter instance directly
-    },
+    onAuthenticationFailed: () => SessionManager().showSessionExpired(),
   );
 
   runApp(

@@ -42,9 +42,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   Future<void> _loadSavedPhoneNumber() async {
     try {
-      final data = await LocalStorage.getUser();
+      final rawPhone = await LocalStorage.getLastPhone();
       if (!mounted) return;
-      final rawPhone = data?['phone'];
 
       if (rawPhone != null && rawPhone.isNotEmpty) {
         String formattedPhone = _formatPhoneForDisplay(rawPhone);
@@ -228,30 +227,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     final result = await _authService.loginUser(
       phone: formattedPhone,
-      password: _passwordController.text.trim(),
+      // Never trim: the password is created exactly as typed
+      password: _passwordController.text,
     );
     if (!mounted) return;
 
-    
-
-    final data = result['data'];
-    
-
     // Tokens are saved by ApiClient (only valid JWTs are kept)
-    // Save other data
+    final data = result['data'] as Map<String, dynamic>? ?? {};
     await LocalStorage.saveUser(data['user']);
-     if (!mounted) return;
-    await LocalStorage.setHasLoan(data['hasLoan']);
-     if (!mounted) return;
+    await LocalStorage.setHasLoan(data['hasLoan'] == true);
     await LocalStorage.setHasLoginBefore(true);
-    if (!mounted) return;
+    // A successful login means sign-up is complete on this device too
+    await LocalStorage.setAccountCreated(true);
     await LocalStorage.setPhoneVerified(true);
-    if (!mounted) return; 
     await LocalStorage.setPasswordCreated(true);
-    if (!mounted) return;
     await LocalStorage.setPinCreated(true);
     if (!mounted) return;
-    
 
     String resultMessage = result["message"] ?? "Login successful";
     _showSnackBar(resultMessage, isError: false);
@@ -271,8 +262,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   String _normalizePhoneNumber(String input) {
     String phone = input.replaceAll(RegExp(r'\s+'), '');
 
+    // Backend expects 234XXXXXXXXXX (no '+'), same as sign-up
     if (phone.startsWith('+234')) {
-      return phone;
+      return phone.substring(1);
     } else if (phone.startsWith('234')) {
       return phone;
     } else if (phone.startsWith('0')) {

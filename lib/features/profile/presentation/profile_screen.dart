@@ -102,8 +102,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   text: "Logout",
                   onPressed: () async {
                     if (!await LogoutConfirmationDialog.show(context)) return;
-                    await LocalStorage.setBiometricEnabled(false);
+                    // Wipes tokens + personal data; keeps the phone number
                     await tokenStorage.clearTokens();
+                    await LocalStorage.clearOnLogout();
                     if (!context.mounted) return;
                     context.go("/signin");
                   },

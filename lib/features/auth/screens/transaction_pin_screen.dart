@@ -33,36 +33,46 @@ void _showSnackBar(String message, {bool isError = false}) {
 
 Future<void> _createPin() async {
     FocusScope.of(context).unfocus();
+
+    if (pin.length != 4 || confirmPin.length != 4) {
+      _showSnackBar("Please enter and confirm your 4-digit PIN", isError: true);
+      return;
+    }
+    if (pin != confirmPin) {
+      _showSnackBar("Pins do not match", isError: true);
+      return;
+    }
+
     final data = await LocalStorage.getUser();
     if (!mounted) return;
     final employeeId = data?['user']?['employee_id'] ?? '';
-    if (employeeId == '') return;
-    if (pin == confirmPin) {
-        setState(() => _verifying = true);
-        try{
-          final result = await _authService.createTransactionPin(
-            employeeId: employeeId,
-            pin: pin,
-            confirmPin: confirmPin,
-          );
-          if (!mounted) return;
-          String resultMessage =
-              result["message"] ?? "Transaction PIN created successfully";
-          _showSnackBar(resultMessage, isError: false);
-          await LocalStorage.setPinCreated(true);
-           if (!mounted) return;
-          setState(() => _verifying = false);
-          context.go("/account-created-screen");
-        } catch (e) {
-          if (!mounted) return;
-         _showSnackBar(
-          e.toString().replaceFirst('Exception: ', ''),
-          isError: true,
-        );
-          setState(() => _verifying = false); 
-        }
-    }else {
-      _showSnackBar("Pins do not match", isError: true);
+    if (employeeId == '') {
+      _showSnackBar(
+        "We couldn't find your registration details. Please sign up again.",
+        isError: true,
+      );
+      return;
+    }
+
+    setState(() => _verifying = true);
+    try {
+      final result = await _authService.createTransactionPin(
+        employeeId: employeeId,
+        pin: pin,
+        confirmPin: confirmPin,
+      );
+      if (!mounted) return;
+      await LocalStorage.setPinCreated(true);
+      if (!mounted) return;
+      _showSnackBar(
+        result["message"] ?? "Transaction PIN created successfully",
+      );
+      context.go("/account-created-screen");
+    } catch (e) {
+      if (!mounted) return;
+      _showSnackBar(e.toString().replaceFirst('Exception: ', ''), isError: true);
+    } finally {
+      if (mounted) setState(() => _verifying = false);
     }
 }
 
@@ -126,11 +136,7 @@ Future<void> _createPin() async {
                 child: PinCodeFields(
                   length: 4,
                   boxSize: 60,
-                  onCompleted: (code) {
-                    pin = code;
-                    // send to backend / verify
-                    // print('User entered code: $code');
-                  },
+                  onChanged: (code) => pin = code,
                 ),
               ),
               const SizedBox(height: 24),
@@ -150,11 +156,7 @@ Future<void> _createPin() async {
                 child: PinCodeFields(
                   length: 4,
                   boxSize: 60,
-                  onCompleted: (code) {
-                    confirmPin = code;
-                    // send to backend / verify
-                    // print('User entered code: $code');
-                  },
+                  onChanged: (code) => confirmPin = code,
                 ),
               ),
               const SizedBox(height: 24),

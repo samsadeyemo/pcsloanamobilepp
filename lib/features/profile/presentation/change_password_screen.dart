@@ -74,10 +74,6 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
     setState(() => _verifying = true);
 
     try {
-      // Simulate API call delay
-      print(oldPassword);
-      print(newPassword);
-      print(confirmPassword);
       final result = await _authService.editUserPassword(
         oldPassword: oldPassword,
         newPassword: newPassword,

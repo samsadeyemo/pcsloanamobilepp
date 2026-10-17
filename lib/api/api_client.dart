@@ -541,7 +541,7 @@ class ApiClient {
       final url = _buildUrl(path);
       final headers =
           _buildHeaders(token: token, includeXApiKey: includeXApiKey);
-      print('POST → $url | body: $body');
+      print('POST → $url');
       return await http
           .post(url, headers: headers, body: jsonEncode(body ?? {}))
           .timeout(const Duration(seconds: 60));

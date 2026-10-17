@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pcsloan/api/api_client.dart';
@@ -15,7 +17,21 @@ final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 final tokenStorage = TokenStorage();
 late final ApiClient apiClient;
 
-Future<void> main() async {
+void main() {
+  if (kReleaseMode) {
+    // Logs end up in logcat even in release; they carry personal data,
+    // so silence print/debugPrint entirely for production builds.
+    debugPrint = (String? message, {int? wrapWidth}) {};
+    runZoned(
+      _main,
+      zoneSpecification: ZoneSpecification(print: (_, __, ___, ____) {}),
+    );
+  } else {
+    _main();
+  }
+}
+
+Future<void> _main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Try to load .env, but don't fail if it doesn't exist

@@ -61,7 +61,6 @@ class _SignUpScreenState extends State<SignUpScreen>
     try {
       final data = await _authService.fetchEmployee(_staffIdController.text);
       if (!mounted) return;
-      debugPrint('Fetched employee data: $data');
       setState(() {
         _employeeData = data['data'];
         _firstNameController.text =
@@ -96,8 +95,6 @@ class _SignUpScreenState extends State<SignUpScreen>
     try {
       final rawPhone = _phoneController.text.trim();
       final formattedPhone = '234${rawPhone}';
-      print('Creating account with phone: $formattedPhone');
-      print('Other details - Email: ${_emailController.text}, First Name: ${_firstNameController.text}, Last Name: ${_lastNameController.text}, BVN: ${_bvnController.text}, Employee ID: ${_staffIdController.text}');
       final result = await _authService.registerUser(
         email: _emailController.text.trim(),
         firstName: _firstNameController.text.trim(),
@@ -150,8 +147,6 @@ class _SignUpScreenState extends State<SignUpScreen>
     } else if (phone.startsWith('234')) {
       phone = phone.substring(3);
     }
-
-    print('Normalizing phone number: "$raw" -> "$phone"');
 
     return phone;
   }

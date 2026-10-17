@@ -14,6 +14,7 @@ class PinCodeFields extends StatefulWidget {
     this.textStyle,
     this.boxDecoration,
     this.onCompleted,
+    this.onChanged,
     this.autoFocus = true,
   });
 
@@ -35,14 +36,18 @@ class PinCodeFields extends StatefulWidget {
   /// Called when user fills all boxes
   final ValueChanged<String>? onCompleted;
 
+  /// Called on every edit with the current (possibly partial) code
+  final ValueChanged<String>? onChanged;
+
   /// Whether to autofocus the first field
   final bool autoFocus;
 
   @override
-  State<PinCodeFields> createState() => _PinCodeFieldsState();
+  State<PinCodeFields> createState() => PinCodeFieldsState();
 }
 
-class _PinCodeFieldsState extends State<PinCodeFields> {
+/// Public so a parent can hold a `GlobalKey<PinCodeFieldsState>` and call [clear].
+class PinCodeFieldsState extends State<PinCodeFields> {
   late final List<TextEditingController> _controllers;
   late final List<FocusNode> _focusNodes;
 
@@ -52,9 +57,18 @@ class _PinCodeFieldsState extends State<PinCodeFields> {
     _controllers =
         List.generate(widget.length, (_) => TextEditingController());
     _focusNodes = List.generate(widget.length, (_) => FocusNode());
+  }
 
-    // Optional: listen for paste events on the first field (not required,
-    // we handle paste in each field in _handlePaste).
+  String get _code => _controllers.map((c) => c.text.trim()).join();
+
+  /// Empties every box and puts focus back on the first one.
+  void clear() {
+    for (final c in _controllers) {
+      c.clear();
+    }
+    _focusNodes.first.requestFocus();
+    widget.onChanged?.call('');
+    setState(() {});
   }
 
   @override
@@ -69,10 +83,18 @@ class _PinCodeFieldsState extends State<PinCodeFields> {
   ///  - deletion to empty: move focus backward
   ///  - paste (value.length > 1): distribute characters across boxes starting at index
   void _onChanged(String value, int index) {
-    // If user pasted multiple characters into one field, distribute them
     if (value.length > 1) {
-      _handlePaste(value, index);
-      return;
+      // Typing into an already-filled box gives 2 chars: keep the new one.
+      // Anything longer is a paste / SMS autofill: distribute it.
+      if (value.length == 2) {
+        // Cursor sits right after the character that was just typed.
+        final typedAt = _controllers[index].selection.baseOffset - 1;
+        value = value[typedAt.clamp(0, 1)];
+        _controllers[index].text = value;
+      } else {
+        _handlePaste(value, index);
+        return;
+      }
     }
 
     // Normal single-character input:
@@ -121,7 +143,8 @@ class _PinCodeFieldsState extends State<PinCodeFields> {
 
   /// Join controller texts and call onCompleted if all boxes are filled.
   void _notifyIfComplete() {
-    final code = _controllers.map((c) => c.text.trim()).join();
+    final code = _code;
+    widget.onChanged?.call(code);
     final allFilled = _controllers.every((c) => c.text.trim().isNotEmpty);
 
     if (allFilled && code.length == widget.length) {
@@ -155,8 +178,9 @@ class _PinCodeFieldsState extends State<PinCodeFields> {
             focusNode: _focusNodes[index],
             autofocus: widget.autoFocus && index == 0,
             textAlign: TextAlign.center,
-            maxLength: 1,
             keyboardType: TextInputType.number,
+            autofillHints:
+                index == 0 ? const [AutofillHints.oneTimeCode] : null,
             style: widget.textStyle ??
                 const TextStyle(
                   fontSize: 18,
@@ -166,10 +190,9 @@ class _PinCodeFieldsState extends State<PinCodeFields> {
               counterText: '',
               border: InputBorder.none,
             ),
-            inputFormatters: [
-              FilteringTextInputFormatter.digitsOnly,
-              LengthLimitingTextInputFormatter(1),
-            ],
+            // No 1-char limit here, otherwise paste/autofill can't arrive;
+            // _onChanged trims each box back to a single digit.
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
             onChanged: (val) => _onChanged(val, index),
             onSubmitted: (_) {
               // If user taps done on keyboard, try notify if complete

@@ -20,6 +20,7 @@ class _VerifyPhoneScreenState extends ConsumerState<VerifyPhoneScreen> {
   bool _verifying = false;
   String _otpCode = "";
   final _authService = AuthService();
+  final _otpKey = GlobalKey<PinCodeFieldsState>();
 
   // Countdown control
   final GlobalKey<OtpCountdownState> _countdownKey =
@@ -88,17 +89,21 @@ class _VerifyPhoneScreenState extends ConsumerState<VerifyPhoneScreen> {
   }
 
   void _clearPinCodeFields() {
-    // Force rebuild of PinCodeFields by updating state
-    setState(() {
-      _otpCode = "";
-    });
+    _otpCode = "";
+    _otpKey.currentState?.clear();
   }
 
   Future<bool> _attemptResend() async {
     final data = await LocalStorage.getUser();
     if (!mounted) return false;
     final employeeId = data?['user']?['employee_id'] ?? '';
-    if (employeeId == "") return false;
+    if (employeeId == "") {
+      _showSnackBar(
+        "We couldn't find your registration details. Please sign up again.",
+        isError: true,
+      );
+      return false;
+    }
     try {
       final result = await _authService.resendVerificationCode(employeeId);
       if (!mounted) return false;
@@ -204,6 +209,7 @@ class _VerifyPhoneScreenState extends ConsumerState<VerifyPhoneScreen> {
                   child: FocusScope(
                     canRequestFocus: !_verifying,
                     child: PinCodeFields(
+                      key: _otpKey,
                       length: 6,
                       boxSize: 45,
                       onCompleted: (code) {

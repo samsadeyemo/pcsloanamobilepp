@@ -5,6 +5,7 @@ import 'package:pcsloan/auth_storage/token_storage.dart';
 import 'package:pcsloan/common/widgets/custom_bottom_nav_bar.dart';
 import 'package:pcsloan/common/widgets/custom_loan_app_bar.dart';
 import 'package:pcsloan/common/widgets/gradient_actions_icon_button.dart';
+import 'package:pcsloan/common/widgets/logout_confirmation_dialog.dart';
 import 'package:pcsloan/common/widgets/reuseable_profile_card.dart';
 import 'package:pcsloan/common/widgets/settings_menu.dart';
 import 'package:pcsloan/common/widgets/support_section.dart';
@@ -99,9 +100,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 GradientIconActionButton(
                   icon: Icons.exit_to_app,
                   text: "Logout",
-                  onPressed: () {
-                    LocalStorage.setBiometricEnabled(false);
-                    tokenStorage.clearTokens();
+                  onPressed: () async {
+                    if (!await LogoutConfirmationDialog.show(context)) return;
+                    await LocalStorage.setBiometricEnabled(false);
+                    await tokenStorage.clearTokens();
+                    if (!context.mounted) return;
                     context.go("/signin");
                   },
                   size: 16,
